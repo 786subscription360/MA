@@ -12,6 +12,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
+    <!-- Firebase SDK (Compat version for drop-in single file integration) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --primary-bg: #f8fafc;
@@ -20,7 +24,6 @@
             --card-bg: #ffffff;
             --danger: #ef4444;
             --success: #10b981;
-            /* Ultra-smooth Professional Bezier Curve */
             --smooth: cubic-bezier(0.16, 1, 0.3, 1);
             --transition: all 0.6s var(--smooth);
         }
@@ -34,7 +37,6 @@
             margin: 0;
         }
 
-        /* --- NEW TOP LINKS SECTION --- */
         .top-nav-links {
             position: absolute;
             top: 15px;
@@ -70,11 +72,10 @@
             box-shadow: 0 0 10px rgba(79, 209, 197, 0.4);
         }
 
-        /* --- TIGHTER HEADER --- */
         .header {
             background: var(--header-grade);
             color: white;
-            padding: 40px 20px 60px; /* Adjusted for top links */
+            padding: 40px 20px 60px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             position: relative;
@@ -90,7 +91,6 @@
             animation: fadeInDown 0.8s var(--smooth);
         }
 
-        /* --- MODERNIZED ADMIN CONTROLS --- */
         .admin-controls {
             position: absolute;
             top: 20px;
@@ -127,7 +127,6 @@
             color: var(--accent);
         }
 
-        /* --- SEARCH CONTAINER --- */
         .search-container {
             max-width: 550px;
             margin: -40px auto 20px;
@@ -202,12 +201,8 @@
             transform: scale(1.05);
         }
 
-        .admin-mode-active .cat-btn {
-            cursor: grab;
-        }
-        .admin-mode-active .cat-btn:active {
-            cursor: grabbing;
-        }
+        .admin-mode-active .cat-btn { cursor: grab; }
+        .admin-mode-active .cat-btn:active { cursor: grabbing; }
 
         .card-item {
             opacity: 0;
@@ -251,9 +246,7 @@
             border: 1px dashed var(--danger) !important;
         }
         
-        .card-box.no-link i {
-            color: var(--danger) !important;
-        }
+        .card-box.no-link i { color: var(--danger) !important; }
 
         .missing-badge {
             position: absolute;
@@ -293,9 +286,6 @@
             margin-bottom: 2px;
         }
 
-        .path-display { display: none; }
-
-        /* --- MODERNIZED ACTION BUTTONS & INDICATORS --- */
         .card-actions {
             position: absolute;
             top: 10px;
@@ -374,8 +364,28 @@
             border-style: solid;
             background: rgba(248, 250, 252, 0.95);
         }
+        
+        /* Merged Extra Links Styling */
+        .extra-badge {
+            font-size: 8px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.95);
+            color: var(--accent);
+            border: 1px solid rgba(226,232,240,0.8);
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .extra-badge:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
 
-        /* --- MODAL STYLES --- */
         .modal-content {
             border-radius: 28px;
             border: none;
@@ -475,95 +485,49 @@
 <body>
 
 <script>
-    // --- DATA INITIALIZATION PRE-LOADER ---
-    (function initPreloadData() {
-        if (!localStorage.getItem('v11_base64_applied_v1')) {
-            const preloadedData = {
-                modules: [
-                    {"id":"img_1","title":"Mobile Token","icon":"fa-ticket","category":["General"]},
-                    {"id":"img_2","title":"Mass Attendance","icon":"fa-users-rectangle","category":["Attendance"]},
-                    {"id":"mod_1775058196858","title":"Format","icon":"fa-book","category":["Daily"]},
-                    {"id":"img_4","title":"Jubilee Claims","icon":"fa-file-invoice-dollar","category":["Medical"]},
-                    {"id":"img_8","title":"Payroll calculator","icon":"fa-calculator","category":["Payroll"]},
-                    {"id":"mod_1775066691707","title":"OPD","icon":"fa-medkit","category":["Daily","Medical","Closing"]},
-                    {"id":"img_3","title":"Tardiness","icon":"fa-hand-holding-usd","category":["Monthly","Closing"]},
-                    {"id":"img_12","title":"Overtime & CPL","icon":"fa-money-bill-trend-up","category":["Monthly","Closing"]},
-                    {"id":"mod_1775994309020","title":"Ramzan OT","icon":"fa-money-bill-trend-up","category":["Daily"]},
-                    {"id":"mod_1775234022936","title":"Tardiness Reimbursment","icon":"fa-refresh","category":["Monthly","Daily","Closing"]},
-                    {"id":"img_5","title":"Continous Absent Reports","icon":"fa-calendar-xmark","category":["Weekly"]},
-                    {"id":"img_7","title":"Daily Dispatch Record","icon":"fa-truck-ramp-box","category":["Daily","Transport"]},
-                    {"id":"img_13","title":"Feul efficiency report","icon":"fa-gas-pump","category":["Transport","Daily"]},
-                    {"id":"img_9","title":"Pending Overtime CPL","icon":"fa-clock","category":["Monthly"]},
-                    {"id":"img_10","title":"Roster Compliance","icon":"fa-check-double","category":["Weekly","Closing"]},
-                    {"id":"img_11","title":"Tardiness Reimbursments","icon":"fa-hand-holding-dollar","category":["Monthly"]},
-                    {"id":"img_14","title":"Rooster Receiveing","icon":"fa-box-open","category":["General","Closing"]},
-                    {"id":"mod_1775214058378","title":"PDF Extractor","icon":"fa-file-export","category":["Daily"]},
-                    {"id":"mod_1775943055748","title":"Jds","icon":"fa-book","category":["Daily"]},
-                    {"id":"mod_1776014072867","title":"Employee Details","icon":"fa-cube","category":["Daily"]},
-                    {"id":"mod_1776205713646","title":"Returnable GatePass","icon":"fa-clock-rotate-left","category":["Weekly"]},
-                    {"id":"mod_1780707431229","title":"Manual Attendance Sheet","icon":"fa-user-check","category":["Daily"]}
-                ],
-                categories: ["Daily","Weekly","Monthly","Medical","Transport","Attendance","Payroll","General","Closing"],
-                paths: {
-                    "img_1": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Mobile Token Format.htm",
-                    "img_2": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Mass Attendance.html",
-                    "mod_1775058196858": "D:\\Formats",
-                    "img_4": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Jubilee Claim.html",
-                    "img_8": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Payroll Calculator.html",
-                    "mod_1775066691707": "D:\\Personal\\Muhammad Rizwan ( Working Folder )\\OPD\\OPD - Jun 26 - Jul 27.xlsx",
-                    "img_3": "D:\\Time Office Working\\Tardiness Reports\\2026\\Tardiness Report June-2026\\GPAK & PPAK Tardiness Absentisem Report June-2026.xlsx",
-                    "img_12": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing July-2026\\Overtime & CPL July-2026 .xlsx",
-                    "mod_1775994309020": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing Mar-2026\\Ramadan Standard Hours Mar-2026\\Ramadan Standard Hours O.T and CPL .xlsx",
-                    "mod_1775234022936": "D:\\Time Office Working\\Tardiness Reimbursments\\Tardiness Reimbusement July-2026\\Tardiness Reimbursment July-2026.xlsx",
-                    "img_13": "C:\\Users\\time.office\\Desktop\\Fuel Efficiency Report\\(25-Dec-2025 to onward) Fuel Efficiancy Report - .xlsx",
-                    "img_10": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Rooster.html",
-                    "mod_1775214058378": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\PDF Editer.html",
-                    "mod_1775943055748": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Time Office JDs.html",
-                    "mod_1776014072867": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Employee\\employee details.html",
-                    "mod_1776205713646": "C:\\Users\\time.office\\Desktop\\Gate Passes\\Returnable Gate Pass Detail.xlsx",
-                    "mod_1780707431229": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Manual Attendnace.html"
-                },
-                extras: {
-                    "img_3": [
-                        {"name": "GPAK", "path": "D:\\Time Office Working\\Tardiness Reports\\2026\\Tardiness Report June-2026\\GPAK Tardiness Highlighted Sheet.pdf"},
-                        {"name": "PPAK", "path": "D:\\Time Office Working\\Tardiness Reports\\2026\\Tardiness Report June-2026\\PPAK Tardiness Highlighted Sheet.pdf"}
-                    ],
-                    "img_12": [
-                        {"name": "GPAK & PPAK", "path": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing July-2026\\All Unit Attendnace Sheet 16-Jun to 15-July-26.pdf"}
-                    ],
-                    "mod_1775994309020": [
-                        {"name": "GPAK pdf", "path": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing Mar-2026\\Ramadan Standard Hours Mar-2026\\GPAK"},
-                        {"name": "PPAK pdf", "path": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing Mar-2026\\Ramadan Standard Hours Mar-2026\\PPAK"}
-                    ],
-                    "mod_1775234022936": [
-                        {"name": "May-Reimbursed", "path": "D:\\Time Office Working\\Tardiness Reimbursments\\Tardiness Reimbusement May-2026\\Tardiness Reimbursment May-2026.xlsx"}
-                    ]
-                }
-            };
+    // 🔥 1. REPLACE THIS WITH YOUR FIREBASE CONFIGURATION 🔥
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-            localStorage.setItem('v11_modules', JSON.stringify(preloadedData.modules));
-            localStorage.setItem('v11_cats', JSON.stringify(preloadedData.categories));
-            
-            for(let id in preloadedData.paths) {
-                if(preloadedData.paths[id] && preloadedData.paths[id] !== "null") {
-                    localStorage.setItem(`v11_path_${id}`, preloadedData.paths[id]);
-                } else {
-                    localStorage.setItem(`v11_path_${id}`, "");
-                }
-            }
-            
-            for(let id in preloadedData.extras) {
-                if(preloadedData.extras[id] && preloadedData.extras[id].length > 0) {
-                    localStorage.setItem(`v11_extras_${id}`, JSON.stringify(preloadedData.extras[id]));
-                }
-            }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-            localStorage.setItem('v11_base64_applied_v1', 'true');
-        }
-    })();
-</script>
+    // 🔥 2. CLOUD STORE ENGINE (Replaces localStorage) 🔥
+    let syncTimeout = null;
+    const cloudStore = {
+        data: {},
+        get: function(key) { return this.data[key] || null; },
+        set: function(key, val, sync = true) { 
+            this.data[key] = val; 
+            if(sync) triggerCloudSync(); 
+        },
+        removeItem: function(key) {
+            delete this.data[key];
+            triggerCloudSync();
+        },
+        clear: function() {
+            this.data = {};
+            triggerCloudSync();
+        },
+        key: function(i) { return Object.keys(this.data)[i]; },
+        get length() { return Object.keys(this.data).length; }
+    };
 
-<script>
+    function triggerCloudSync() {
+        if(syncTimeout) clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => {
+            db.collection('dashboardConfig').doc('mainData').set({ store: cloudStore.data })
+              .then(() => console.log('✅ Dashboard synced to cloud successfully.'))
+              .catch(e => console.error('❌ Cloud sync failed:', e));
+        }, 1500); 
+    }
+
     const windows = {};
     function smartOpen(url, winName) {
         if (windows[winName] && !windows[winName].closed) {
@@ -653,7 +617,7 @@
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-bold text-secondary small">Resource Link (Full Path)</label>
+                        <label class="form-label fw-bold text-secondary small">Resource Link (Full Path/URL)</label>
                         <div class="path-input-group">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="badge bg-white text-dark border small fw-normal">Current Location</span>
@@ -661,8 +625,16 @@
                                     <i class="fa fa-folder-open me-1"></i> Browse File
                                 </button>
                             </div>
-                            <textarea id="editPathInput" rows="2" placeholder="C:\Users\Desktop\file.xlsx" oninput="this.value = this.value.replace(/[&quot;]/g, '')"></textarea>
+                            <textarea id="editPathInput" rows="2" placeholder="https://docs.google.com/..." oninput="this.value = this.value.replace(/[&quot;]/g, '')"></textarea>
                         </div>
+                    </div>
+                    
+                    <div class="col-12 mt-3 pt-3 border-top" id="multiLinkContainer">
+                        <label class="form-label fw-bold text-secondary small">Additional Links & Names</label>
+                        <div id="extraLinksList" class="d-flex flex-column gap-2"></div>
+                        <button class="btn btn-outline-primary btn-sm mt-2 rounded-pill" onclick="addExtraLinkRow()" style="font-size:10px">
+                            <i class="fa fa-plus me-1"></i> Add More Links
+                        </button>
                     </div>
                 </div>
 
@@ -707,13 +679,11 @@
     let isAddingNew = false;
     let activeCategories = ["All"]; 
     let selectedModalTags = [];
-
-    // Sub-Modules State Management
     let currentParentModule = null; 
     let mainModulesCache = []; 
 
-    let categories = JSON.parse(localStorage.getItem('v11_cats')) || ["General"];
-    let modules = JSON.parse(localStorage.getItem('v11_modules')) || [];
+    let categories = ["General"];
+    let modules = [];
 
     const premiumAlert = (options) => {
         return Swal.fire({
@@ -724,6 +694,49 @@
             cancelButtonColor: '#94a3b8',
         });
     }
+
+    // App Initialization via Firebase
+    async function initApp() {
+        Swal.fire({ title: 'Connecting to Cloud...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        
+        try {
+            const docSnap = await db.collection('dashboardConfig').doc('mainData').get();
+            
+            if (docSnap.exists) {
+                cloudStore.data = docSnap.data().store || {};
+            }
+            
+            // Apply default preload if empty
+            if (!cloudStore.get('v11_base64_applied_v1')) {
+                const preloadedData = {
+                    modules: [
+                        {"id":"img_1","title":"Mobile Token","icon":"fa-ticket","category":["General"]},
+                        {"id":"img_2","title":"Mass Attendance","icon":"fa-users-rectangle","category":["Attendance"]},
+                        {"id":"mod_1775058196858","title":"Format","icon":"fa-book","category":["Daily"]},
+                        {"id":"img_8","title":"Payroll calculator","icon":"fa-calculator","category":["Payroll"]},
+                        {"id":"img_12","title":"Overtime & CPL","icon":"fa-money-bill-trend-up","category":["Monthly","Closing"]}
+                    ],
+                    categories: ["Daily","Weekly","Monthly","Medical","Transport","Attendance","Payroll","General","Closing"]
+                };
+
+                cloudStore.set('v11_modules', JSON.stringify(preloadedData.modules), false);
+                cloudStore.set('v11_cats', JSON.stringify(preloadedData.categories), false);
+                cloudStore.set('v11_base64_applied_v1', 'true', false);
+                triggerCloudSync(); // Push defaults to cloud
+            }
+
+            categories = JSON.parse(cloudStore.get('v11_cats')) || ["General"];
+            modules = JSON.parse(cloudStore.get('v11_modules')) || [];
+            
+            Swal.close();
+            renderCards();
+        } catch (error) {
+            Swal.fire('Database Connection Error', 'Make sure your Firebase Config is correct and Firestore rules allow read/write.', 'error');
+            console.error(error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
 
     function getFileName(path) {
         if (!path || path === "#") return "";
@@ -737,7 +750,7 @@
         }
         currentParentModule = { id: parentId, title: parentTitle };
 
-        modules = JSON.parse(localStorage.getItem(`v11_submods_${parentId}`)) || [];
+        modules = JSON.parse(cloudStore.get(`v11_submods_${parentId}`)) || [];
 
         document.getElementById('dashboardTitle').innerHTML = 
             `<a href="#" onclick="goBackToMain(event)" style="color:white; text-decoration:none;" title="Back to Main Dashboard"><i class="fa fa-arrow-left me-2"></i></a> ${parentTitle.toUpperCase()} <span style="font-size: 0.5em; opacity: 0.8;">SUB-MODULES</span>`;
@@ -761,20 +774,18 @@
         renderCards();
     };
 
-    // THE FIXED MOVE & CLONE LOGIC
     window.promptMoveModule = function(event, id) {
         if(event) event.stopPropagation();
         const modToMove = modules.find(m => m.id === id);
 
         let dests = [];
-        let storedRoots = JSON.parse(localStorage.getItem('v11_modules')) || mainModulesCache;
+        let storedRoots = JSON.parse(cloudStore.get('v11_modules')) || mainModulesCache;
         if (!storedRoots || storedRoots.length === 0) storedRoots = modules;
 
-        // Recursively gather all folders across the system
         function traverseModules(modList, currentPath) {
             modList.forEach(m => {
                 dests.push({ id: m.id, title: m.title, path: currentPath });
-                let subs = JSON.parse(localStorage.getItem('v11_submods_' + m.id)) || [];
+                let subs = JSON.parse(cloudStore.get('v11_submods_' + m.id)) || [];
                 if (subs.length > 0) {
                     traverseModules(subs, currentPath + ' / ' + m.title);
                 }
@@ -889,45 +900,49 @@
                     let movedMod;
                     
                     if (targetId === id) {
-                        // CLONE LOGIC: If moving into itself, clone to prevent deletion of parent folder
                         movedMod = JSON.parse(JSON.stringify(modules[modIndex]));
                         movedMod.id = 'mod_' + Date.now() + Math.floor(Math.random() * 1000);
                         
-                        const oldPath = localStorage.getItem(`v11_path_${id}`);
-                        if (oldPath) localStorage.setItem(`v11_path_${movedMod.id}`, oldPath);
+                        const oldPath = cloudStore.get(`v11_path_${id}`);
+                        if (oldPath) cloudStore.set(`v11_path_${movedMod.id}`, oldPath, false);
                         
-                        const oldExtras = localStorage.getItem(`v11_extras_${id}`);
-                        if (oldExtras) localStorage.setItem(`v11_extras_${movedMod.id}`, oldExtras);
+                        const oldExtras = cloudStore.get(`v11_extras_${id}`);
+                        if (oldExtras) cloudStore.set(`v11_extras_${movedMod.id}`, oldExtras, false);
                     } else {
-                        // Normal move: remove from current view
                         movedMod = modules.splice(modIndex, 1)[0];
                     }
 
-                    // Insert to destination
                     if (targetId === "MAIN_DASHBOARD") {
                         if (!mainModulesCache || mainModulesCache.length === 0) {
-                            mainModulesCache = JSON.parse(localStorage.getItem('v11_modules')) || [];
+                            mainModulesCache = JSON.parse(cloudStore.get('v11_modules')) || [];
                         }
                         mainModulesCache.unshift(movedMod);
-                        localStorage.setItem('v11_modules', JSON.stringify(mainModulesCache));
+                        cloudStore.set('v11_modules', JSON.stringify(mainModulesCache), false);
                     } else {
-                        let targetSubMods = JSON.parse(localStorage.getItem('v11_submods_' + targetId)) || [];
+                        let targetSubMods = JSON.parse(cloudStore.get('v11_submods_' + targetId)) || [];
                         targetSubMods.unshift(movedMod);
-                        localStorage.setItem('v11_submods_' + targetId, JSON.stringify(targetSubMods));
+                        cloudStore.set('v11_submods_' + targetId, JSON.stringify(targetSubMods), false);
                     }
 
-                    // Save current view state
                     if (currentParentModule) {
-                        localStorage.setItem('v11_submods_' + currentParentModule.id, JSON.stringify(modules));
+                        cloudStore.set('v11_submods_' + currentParentModule.id, JSON.stringify(modules), false);
                     } else {
-                        localStorage.setItem('v11_modules', JSON.stringify(modules));
+                        cloudStore.set('v11_modules', JSON.stringify(modules), false);
                     }
 
+                    triggerCloudSync();
                     renderCards();
                     premiumAlert({ icon: 'success', title: targetId === id ? 'Added to Sub-Menu' : 'Moved Successfully', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
                 }
             }
         });
+    };
+
+    window.handleExtraClick = function(event, modTitle, extraName, extraPath) {
+        event.stopPropagation();
+        logHistory(`${modTitle} (${extraName})`);
+        let finalUrl = extraPath.startsWith("http") ? extraPath : "file:///" + extraPath.replace(/\\/g, "/");
+        window.open(finalUrl, '_blank');
     };
 
     function renderCards() {
@@ -943,13 +958,23 @@
 
         filteredModules.forEach((mod, index) => {
             const delay = index * 0.05;
-            const savedPath = localStorage.getItem(`v11_path_${mod.id}`);
+            const savedPath = cloudStore.get(`v11_path_${mod.id}`);
             const hasNoLink = (!savedPath || savedPath === "#" || savedPath.trim() === "");
             const fileName = getFileName(savedPath);
 
-            const savedSubMods = JSON.parse(localStorage.getItem(`v11_submods_${mod.id}`)) || [];
+            const savedSubMods = JSON.parse(cloudStore.get(`v11_submods_${mod.id}`)) || [];
             const hasSubMods = savedSubMods.length > 0;
             const showDrillDown = (!currentParentModule && (hasSubMods || isAdmin));
+            
+            const extras = JSON.parse(cloudStore.get(`v11_extras_${mod.id}`)) || [];
+            let extrasHtml = '';
+            if (extras.length > 0 && !isAdmin) {
+                extrasHtml = `<div class="extra-links-overlay" style="position:absolute; top:10px; right:10px; display:flex; flex-direction:column; gap:6px; z-index:10; align-items:flex-end;">`;
+                extras.forEach(extra => {
+                    extrasHtml += `<div class="extra-badge" onclick="handleExtraClick(event, '${mod.title.replace(/'/g, "\\'")}', '${extra.name.replace(/'/g, "\\'")}', '${extra.path.replace(/\\/g, "\\\\")}')">${extra.name}</div>`;
+                });
+                extrasHtml += `</div>`;
+            }
 
             container.innerHTML += `
                 <div class="col card-item" data-id="${mod.id}" style="animation-delay: ${delay}s">
@@ -970,6 +995,8 @@
                                 <i class="fa fa-pen" style="font-size:11px;"></i>
                             </div>
                         </div>
+
+                        ${extrasHtml}
 
                         <i class="fa ${mod.icon}"></i>
                         <p class="card-title">${mod.title}</p>
@@ -994,9 +1021,9 @@
         initSortable(); 
         
         if (currentParentModule) {
-            localStorage.setItem(`v11_submods_${currentParentModule.id}`, JSON.stringify(modules));
+            cloudStore.set(`v11_submods_${currentParentModule.id}`, JSON.stringify(modules), false);
         } else {
-            localStorage.setItem('v11_modules', JSON.stringify(modules));
+            cloudStore.set('v11_modules', JSON.stringify(modules), false);
         }
     }
 
@@ -1025,9 +1052,9 @@
                         modules = newModules;
                         
                         if (currentParentModule) {
-                            localStorage.setItem(`v11_submods_${currentParentModule.id}`, JSON.stringify(modules));
+                            cloudStore.set(`v11_submods_${currentParentModule.id}`, JSON.stringify(modules));
                         } else {
-                            localStorage.setItem('v11_modules', JSON.stringify(modules));
+                            cloudStore.set('v11_modules', JSON.stringify(modules));
                         }
                     }
                 });
@@ -1045,7 +1072,7 @@
                         newCats.push(item.getAttribute('data-name'));
                     });
                     categories = newCats;
-                    localStorage.setItem('v11_cats', JSON.stringify(categories));
+                    cloudStore.set('v11_cats', JSON.stringify(categories));
                 }
             });
         } else {
@@ -1085,7 +1112,7 @@
         renderCards();
     }
 
-    function openAdminMenu(event, id) {
+    window.openAdminMenu = function(event, id) {
         if(event) event.stopPropagation();
         currentEditingId = id;
         isAddingNew = (id === null);
@@ -1099,16 +1126,35 @@
             selectedModalTags = [categories[0]];
         } else {
             const mod = modules.find(m => m.id === id);
-            const savedPath = localStorage.getItem(`v11_path_${id}`) || "";
+            const savedPath = cloudStore.get(`v11_path_${id}`) || "";
             document.getElementById('editNameInput').value = mod.title;
             document.getElementById('editIconInput').value = mod.icon;
             document.getElementById('editPathInput').value = (savedPath === "#") ? "" : savedPath;
             document.getElementById('deleteBtn').style.display = "block";
             selectedModalTags = Array.isArray(mod.category) ? [...mod.category] : [mod.category];
         }
+        
+        const list = document.getElementById('extraLinksList');
+        list.innerHTML = '';
+        if(!isAddingNew) {
+            const extras = JSON.parse(cloudStore.get(`v11_extras_${id}`)) || [];
+            extras.forEach(item => addExtraLinkRow(item.name, item.path));
+        }
+
         renderModalTags();
         new bootstrap.Modal(document.getElementById('adminModal')).show();
     }
+
+    window.addExtraLinkRow = function(name = '', path = '') {
+        const div = document.createElement('div');
+        div.className = 'd-flex gap-2 align-items-center mb-1';
+        div.innerHTML = `
+            <input type="text" class="form-control form-control-sm extra-name" placeholder="Link Name" value="${name}" style="width:120px; font-size:11px;">
+            <input type="text" class="form-control form-control-sm extra-path" placeholder="Path/URL" value="${path}" style="flex:1; font-size:11px;" oninput="this.value = this.value.replace(/[&quot;]/g, '')">
+            <button class="btn btn-sm text-danger border-0 p-1" onclick="this.parentElement.remove()"><i class="fa fa-trash-alt"></i></button>
+        `;
+        document.getElementById('extraLinksList').appendChild(div);
+    };
 
     function renderModalTags() {
         const picker = document.getElementById('tagPicker');
@@ -1126,55 +1172,49 @@
         renderModalTags();
     }
 
-    function saveModuleChanges() {
+    window.saveModuleChanges = function() {
         const name = document.getElementById('editNameInput').value.trim();
         const icon = document.getElementById('editIconInput').value.trim() || "fa-cube";
         let rawPath = document.getElementById('editPathInput').value.trim();
 
         if (!name || !rawPath) {
-            premiumAlert({
-                icon: 'error',
-                title: 'Invalid Input',
-                text: 'Module Title and Resource Link are required fields.',
-                toast: true,
-                position: 'top-end',
-                timer: 3000,
-                showConfirmButton: false
-            });
+            premiumAlert({ icon: 'error', title: 'Invalid Input', text: 'Module Title and Resource Link are required fields.', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
             return;
         }
 
+        const targetId = isAddingNew ? 'mod_' + Date.now() : currentEditingId;
+
         if (isAddingNew) {
-            const targetId = 'mod_' + Date.now();
             const newMod = { id: targetId, title: name, icon: icon, category: [...selectedModalTags] };
-            
-            if (currentParentModule) {
-                modules.unshift(newMod); 
-            } else {
-                modules.push(newMod); 
-            }
-            localStorage.setItem(`v11_path_${targetId}`, rawPath || "#");
+            if (currentParentModule) modules.unshift(newMod); 
+            else modules.push(newMod); 
+            cloudStore.set(`v11_path_${targetId}`, rawPath || "#", false);
         } else {
             const modIndex = modules.findIndex(m => m.id === currentEditingId);
             if (modIndex !== -1) {
                 modules[modIndex].title = name;
                 modules[modIndex].icon = icon;
                 modules[modIndex].category = [...selectedModalTags];
-                localStorage.setItem(`v11_path_${currentEditingId}`, rawPath || "#");
+                cloudStore.set(`v11_path_${currentEditingId}`, rawPath || "#", false);
             }
         }
+
+        const rows = document.querySelectorAll('#extraLinksList > div');
+        const extras = Array.from(rows).map(row => ({
+            name: row.querySelector('.extra-name').value.trim(),
+            path: row.querySelector('.extra-path').value.trim()
+        })).filter(e => e.name && e.path);
+        
+        if(extras.length > 0) {
+            cloudStore.set(`v11_extras_${targetId}`, JSON.stringify(extras), false);
+        } else {
+            cloudStore.removeItem(`v11_extras_${targetId}`);
+        }
+
+        triggerCloudSync(); // Final Sync Push
         bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
         
-        premiumAlert({
-            icon: 'success',
-            title: 'Module Updated',
-            text: 'System preferences synchronized successfully.',
-            timer: 1800,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
-        });
-        
+        premiumAlert({ icon: 'success', title: 'Module Saved', text: 'Synced to cloud database.', timer: 1800, showConfirmButton: false, toast: true, position: 'top-end' });
         renderCards();
     }
 
@@ -1203,6 +1243,7 @@
     }
 
     function logHistory(title) {
+        // Keeps user click history local to their device for privacy
         let history = JSON.parse(localStorage.getItem('v11_secret_logs')) || [];
         history.unshift({ title: title, time: new Date().toLocaleString() });
         if(history.length > 500) history.pop(); 
@@ -1220,10 +1261,7 @@
             if (result.value === "123") {
                 const renderHistoryContent = (searchQuery = "") => {
                     let logs = JSON.parse(localStorage.getItem('v11_secret_logs')) || [];
-                    if (searchQuery) {
-                        logs = logs.filter(l => l.title.toLowerCase().includes(searchQuery.toLowerCase()));
-                    }
-
+                    if (searchQuery) logs = logs.filter(l => l.title.toLowerCase().includes(searchQuery.toLowerCase()));
                     let htmlContent = logs.length > 0 ? logs.map(l => `
                         <div class="history-row" style="text-align:left; font-size:11px; margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:3px;">
                             <strong>${l.title}</strong><br><span style="color:#888">${l.time}</span>
@@ -1261,11 +1299,8 @@
 
     window.resetSecretHistory = function() {
         premiumAlert({
-            title: 'Delete History?',
-            text: "This cannot be undone.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444'
+            title: 'Delete History?', text: "This cannot be undone.", icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#ef4444'
         }).then((r) => {
             if (r.isConfirmed) {
                 localStorage.removeItem('v11_secret_logs');
@@ -1279,13 +1314,9 @@
         const mod = modules.find(m => m.id === id);
         if(mod) logHistory(mod.title);
 
-        let path = localStorage.getItem(`v11_path_${id}`);
+        let path = cloudStore.get(`v11_path_${id}`);
         if (!path || path === "#" || path === "") {
-            return premiumAlert({
-                icon: 'error',
-                title: 'Access Denied',
-                text: 'The requested resource path is currently undefined.',
-            });
+            return premiumAlert({ icon: 'error', title: 'Access Denied', text: 'The requested resource path is currently undefined.' });
         }
         
         let finalUrl = path.startsWith("http") ? path : "file:///" + path.replace(/\\/g, "/");
@@ -1304,12 +1335,8 @@
     
     function deleteCard() {
         premiumAlert({
-            title: 'Confirm Deletion',
-            text: "This module will be permanently removed from the dashboard.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Delete Module',
-            confirmButtonColor: '#ef4444'
+            title: 'Confirm Deletion', text: "This module will be permanently removed from the dashboard.",
+            icon: 'warning', showCancelButton: true, confirmButtonText: 'Delete Module', confirmButtonColor: '#ef4444'
         }).then((result) => {
             if (result.isConfirmed) {
                 modules = modules.filter(m => m.id !== currentEditingId);
@@ -1322,14 +1349,11 @@
 
     function globalReset() {
         premiumAlert({
-            title: 'System Reset',
-            text: 'Enter Admin credentials to factory reset the dashboard.',
-            input: 'password',
-            inputPlaceholder: 'Enter Admin Password',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444'
+            title: 'System Reset', text: 'Enter Admin credentials to factory reset the dashboard.',
+            input: 'password', inputPlaceholder: 'Enter Admin Password', showCancelButton: true, confirmButtonColor: '#ef4444'
         }).then((result) => {
             if (result.value === "Admin123") {
+                cloudStore.clear();
                 localStorage.clear();
                 location.reload();
             } else if (result.value) {
@@ -1340,61 +1364,37 @@
 
     function exportData() {
         const rootModules = currentParentModule ? mainModulesCache : modules;
-        const data = { 
-            modules: rootModules, 
-            categories: categories, 
-            paths: {},
-            extras: {},
-            submods: {} 
-        };
+        const data = { modules: rootModules, categories: categories, paths: {}, extras: {}, submods: {} };
         
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k.startsWith('v11_submods_')) data.submods[k] = JSON.parse(localStorage.getItem(k));
-            if (k.startsWith('v11_path_')) data.paths[k.replace('v11_path_', '')] = localStorage.getItem(k);
-            if (k.startsWith('v11_extras_')) data.extras[k.replace('v11_extras_', '')] = JSON.parse(localStorage.getItem(k));
+        for (let i = 0; i < cloudStore.length; i++) {
+            const k = cloudStore.key(i);
+            if (k.startsWith('v11_submods_')) data.submods[k] = JSON.parse(cloudStore.get(k));
+            if (k.startsWith('v11_path_')) data.paths[k.replace('v11_path_', '')] = cloudStore.get(k);
+            if (k.startsWith('v11_extras_')) data.extras[k.replace('v11_extras_', '')] = JSON.parse(cloudStore.get(k));
         }
         
         const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(data)))); 
         navigator.clipboard.writeText(dataStr).then(() => {
-            premiumAlert({
-                icon: 'success',
-                title: 'Data Exported',
-                text: 'All settings, sub-modules, and links copied to clipboard.',
-                timer: 2000,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
-            });
+            premiumAlert({ icon: 'success', title: 'Data Exported', text: 'All settings copied to clipboard.', timer: 2000, showConfirmButton: false, toast: true, position: 'top-end' });
         });
     }
 
     function importData() {
         premiumAlert({
-            title: 'Import System Config',
-            text: 'Paste your encrypted data string below:',
-            input: 'textarea',
-            showCancelButton: true
+            title: 'Import System Config', text: 'Paste your encrypted data string below:',
+            input: 'textarea', showCancelButton: true
         }).then((result) => {
             if (result.value) {
                 try {
                     const decoded = decodeURIComponent(escape(atob(result.value)));
                     const data = JSON.parse(decoded);
-                    localStorage.setItem('v11_modules', JSON.stringify(data.modules));
-                    localStorage.setItem('v11_cats', JSON.stringify(data.categories));
-                    for (const id in data.paths) { 
-                        localStorage.setItem(`v11_path_${id}`, data.paths[id]); 
-                    }
-                    if (data.extras) {
-                        for (const id in data.extras) {
-                            localStorage.setItem(`v11_extras_${id}`, JSON.stringify(data.extras[id]));
-                        }
-                    }
-                    if (data.submods) {
-                        for (const key in data.submods) {
-                            localStorage.setItem(key, JSON.stringify(data.submods[key]));
-                        }
-                    }
+                    cloudStore.set('v11_modules', JSON.stringify(data.modules), false);
+                    cloudStore.set('v11_cats', JSON.stringify(data.categories), false);
+                    for (const id in data.paths) cloudStore.set(`v11_path_${id}`, data.paths[id], false); 
+                    if (data.extras) for (const id in data.extras) cloudStore.set(`v11_extras_${id}`, JSON.stringify(data.extras[id]), false);
+                    if (data.submods) for (const key in data.submods) cloudStore.set(key, JSON.stringify(data.submods[key]), false);
+                    
+                    triggerCloudSync();
                     premiumAlert({ icon: 'success', title: 'System Restored' }).then(() => location.reload());
                 } catch (e) {
                     premiumAlert({ icon: 'error', title: 'Data Corrupted', text: 'The provided code is invalid.' });
@@ -1434,10 +1434,9 @@
 
     function addNewCategory() {
         const val = document.getElementById('newCatInput').value.trim();
-        if(!val) return;
-        if(categories.includes(val)) return;
+        if(!val || categories.includes(val)) return;
         categories.push(val);
-        localStorage.setItem('v11_cats', JSON.stringify(categories));
+        cloudStore.set('v11_cats', JSON.stringify(categories));
         document.getElementById('newCatInput').value = '';
         openCatManager();
         renderCategoryBar();
@@ -1446,15 +1445,12 @@
 
     function removeCategory(idx) {
         premiumAlert({
-            title: 'Remove Tag?',
-            text: `Are you sure you want to delete "${categories[idx]}"?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Confirm Removal'
+            title: 'Remove Tag?', text: `Are you sure you want to delete "${categories[idx]}"?`,
+            icon: 'question', showCancelButton: true, confirmButtonText: 'Confirm Removal'
         }).then((result) => {
             if (result.isConfirmed) {
                 categories.splice(idx, 1);
-                localStorage.setItem('v11_cats', JSON.stringify(categories));
+                cloudStore.set('v11_cats', JSON.stringify(categories));
                 openCatManager();
                 renderCategoryBar();
                 initSortable();
@@ -1462,93 +1458,6 @@
         });
     }
 
-    renderCards();
-</script>
-
-<script>
-(function() {
-    const originalOpenAdminMenu = window.openAdminMenu;
-    window.openAdminMenu = function(event, id) {
-        originalOpenAdminMenu(event, id);
-        const modalRow = document.querySelector('#adminModal .modal-body .row');
-        if (!document.getElementById('multiLinkContainer')) {
-            const container = document.createElement('div');
-            container.id = 'multiLinkContainer';
-            container.className = 'col-12 mt-3 pt-3 border-top';
-            container.innerHTML = `
-                <label class="form-label fw-bold text-secondary small">Additional Links & Names</label>
-                <div id="extraLinksList" class="d-flex flex-column gap-2"></div>
-                <button class="btn btn-outline-primary btn-sm mt-2 rounded-pill" onclick="addExtraLinkRow()" style="font-size:10px">
-                    <i class="fa fa-plus me-1"></i> Add More Links
-                </button>
-            `;
-            modalRow.appendChild(container);
-        }
-        const list = document.getElementById('extraLinksList');
-        list.innerHTML = '';
-        const extras = JSON.parse(localStorage.getItem(`v11_extras_${id}`)) || [];
-        extras.forEach(item => addExtraLinkRow(item.name, item.path));
-    };
-
-    window.addExtraLinkRow = function(name = '', path = '') {
-        const div = document.createElement('div');
-        div.className = 'd-flex gap-2 align-items-center mb-1';
-        div.innerHTML = `
-            <input type="text" class="form-control form-control-sm extra-name" placeholder="Link Name" value="${name}" style="width:120px; font-size:11px;">
-            <input type="text" class="form-control form-control-sm extra-path" placeholder="Path/URL" value="${path}" style="flex:1; font-size:11px;" oninput="this.value = this.value.replace(/[&quot;]/g, '')">
-            <button class="btn btn-sm text-danger border-0 p-1" onclick="this.parentElement.remove()"><i class="fa fa-trash-alt"></i></button>
-        `;
-        document.getElementById('extraLinksList').appendChild(div);
-    };
-
-    const originalSave = window.saveModuleChanges;
-    window.saveModuleChanges = function() {
-        const nameInput = document.getElementById('editNameInput').value.trim();
-        const pathInput = document.getElementById('editPathInput').value.trim();
-        if(!nameInput || !pathInput) return originalSave();
-        const id = isAddingNew ? 'mod_' + Date.now() : currentEditingId;
-        const rows = document.querySelectorAll('#extraLinksList > div');
-        const extras = Array.from(rows).map(row => ({
-            name: row.querySelector('.extra-name').value.trim(),
-            path: row.querySelector('.extra-path').value.trim()
-        })).filter(e => e.name && e.path);
-        localStorage.setItem(`v11_extras_${id}`, JSON.stringify(extras));
-        originalSave(); 
-    };
-
-    const originalRender = window.renderCards;
-    window.renderCards = function() {
-        originalRender();
-        const isAdmin = document.getElementById('adminToggle').checked;
-        if (isAdmin) return; 
-        const items = document.querySelectorAll('.card-item[data-id]');
-        items.forEach(item => {
-            const id = item.getAttribute('data-id');
-            const extras = JSON.parse(localStorage.getItem(`v11_extras_${id}`)) || [];
-            if(extras.length === 0) return;
-            const card = item.querySelector('.card-box');
-            const btnBox = document.createElement('div');
-            btnBox.className = 'extra-links-overlay';
-            btnBox.style = "position:absolute; top:10px; right:10px; display:flex; flex-direction:column; gap:6px; z-index:10; align-items:flex-end;";
-            extras.forEach(extra => {
-                const badge = document.createElement('div');
-                badge.innerText = extra.name;
-                badge.style = "font-size:8px; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,0.95); color:var(--accent); border:1px solid rgba(226,232,240,0.8); cursor:pointer; font-weight:bold; text-transform:uppercase; box-shadow:0 2px 4px rgba(0,0,0,0.05); transition:all 0.3s ease;";
-                badge.onclick = (e) => {
-                    e.stopPropagation();
-                    logHistory(`${item.querySelector('.card-title').innerText} (${extra.name})`);
-                    let finalUrl = extra.path.startsWith("http") ? extra.path : "file:///" + extra.path.replace(/\\/g, "/");
-                    window.open(finalUrl, '_blank');
-                };
-                badge.onmouseover = () => { badge.style.background = "var(--accent)"; badge.style.color = "white"; badge.style.transform = "translateY(-2px)"; };
-                badge.onmouseout = () => { badge.style.background = "rgba(255,255,255,0.95)"; badge.style.color = "var(--accent)"; badge.style.transform = "none"; };
-                btnBox.appendChild(badge);
-            });
-            card.appendChild(btnBox);
-        });
-    };
-    window.renderCards();
-})();
 </script>
 </body>
 </html>
