@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Office | High-Speed GH Validator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #003d99 100%);
+            --glass-bg: rgba(255, 255, 255, 0.98);
+            --border-soft: #e9edf3;
+            --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.2s ease;
+        }
+
+        * { scrollbar-width: thin; scrollbar-color: #c9d4e3 transparent; }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+            outline: 2px solid #0d6efd;
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+        }
+
+        .main-card {
+            max-width: 1350px; margin: 20px auto; background: var(--glass-bg); padding: 0;
+            border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+            overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+            animation: cardEntrance 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform, opacity;
+            transition: margin 0.4s ease;
+        }
+
+        .main-card.data-loaded { margin-top: 10px; }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header-custom { background: var(--primary-gradient); padding: 35px 30px; text-align: center; color: white; transition: padding 0.4s ease; }
+        .data-loaded .card-header-custom { padding: 15px 30px; }
+        .content-body { padding: 30px; transition: padding 0.4s ease; }
+        .data-loaded .content-body { padding: 15px 25px; }
+
+        .upload-container {
+            position: relative;
+            background: #fff;
+            border: 2px dashed #d1d9e0;
+            border-radius: 30px;
+            padding: 80px 40px;
+            text-align: center;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        }
+
+        .upload-container:hover {
+            border-color: #0d6efd;
+            background: #fcfdfe;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(13, 110, 253, 0.08);
+        }
+
+        .upload-container.drag-over {
+            border-color: #0d6efd;
+            border-style: solid;
+            background: #f0f6ff;
+            transform: translateY(-4px) scale(1.005);
+            box-shadow: 0 25px 45px rgba(13, 110, 253, 0.14);
+        }
+
+        .icon-box {
+            width: 100px; height: 100px; background: rgba(13, 110, 253, 0.05);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 25px; transition: var(--transition-smooth);
+        }
+
+        .drag-over .icon-box { background: rgba(13, 110, 253, 0.12); transform: scale(1.06); }
+
+        .upload-container i.main-icon { font-size: 3.5rem; color: #0d6efd; transition: var(--transition-fast); }
+
+        .pulse-indicator {
+            position: absolute; top: 20px; right: 20px; width: 12px; height: 12px;
+            background: #0d6efd; border-radius: 50%; animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(13, 110, 253, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+        }
+
+        .file-input { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; z-index: 10; }
+
+        #file-name-display {
+            font-weight: 600; color: #0d6efd; display: none; margin-top: 15px;
+            background: rgba(13, 110, 253, 0.05); padding: 10px 20px; border-radius: 50px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .btn-modern { border-radius: 12px; padding: 12px 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: var(--transition-smooth); border: none; }
+        .btn-extract { background: var(--primary-gradient); color: white; box-shadow: 0 10px 25px rgba(13, 110, 253, 0.2); }
+        .btn-extract:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(13, 110, 253, 0.28); }
+        .btn-extract:active { transform: translateY(-1px); }
+
+        .btn-outline-custom { background: white; border: 1px solid #dee2e6; color: #495057; font-size: 0.85rem; }
+        .btn-outline-custom:hover { border-color: #0d6efd; color: #0d6efd; transform: translateY(-1px); }
+        .btn-outline-custom.active {
+            background: #0d6efd; color: #fff; border-color: #0d6efd;
+            box-shadow: 0 6px 14px rgba(13, 110, 253, 0.25);
+        }
+        .btn-outline-custom.active:hover { color: #fff; }
+
+        .btn-download-final { background: #198754; color: white; font-size: 1rem; box-shadow: 0 10px 25px rgba(25, 135, 84, 0.18); }
+        .btn-download-final:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(25, 135, 84, 0.26); }
+
+        .preview-container {
+            background: #fff; border-radius: 16px; border: 1px solid #eef2f7;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 15px;
+        }
+        .table-wrap { max-height: 65vh; overflow: auto; position: relative; }
+        .table-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
+        .table-wrap::-webkit-scrollbar-track { background: transparent; }
+        .table-wrap::-webkit-scrollbar-thumb { background: #c9d4e3; border-radius: 10px; }
+        .table-wrap::-webkit-scrollbar-thumb:hover { background: #a8b6cc; }
+
+        .table-modern { margin-bottom: 0; font-size: 0.82rem; border-collapse: separate; border-spacing: 0; }
+
+        .table-modern thead th {
+            background: #f8f9fa; color: #495057; font-weight: 700;
+            padding: 12px; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 100;
+        }
+        .table-modern .sticky-col {
+            position: sticky; left: 0; background: #fff; z-index: 90; border-right: 2px solid #eee;
+        }
+        .table-modern thead th.sticky-col { z-index: 110; background: #f8f9fa; }
+
+        .table-modern tbody tr { transition: background 0.15s ease; }
+        .table-modern tbody tr:hover td { background: #f5f9ff; }
+        .table-modern tbody tr:hover td.sticky-col { background: #f5f9ff; }
+
+        .total-row { position: sticky; bottom: 0; background: #f1f8ff !important; z-index: 100; font-weight: 800; }
+        .total-row td { border-top: 2px solid #0d6efd !important; padding: 12px !important; }
+
+        .val-cell { min-width: 65px; font-weight: 600; text-align: center; border-right: 1px solid #f8f9fa; }
+        .has-error {
+            background: #fff0f0 !important;
+            color: #d63031 !important;
+            box-shadow: inset 0 0 0 1px rgba(214, 48, 49, 0.1);
+        }
+        .eid-error {
+            color: #d63031 !important;
+            background: #fff5f5 !important;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .eid-error::after { content: '\f071'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.7rem; }
+
+        #matrix-body.fade-in, #matrix-foot.fade-in { animation: fadeIn 0.3s ease; }
+
+        .progress-wrapper { background: #fff; padding: 30px; border-radius: 24px; max-width: 500px; margin: 20px auto; animation: fadeIn 0.3s ease; }
+        .progress-modern { height: 8px; background-color: #f1f4f8; border-radius: 50px; overflow: hidden; }
+        .progress-bar-modern { background: var(--primary-gradient); transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .percentage-text { font-size: 2.2rem; font-weight: 800; color: #0d6efd; }
+
+        #search-controls-wrapper { transition: var(--transition-fast); }
+        #emp_search { transition: var(--transition-fast); }
+
+        #notification-host {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .modern-toast {
+            min-width: 300px; padding: 16px 20px; border-radius: 16px;
+            background: var(--glass-bg); border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 12px;
+            animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform, opacity;
+        }
+        .toast-icon { font-size: 1.2rem; }
+        .toast-msg { font-weight: 600; font-size: 0.9rem; }
+        .toast-success { border-left: 5px solid #198754; color: #198754; }
+        .toast-error { border-left: 5px solid #d63031; color: #d63031; }
+        .toast-info { border-left: 5px solid #0d6efd; color: #0d6efd; }
+
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (max-width: 576px) {
+            .upload-container { padding: 50px 20px; }
+            .content-body { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="notification-host"></div>
+
+<div class="container-fluid">
+    <div class="main-card" id="app-card">
+        <div class="card-header-custom">
+            <h2 class="fw-bold mb-0"><i class="fas fa-file-invoice me-2"></i>OT Precision Extraction</h2>
+        </div>
+
+        <div class="content-body">
+            <div id="initial-upload-section">
+                <div class="upload-container" id="drop-zone">
+                    <div class="pulse-indicator"></div>
+                    <div class="icon-box"><i class="fas fa-cloud-upload-alt main-icon"></i></div>
+                    <h4 class="fw-bold mb-1">Initialize Data Feed</h4>
+                    <p class="text-muted mb-4 small">Upload Time Sheet PDF to begin validation</p>
+                    <div id="file-name-display">
+                        <i class="fas fa-file-pdf me-2"></i><span id="file-name-text"></span>
+                    </div>
+                    <input type="file" id="pdf_upload" class="file-input" accept=".pdf">
+                </div>
+                <div id="extract_btn_wrapper" class="text-center" style="display: none;">
+                    <button id="extract_btn" class="btn btn-modern btn-extract w-100 py-3">START HIGH-SPEED EXTRACTION</button>
+                </div>
+            </div>
+
+            <div id="loading" class="text-center my-4" style="display:none;">
+                <div class="progress-wrapper">
+                    <span class="percentage-text" id="prog-percent">0%</span>
+                    <div class="progress progress-modern mb-2">
+                        <div id="prog-bar" class="progress-bar progress-bar-modern progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                    </div>
+                    <p class="mt-2 fw-bold text-secondary small" id="load-msg">Initializing...</p>
+                </div>
+            </div>
+
+            <div id="preview-section" style="display: none;">
+                <div id="search-controls-wrapper" class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 p-2 bg-white rounded-3 border small">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm" style="width: 280px;">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="emp_search" class="form-control border-start-0 shadow-none" placeholder="Filter by Emp ID...">
+                        </div>
+                        <button id="filter_errors" class="btn btn-modern btn-outline-custom py-1 px-3">Errors</button>
+                        <button id="reset_filter" class="btn btn-modern btn-outline-custom py-1 px-3">Reset</button>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-primary px-3 py-2" id="stats_total"></span>
+                    </div>
+                </div>
+
+                <div class="preview-container">
+                    <div class="table-wrap">
+                        <table class="table table-modern align-middle" id="matrix-table">
+                            <thead id="matrix-head"></thead>
+                            <tbody id="matrix-body"></tbody>
+                            <tfoot id="matrix-foot"></tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <button id="download_btn" class="btn btn-modern btn-download-final w-100 py-3 shadow-sm">
+                    <i class="fas fa-file-excel me-2"></i>GENERATE EXCEL REPORT
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<py-config>
+    packages = ["pandas", "openpyxl", "pypdf2"]
+</py-config>
+
+<script type="py">
+import pandas as pd
+import PyPDF2
+import io
+import re
+import asyncio
+from pyscript import document, window
+from pyodide.ffi import create_proxy
+
+extracted_data = []
+all_employees = {}
+found_dates = set()
+
+# Fast lookup structures built once after extraction, so search/filter never
+# have to re-scan or re-filter the full dataset on every keystroke or click.
+data_lookup = {}
+error_eids = set()
+
+# Combined filter state (search term + error toggle apply together)
+current_search = ""
+current_filter_err = False
+search_timer = None
+
+def show_toast(msg, type="info"):
+    host = document.getElementById("notification-host")
+    toast = document.createElement("div")
+    toast.className = f"modern-toast toast-{type}"
+    icon = "info-circle"
+    if type == "success": icon = "check-circle"
+    if type == "error": icon = "exclamation-triangle"
+    toast.innerHTML = f'<i class="fas fa-{icon} toast-icon"></i><span class="toast-msg">{msg}</span>'
+    host.appendChild(toast)
+    window.setTimeout(create_proxy(lambda: toast.remove()), 4000)
+
+def format_gh_date(dt):
+    return dt.strftime('%d-%b-%y')
+
+def build_lookup():
+    """Pre-index extracted_data by employee/date so the matrix renderer can do
+    O(1) lookups instead of re-filtering the full DataFrame on every render."""
+    global data_lookup, error_eids
+    data_lookup = {}
+    error_eids = set()
+    for rec in extracted_data:
+        eid = rec['eid']; d = rec['date']
+        bucket = data_lookup.setdefault(eid, {})
+        if d not in bucket:
+            bucket[d] = rec
+        if rec['status'] != "":
+            error_eids.add(eid)
+
+async def run_extraction(event):
+    global extracted_data, all_employees, found_dates
+    document.getElementById("loading").style.display = "block"
+    document.getElementById("initial-upload-section").style.display = "none"
+    document.getElementById("preview-section").style.display = "none"
+
+    load_msg = document.getElementById("load-msg")
+    prog_bar = document.getElementById("prog-bar")
+    prog_text = document.getElementById("prog-percent")
+
+    try:
+        pdf_input = document.getElementById("pdf_upload").files.item(0)
+        if not pdf_input:
+            show_toast("Please upload a PDF file first.", "error")
+            document.getElementById("loading").style.display = "none"
+            document.getElementById("initial-upload-section").style.display = "block"
+            return
+
+        pdf_bytes = await pdf_input.arrayBuffer()
+        reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes.to_py()))
+
+        extracted_data, all_employees, found_dates = [], {}, set()
+        current_eid = None
+        total_pages = len(reader.pages)
+
+        for i, page in enumerate(reader.pages):
+            percent = int(((i + 1) / total_pages) * 100)
+            prog_bar.style.width = f"{percent}%"
+            prog_text.innerText = f"{percent}%"
+
+            if i % 3 == 0:
+                load_msg.innerText = f"Extracting Record {i+1} of {total_pages}..."
+                await asyncio.sleep(0.01)
+
+            text = page.extract_text()
+            id_match = re.search(r'Individual Time Sheet\s*\n\s*(\d+)\s+(.*)', text)
+            if id_match:
+                current_eid = int(id_match.group(1))
+                name_raw = id_match.group(2).strip()
+                clean_name = re.sub(r'(?i)\bGeneral\b', '', name_raw).strip()
+                clean_name = re.sub(' +', ' ', clean_name)
+
+                is_exec = "Executive" in text or "Senior Executive" in text
+                all_employees[current_eid] = {'name': clean_name, 'is_executive': is_exec}
+
+            if not current_eid: continue
+
+            relevant_lines = [l for l in text.split('\n') if '2026' in l and 'Total' not in l]
+            for line in relevant_lines:
+                date_match = re.search(r'(\d{2}-\d{2}-2026)', line)
+                if date_match:
+                    raw_date = date_match.group(1); d, m, y = raw_date.split('-')
+                    dt_obj = pd.to_datetime(f"{y}-{m}-{d}"); found_dates.add(dt_obj)
+                    nums = re.findall(r'\b\d+\.\d{2}\b', line)
+
+                    if len(nums) >= 3:
+                        worked_hrs, extra_hrs, appr_hrs = float(nums[0]), float(nums[1]), float(nums[2])
+                        validation_note = ""
+                        if worked_hrs == 0 or appr_hrs == 0: validation_note = ""
+                        elif abs(extra_hrs - appr_hrs) > 8: validation_note = "Recheck"
+                        elif appr_hrs > (worked_hrs + extra_hrs - 7.5): validation_note = "Incorrect Approval"
+
+                        is_cpl = False
+                        if not all_employees[current_eid]['is_executive']:
+                            if re.search(r'(?i)\bcpl\b', line):
+                                is_cpl = True
+
+                        if all_employees[current_eid]['is_executive']:
+                            final_ot = (appr_hrs // 2.0) * 2.0
+                        else:
+                            final_ot = (appr_hrs // 0.5) * 0.5
+
+                        extracted_data.append({
+                            'eid': current_eid,
+                            'date': dt_obj,
+                            'ot': final_ot,
+                            'status': validation_note,
+                            'is_cpl': is_cpl
+                        })
+
+        if not extracted_data:
+            show_toast("No OT data found in the uploaded file.", "error")
+            document.getElementById("initial-upload-section").style.display = "block"
+        else:
+            show_toast("Extraction completed successfully!", "success")
+            build_lookup()
+            document.getElementById("app-card").classList.add("data-loaded")
+            render_matrix()
+    except Exception as e:
+        show_toast(f"Error: {str(e)}", "error")
+        document.getElementById("initial-upload-section").style.display = "block"
+
+    document.getElementById("loading").style.display = "none"
+
+def render_matrix(filter_err=False, search_term=""):
+    sorted_dates = sorted(list(found_dates))
+
+    head_html = "<tr><th class='sticky-col'>Emp ID</th><th>Name</th>"
+    for d in sorted_dates: head_html += f"<th>{format_gh_date(d)}</th>"
+    head_html += "<th>Total OT</th></tr>"
+    document.getElementById("matrix-head").innerHTML = head_html
+
+    body_rows = []
+    date_totals = {d: 0.0 for d in sorted_dates}
+    grand_ot_sum = 0.0
+
+    sorted_eids = sorted(list(all_employees.keys()))
+    for eid in sorted_eids:
+        if search_term and search_term not in str(eid): continue
+        has_any_error = eid in error_eids
+        if filter_err and not has_any_error: continue
+
+        eid_class = "eid-error fw-bold sticky-col" if has_any_error else "text-dark sticky-col"
+        emp_name = all_employees[eid]['name']
+        row_html = f"<tr><td class='{eid_class}'>{eid}</td><td>{emp_name}</td>"
+        emp_sum = 0.0
+        emp_dates = data_lookup.get(eid, {})
+
+        for d in sorted_dates:
+            rec = emp_dates.get(d)
+            if rec is not None:
+                val, status, is_cpl = rec['ot'], rec['status'], rec['is_cpl']
+                err_class = "has-error" if status != "" else ""
+
+                display_val = f"{val}" if val > 0 else "-"
+                if is_cpl and val > 0:
+                    display_val = f"<span style='color:#0d6efd; border:1px solid #0d6efd; padding:2px 4px; border-radius:4px; font-size:0.7rem;'>{val} CPL</span>"
+
+                row_html += f"<td class='val-cell {err_class}'>{display_val}</td>"
+                emp_sum += val; date_totals[d] += val
+            else:
+                row_html += "<td class='val-cell'>-</td>"
+
+        row_html += f"<td class='fw-bold text-primary text-center'>{emp_sum}</td></tr>"
+        body_rows.append(row_html); grand_ot_sum += emp_sum
+
+    matrix_body = document.getElementById("matrix-body")
+    matrix_body.innerHTML = "".join(body_rows)
+
+    foot_html = "<tr class='total-row'><td class='sticky-col' colspan='2'>GRAND TOTALS</td>"
+    for d in sorted_dates: foot_html += f"<td class='text-center'>{date_totals[d]}</td>"
+    foot_html += f"<td class='text-center'>{grand_ot_sum}</td></tr>"
+    matrix_foot = document.getElementById("matrix-foot")
+    matrix_foot.innerHTML = foot_html
+
+    document.getElementById("stats_total").innerText = f"{len(body_rows)} Staff | {grand_ot_sum} Hrs"
+    document.getElementById("preview-section").style.display = "block"
+
+    # Restart the fade-in animation so updates from search/filter feel smooth
+    # instead of the table content snapping abruptly into place.
+    matrix_body.classList.remove("fade-in")
+    matrix_foot.classList.remove("fade-in")
+    _reflow = matrix_body.offsetWidth
+    matrix_body.classList.add("fade-in")
+    matrix_foot.classList.add("fade-in")
+
+def apply_filters():
+    render_matrix(filter_err=current_filter_err, search_term=current_search)
+
+async def finalize_and_download(event):
+    global extracted_data, all_employees, found_dates
+    try:
+        pdf_df = pd.DataFrame(extracted_data)
+        date_range = sorted(list(found_dates)); date_cols = [format_gh_date(d) for d in date_range]
+        if not pdf_df.empty:
+            pivot = pdf_df.pivot_table(index='eid', columns='date', values='ot', aggfunc='sum').reset_index()
+            pivot.columns = [format_gh_date(c) if isinstance(c, pd.Timestamp) else c for c in pivot.columns]
+            status_report = pdf_df[pdf_df['status'] != ""].copy()
+            if not status_report.empty: status_report['date'] = status_report['date'].apply(format_gh_date)
+        else:
+            pivot = pd.DataFrame(columns=['eid'] + date_cols); status_report = pd.DataFrame(columns=['eid', 'date', 'ot', 'status'])
+
+        master_list = []
+        for eid, info in all_employees.items():
+            master_list.append({'eid': eid, 'name': info['name'], 'is_executive': info['is_executive']})
+        master_df = pd.DataFrame(master_list)
+        final_df = pd.merge(master_df, pivot, on='eid', how='left')
+        for d_col in date_cols:
+            if d_col not in final_df.columns: final_df[d_col] = 0
+
+        # Global Report
+        export_all = final_df[['eid', 'name'] + date_cols].copy()
+        export_all.columns = ['Emp Id', 'Emp Name'] + date_cols
+
+        # Executive Sheet Logic
+        exec_df = final_df[final_df['is_executive'] == True][['eid', 'name'] + date_cols].copy()
+        exec_df['Total OT'] = exec_df[date_cols].sum(axis=1)
+        exec_df['Total CPL'] = exec_df['Total OT'] / 8.0 # Formula applied here
+
+        exec_export = exec_df[['eid', 'name'] + date_cols + ['Total OT', 'Total CPL']].copy()
+        exec_export.columns = ['Emp Id', 'Emp Name'] + date_cols + ['Total OT', 'Total CPL']
+
+        out_buffer = io.BytesIO()
+        with pd.ExcelWriter(out_buffer, engine='openpyxl') as writer:
+            export_all.to_excel(writer, index=False, sheet_name='OVERTIME_SHEET')
+            if not status_report.empty: status_report.to_excel(writer, index=False, sheet_name='VALIDATION_ERRORS')
+            exec_export.to_excel(writer, index=False, sheet_name='EXECUTIVE_ONLY')
+
+        out_buffer.seek(0)
+        js_array = window.Uint8Array.new(out_buffer.getvalue())
+        blob = window.Blob.new([js_array], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})
+        url = window.URL.createObjectURL(blob); link = document.createElement("a")
+        link.href = url; link.download = "Validated_OT_Report.xlsx"; link.click()
+        show_toast("Excel report generated successfully!", "success")
+    except Exception as e:
+        show_toast(f"Excel Error: {str(e)}", "error")
+
+def handle_file_select(event):
+    files = document.getElementById("pdf_upload").files
+    if files.length > 0:
+        filename = files.item(0).name
+        document.getElementById("file-name-text").innerText = filename
+        document.getElementById("file-name-display").style.display = "inline-block"
+        document.getElementById("extract_btn_wrapper").style.display = "block"
+        show_toast(f"Ready to extract: {filename}", "info")
+
+def handle_dragover(event):
+    event.preventDefault()
+    document.getElementById("drop-zone").classList.add("drag-over")
+
+def handle_dragleave(event):
+    document.getElementById("drop-zone").classList.remove("drag-over")
+
+def handle_drop(event):
+    event.preventDefault()
+    document.getElementById("drop-zone").classList.remove("drag-over")
+    files = event.dataTransfer.files
+    if files.length > 0:
+        document.getElementById("pdf_upload").files = files
+        handle_file_select(event)
+
+def on_search_input(event):
+    # Debounced: the matrix only re-renders ~200ms after typing pauses, so
+    # fast typing never triggers a cascade of expensive re-renders.
+    global search_timer, current_search
+    current_search = document.getElementById("emp_search").value.strip()
+    if search_timer is not None:
+        window.clearTimeout(search_timer)
+    search_timer = window.setTimeout(create_proxy(lambda: apply_filters()), 200)
+
+def toggle_error_filter(event):
+    global current_filter_err
+    current_filter_err = not current_filter_err
+    btn = document.getElementById("filter_errors")
+    if current_filter_err:
+        btn.classList.add("active")
+    else:
+        btn.classList.remove("active")
+    apply_filters()
+
+def reset_all_filters(event):
+    global current_search, current_filter_err
+    current_search = ""
+    current_filter_err = False
+    document.getElementById("emp_search").value = ""
+    document.getElementById("filter_errors").classList.remove("active")
+    apply_filters()
+
+document.getElementById("pdf_upload").onchange = create_proxy(handle_file_select)
+document.getElementById("extract_btn").onclick = create_proxy(run_extraction)
+document.getElementById("download_btn").onclick = create_proxy(finalize_and_download)
+document.getElementById("filter_errors").onclick = create_proxy(toggle_error_filter)
+document.getElementById("reset_filter").onclick = create_proxy(reset_all_filters)
+document.getElementById("emp_search").oninput = create_proxy(on_search_input)
+document.getElementById("drop-zone").ondragover = create_proxy(handle_dragover)
+document.getElementById("drop-zone").ondragleave = create_proxy(handle_dragleave)
+document.getElementById("drop-zone").ondrop = create_proxy(handle_drop)
+</script>
+
+</body>
+</html>

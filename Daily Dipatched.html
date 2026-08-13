@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPAK | Document Dispatch Register</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+            --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+            --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1030;
+        }
+
+        .card-clean {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-card);
+            transition: var(--transition-smooth);
+        }
+
+        /* Stat Metric Cards */
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition-smooth);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+            border-color: #cbd5e1;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .table-custom th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background-color: #f8fafc !important;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1rem;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+            color: var(--text-main);
+            padding: 1.1rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .table-custom tbody tr {
+            transition: background-color 0.15s ease;
+        }
+        .table-custom tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Modern Pro Segmented Pill Filters */
+        .filter-pills-group {
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 9999px;
+            display: inline-flex;
+            gap: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .filter-pill-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.45rem 1rem;
+            border-radius: 9999px;
+            transition: var(--transition-smooth);
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .filter-pill-btn:hover {
+            color: var(--text-main);
+        }
+        .filter-pill-btn.active {
+            background: var(--primary);
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3) !important;
+        }
+
+        /* YouTube Style Tag Box */
+        .tag-box {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            background: #fff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            min-height: 52px;
+            transition: var(--transition-smooth);
+        }
+        .tag-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+        }
+        .tag-pill {
+            background-color: var(--primary-light);
+            color: #3730a3;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3rem 0.65rem;
+            border-radius: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #c7d2fe;
+            animation: fadeIn 0.15s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .tag-pill .remove-tag {
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1;
+            opacity: 0.6;
+            transition: var(--transition-smooth);
+        }
+        .tag-pill .remove-tag:hover {
+            opacity: 1;
+            color: var(--danger);
+        }
+        .tag-input-field {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.9rem;
+            flex-grow: 1;
+            min-width: 140px;
+            padding: 0.2rem;
+        }
+
+        .tag-badge {
+            background-color: var(--primary-light);
+            color: #3730a3;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.3rem 0.65rem;
+            border-radius: 0.5rem;
+            display: inline-block;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+            border: 1px solid #c7d2fe;
+        }
+
+        /* Rich Window-Style File Preview Cards */
+        .preview-file-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.825rem;
+            width: 100%;
+            max-width: 260px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            transition: var(--transition-smooth);
+        }
+        .preview-file-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+        }
+
+        /* Live Autocomplete Dropdown Box */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1);
+            z-index: 1050;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 4px;
+        }
+        .autocomplete-item {
+            padding: 0.65rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: background 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .autocomplete-item:hover, .autocomplete-item.highlighted {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* Prevent button text disappearance bug on click/focus */
+        .btn {
+            border-radius: 0.65rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: var(--transition-smooth);
+            padding: 0.55rem 1.1rem;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .btn:active, .btn:focus {
+            color: inherit !important;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff !important;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2) !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+
+        .form-control, .form-select {
+            border-color: var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.7rem 1rem;
+            font-size: 0.925rem;
+            color: var(--text-main);
+            background-color: #fff;
+            transition: var(--transition-smooth);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+        }
+        .modal-header {
+            padding: 1.5rem 1.75rem 0.75rem 1.75rem;
+            background: #fafafa;
+            border-top-left-radius: 1.25rem;
+            border-top-right-radius: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-body {
+            padding: 1.75rem;
+        }
+
+        footer {
+            margin-top: auto;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Minimal Modern Navbar -->
+    <nav class="navbar navbar-light py-3 sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-3 m-0 text-dark text-decoration-none" href="#">
+                <div class="rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm text-white" style="width: 42px; height: 42px; background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);">
+                    <i class="bi bi-stack fs-5"></i>
+                </div>
+                <div>
+                    <span class="fs-5 fw-extrabold d-block text-dark lh-1 tracking-tight">PPAK</span>
+                    <span style="font-size: 0.7rem; letter-spacing: 0.08em;" class="text-muted text-uppercase fw-bold">Document Dispatch Register</span>
+                </div>
+            </a>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <button class="btn btn-outline-secondary d-flex align-items-center gap-1.5 px-3 shadow-sm bg-white text-dark btn-sm" onclick="exportToExcel()" title="Download Excel Report for Currently Filtered Records">
+                    <i class="bi bi-file-earmark-excel text-success fs-6"></i> Export Filtered Excel
+                </button>
+                <button class="btn btn-outline-dark d-flex align-items-center gap-1.5 px-3 shadow-sm bg-white text-dark btn-sm" onclick="exportBackup()" title="Download permanent backup file">
+                    <i class="bi bi-cloud-arrow-down text-primary fs-6"></i> Backup
+                </button>
+                <label class="btn btn-outline-dark d-flex align-items-center gap-1.5 px-3 shadow-sm bg-white text-dark btn-sm mb-0" style="cursor: pointer;" title="Restore records from backup file">
+                    <i class="bi bi-cloud-arrow-up text-warning fs-6"></i> Restore <input type="file" id="restoreFile" accept=".json" style="display: none;" onchange="importBackup(event)">
+                </label>
+                <button class="btn btn-primary d-flex align-items-center gap-2 shadow-sm py-2 px-3 text-white" onclick="openAddModal()">
+                    <i class="bi bi-plus-lg fs-6"></i> New Record
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container-fluid px-4 py-4">
+        
+        <!-- Metrics Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-indigo-subtle text-primary bg-light">
+                        <i class="bi bi-journals"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase d-block">Total Dispatches</span>
+                        <h4 class="fw-bold mb-0" id="statTotalCount">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success-subtle text-success bg-light">
+                        <i class="bi bi-paperclip"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase d-block">Attached Documents</span>
+                        <h4 class="fw-bold mb-0" id="statFilesCount">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning-subtle text-warning bg-light">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase d-block">Last Activity</span>
+                        <h6 class="fw-bold mb-0 text-dark text-truncate" id="statLastActivity" style="max-width: 180px;">-</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card-clean p-4">
+            <!-- Filter & Search Toolbar -->
+            <div class="row g-3 align-items-center justify-content-between mb-4">
+                <div class="col-lg-4 col-md-5">
+                    <div class="input-group input-group-merge">
+                        <span class="input-group-text bg-white border-end-0 ps-3 rounded-start-4 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-2 rounded-end-4 shadow-none" placeholder="Search title, employee, code, remarks..." onkeyup="handleFilterChange()">
+                    </div>
+                </div>
+                <div class="col-lg-8 col-md-7 d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                    <!-- Modern Segmented Pill Filters -->
+                    <div class="filter-pills-group" role="group" aria-label="Date Filters">
+                        <button type="button" class="filter-pill-btn active" id="filterBtnAll" onclick="setDateFilter('all')">All Time</button>
+                        <button type="button" class="filter-pill-btn" id="filterBtnWeek" onclick="setDateFilter('week')">Last Week</button>
+                        <button type="button" class="filter-pill-btn" id="filterBtnMonth" onclick="setDateFilter('month')">Last Month</button>
+                        <button type="button" class="filter-pill-btn" id="filterBtnCustom" onclick="toggleCustomDateInputs()">Custom Date</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Date Range collapsible inputs -->
+            <div id="customDateContainer" class="row g-2 align-items-center mb-4 p-3 bg-light rounded-3 border" style="display: none;">
+                <div class="col-md-5">
+                    <label class="form-label small fw-semibold text-muted mb-1">From Date</label>
+                    <input type="date" id="inputStartDate" class="form-control form-control-sm bg-white" onchange="handleFilterChange()">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small fw-semibold text-muted mb-1">To Date</label>
+                    <input type="date" id="inputEndDate" class="form-control form-control-sm bg-white" onchange="handleFilterChange()">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-sm btn-outline-dark w-100 mt-4 text-dark bg-white border" onclick="clearDateFilter()">Reset Dates</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive rounded-3 border border-light">
+                <table class="table table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date & Time <span class="text-muted fw-normal" style="font-size: 0.65rem;">(Double-click for audit log)</span></th>
+                            <th>Document Title</th>
+                            <th>Tags (Employee / Code)</th>
+                            <th>Remarks</th>
+                            <th>Attachments Preview</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between pt-4 mt-3 border-top">
+                <div class="text-muted small mb-2 mb-md-0" id="paginationInfo">
+                    Showing 0 to 0 of 0 entries
+                </div>
+                <nav aria-label="Table Navigation">
+                    <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                        <!-- Pagination links generated dynamically -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Add / Edit Record (Modern Pro Redesign) -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center gap-2.5">
+                        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: var(--primary-light);">
+                            <i class="bi bi-file-earmark-plus fs-5 text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold m-0 text-dark" id="modalTitle">Log New Document Dispatch</h5>
+                            <span class="text-muted" style="font-size: 0.75rem;">Fill in document details and attach verification files</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-4">
+                    <form id="dispatchForm" autocomplete="off">
+                        <input type="hidden" id="editRecordId">
+                        <div class="row g-3">
+                            <!-- Document Title with Clean Autocomplete Suggestions -->
+                            <div class="col-12 position-relative">
+                                <label class="form-label small fw-bold text-dark">Document Title <span class="text-danger">*</span></label>
+                                <input type="text" id="inputTitle" class="form-control" placeholder="Type document title (e.g., Final Settlement, Warning Letter)..." required oninput="handleTitleInput(this.value)" onfocus="handleTitleInput(this.value)" onblur="hideTitleSuggestions()">
+                                
+                                <!-- Modern Floating Autocomplete Dropdown -->
+                                <div id="titleAutocompleteDropdown" class="autocomplete-dropdown shadow-sm"></div>
+                            </div>
+
+                            <div class="col-md-12" id="dateTimeContainer" style="display: none;">
+                                <label class="form-label small fw-bold text-dark">Dispatch Date & Time</label>
+                                <input type="datetime-local" id="inputDateTime" class="form-control">
+                            </div>
+
+                            <!-- Tags Input -->
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-dark">Tags (Employee Name / ID Code)</label>
+                                <div class="tag-box" id="tagBox">
+                                    <div id="tagContainer" class="d-flex flex-wrap gap-1 align-items-center"></div>
+                                    <input type="text" id="tagInputField" class="tag-input-field" placeholder="Type name or ID and press enter...">
+                                </div>
+                                <div class="form-text text-muted" style="font-size: 0.72rem;">Press Enter or comma after each tag to add it.</div>
+                            </div>
+
+                            <!-- File Attachments -->
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-dark">Attach Files (PDF, Word, Excel, Images)</label>
+                                <div class="p-3 border rounded-3 bg-light">
+                                    <input type="file" id="inputFiles" class="form-control bg-white" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,image/*" onchange="handleFileSelection(event)">
+                                    <!-- Window Style Rich Live Preview Container -->
+                                    <div id="liveFilePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                                </div>
+                            </div>
+
+                            <!-- Remarks -->
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-dark">Remarks / Notes</label>
+                                <textarea id="inputRemarks" class="form-control" rows="2" placeholder="Add any extra notes or courier tracking info here..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-4 pt-2 border-top">
+                            <button type="button" class="btn btn-light me-2 border px-4 text-dark bg-white" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 text-white shadow-sm" id="saveButtonText">Save Record</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: View Files List -->
+    <div class="modal fade" id="filesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold m-0">Attached Files</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <div id="modalFilesList" class="d-flex flex-column gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center small">
+        <p class="mb-0">&copy; 2026 PPAK Logistics & Human Resources Administration. All rights reserved.</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script -->
+    <script>
+        const documentSuggestionsList = [
+            { title: "Final Settlement", icon: "bi-check-circle-fill text-success" },
+            { title: "Warning Letter", icon: "bi-exclamation-triangle-fill text-danger" },
+            { title: "Show Cause Notice", icon: "bi-file-earmark-text-fill text-warning" },
+            { title: "Warning", icon: "bi-exclamation-circle-fill text-danger" },
+            { title: "Requisition Form", icon: "bi-file-earmark-plus-fill text-primary" },
+            { title: "Emp Information", icon: "bi-person-badge-fill text-info" },
+            { title: "CV", icon: "bi-file-earmark-person-fill text-secondary" },
+            { title: "Interview Assessment HR", icon: "bi-clipboard-check-fill text-primary" },
+            { title: "Interview Assessment", icon: "bi-clipboard-fill text-secondary" },
+            { title: "Hiring Approval", icon: "bi-patch-check-fill text-success" },
+            { title: "Offer Mail", icon: "bi-envelope-check-fill text-primary" },
+            { title: "Joining Report", icon: "bi-file-earmark-check-fill text-success" },
+            { title: "Health Add", icon: "bi-heart-pulse-fill text-danger" },
+            { title: "EOBI Form", icon: "bi-file-earmark-richtext-fill text-info" },
+            { title: "Picture", icon: "bi-image-fill text-secondary" },
+            { title: "CNIC", icon: "bi-card-heading text-dark" },
+            { title: "Education Certificate", icon: "bi-mortarboard-fill text-primary" },
+            { title: "Experience Certificate", icon: "bi-award-fill text-warning" },
+            { title: "Orientation Checklist", icon: "bi-list-check text-success" },
+            { title: "Code of Conduct", icon: "bi-shield-fill-check text-primary" },
+            { title: "Offer & Appointment", icon: "bi-file-earmark-medical-fill text-info" },
+            { title: "Probation Form", icon: "bi-file-earmark-bar-graph-fill text-secondary" },
+            { title: "Confirmation Letter", icon: "bi-file-earmark-lock-fill text-success" }
+        ];
+
+        function handleTitleInput(val) {
+            const dropdown = document.getElementById('titleAutocompleteDropdown');
+            const query = val.trim().toLowerCase();
+
+            const matches = documentSuggestionsList.filter(item => item.title.toLowerCase().includes(query));
+
+            if (matches.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            dropdown.innerHTML = '';
+            matches.forEach(match => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi ${match.icon} fs-6"></i>
+                        <span class="fw-medium">${match.title}</span>
+                    </div>
+                    <i class="bi bi-arrow-up-left text-muted opacity-50" style="font-size: 0.75rem;"></i>
+                `;
+                div.onmousedown = function(e) {
+                    e.preventDefault(); // Prevent blur before selection
+                    document.getElementById('inputTitle').value = match.title;
+                    dropdown.style.display = 'none';
+                };
+                dropdown.appendChild(div);
+            });
+
+            dropdown.style.display = 'block';
+        }
+
+        function hideTitleSuggestions() {
+            setTimeout(() => {
+                document.getElementById('titleAutocompleteDropdown').style.display = 'none';
+            }, 200);
+        }
+
+        function getLocalDateTimeString(dateObj = new Date()) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const hours = String(dateObj.getHours()).padStart(2, '0');
+            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function formatDisplayDate(dateTimeVal) {
+            if (!dateTimeVal) return '';
+            const d = new Date(dateTimeVal);
+            if (isNaN(d)) return dateTimeVal;
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // State Management
+        let currentTags = [];
+        let currentAttachments = [];
+        let recordModal = new bootstrap.Modal(document.getElementById('addModal'));
+        let filesModal = new bootstrap.Modal(document.getElementById('filesModal'));
+
+        // Pagination and Filtering State
+        let currentPage = 1;
+        let rowsPerPage = 6;
+        let activeDateFilter = 'all'; // 'all', 'week', 'month', 'custom'
+
+        // Tag Input
+        const tagInputField = document.getElementById('tagInputField');
+        const tagContainer = document.getElementById('tagContainer');
+        const tagBox = document.getElementById('tagBox');
+
+        tagBox.addEventListener('click', () => tagInputField.focus());
+
+        tagInputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const val = tagInputField.value.trim().replace(/,/g, '');
+                if (val && !currentTags.includes(val)) {
+                    currentTags.push(val);
+                    renderTagsInput();
+                }
+                tagInputField.value = '';
+            } else if (e.key === 'Backspace' && tagInputField.value === '' && currentTags.length > 0) {
+                currentTags.pop();
+                renderTagsInput();
+            }
+        });
+
+        function renderTagsInput() {
+            tagContainer.innerHTML = '';
+            currentTags.forEach((tag, index) => {
+                const pill = document.createElement('span');
+                pill.className = 'tag-pill';
+                pill.innerHTML = `${tag} <span class="remove-tag" onclick="removeTag(${index})">&times;</span>`;
+                tagContainer.appendChild(pill);
+            });
+        }
+
+        function removeTag(index) {
+            currentTags.splice(index, 1);
+            renderTagsInput();
+        }
+
+        // Live File Preview Handling
+        function handleFileSelection(event) {
+            const files = event.target.files;
+            if (!files) return;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentAttachments.push({
+                        name: file.name,
+                        data: evt.target.result
+                    });
+                    renderLiveFilePreview();
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        }
+
+        function renderLiveFilePreview() {
+            const container = document.getElementById('liveFilePreview');
+            container.innerHTML = '';
+            currentAttachments.forEach((att, index) => {
+                const card = document.createElement('div');
+                card.className = 'preview-file-card';
+                
+                let iconOrThumb = `<div class="bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 1.2rem;"><i class="bi bi-file-earmark-fill"></i></div>`;
+                
+                if (att.data && att.data.startsWith('data:image/')) {
+                    iconOrThumb = `<img src="${att.data}" alt="${att.name}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);" class="flex-shrink-0">`;
+                } else if (att.name.toLowerCase().endsWith('.pdf')) {
+                    iconOrThumb = `<div class="bg-danger-subtle text-danger rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 1.2rem;"><i class="bi bi-file-earmark-pdf-fill"></i></div>`;
+                } else if (att.name.toLowerCase().match(/\.docx?$/)) {
+                    iconOrThumb = `<div class="bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 1.2rem;"><i class="bi bi-file-earmark-word-fill"></i></div>`;
+                } else if (att.name.toLowerCase().match(/\.xlsx?|\.csv$/)) {
+                    iconOrThumb = `<div class="bg-success-subtle text-success rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 1.2rem;"><i class="bi bi-file-earmark-excel-fill"></i></div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 text-truncate">
+                        ${iconOrThumb}
+                        <div class="d-flex flex-column text-truncate">
+                            <span class="text-truncate fw-semibold text-dark" style="font-size: 0.8rem;" title="${att.name}">${att.name}</span>
+                            <span class="text-muted" style="font-size: 0.65rem;">Attached file</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light text-danger p-0 ms-auto border-0 rounded-circle flex-shrink-0" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" onclick="removeAttachment(${index})" title="Remove">&times;</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function removeAttachment(index) {
+            currentAttachments.splice(index, 1);
+            renderLiveFilePreview();
+        }
+
+        const defaultData = [
+            {
+                id: 1,
+                dateTime: "2026-07-28T10:30",
+                title: "Emp information",
+                tags: ["Ali Khan", "EMP-201"],
+                remarks: "Sent via company courier service.",
+                attachments: [],
+                history: [
+                    {
+                        timestamp: "2026-07-28T10:30",
+                        action: "Created",
+                        details: "Record created: Title 'Emp information', Tags [Ali Khan, EMP-201], Remarks 'Sent via company courier service.'"
+                    }
+                ]
+            }
+        ];
+
+        let records = JSON.parse(localStorage.getItem('PPAK_clean_register_v12')) || defaultData;
+
+        function saveData() {
+            try {
+                localStorage.setItem('PPAK_clean_register_v12', JSON.stringify(records));
+            } catch (e) {
+                alert("Storage limit reached! Some attachments may be too large for browser local storage.");
+            }
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            document.getElementById('statTotalCount').innerText = records.length;
+            let totalFiles = records.reduce((acc, curr) => acc + (curr.attachments ? curr.attachments.length : 0), 0);
+            document.getElementById('statFilesCount').innerText = totalFiles;
+            if (records.length > 0) {
+                document.getElementById('statLastActivity').innerText = formatDisplayDate(records[0].dateTime);
+                document.getElementById('statLastActivity').title = formatDisplayDate(records[0].dateTime);
+            } else {
+                document.getElementById('statLastActivity').innerText = '-';
+            }
+        }
+
+        // Date Filter Logic & Handlers
+        function setDateFilter(type) {
+            activeDateFilter = type;
+            currentPage = 1;
+            
+            // UI Pill button states
+            ['all', 'week', 'month', 'custom'].forEach(t => {
+                const btn = document.getElementById(`filterBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn) {
+                    if (t === type) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            });
+
+            if (type === 'custom') {
+                document.getElementById('customDateContainer').style.display = 'flex';
+            } else {
+                document.getElementById('customDateContainer').style.display = 'none';
+                document.getElementById('inputStartDate').value = '';
+                document.getElementById('inputEndDate').value = '';
+            }
+            renderTable();
+        }
+
+        function toggleCustomDateInputs() {
+            setDateFilter('custom');
+        }
+
+        function clearDateFilter() {
+            document.getElementById('inputStartDate').value = '';
+            document.getElementById('inputEndDate').value = '';
+            setDateFilter('all');
+        }
+
+        function getFilteredRecords() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const startDateVal = document.getElementById('inputStartDate').value;
+            const endDateVal = document.getElementById('inputEndDate').value;
+
+            const now = new Date();
+
+            return records.filter(item => {
+                // Search match
+                const matchTitle = item.title.toLowerCase().includes(query);
+                const matchRemarks = item.remarks && item.remarks.toLowerCase().includes(query);
+                const matchTags = item.tags && item.tags.some(t => t.toLowerCase().includes(query));
+                const matchesSearch = matchTitle || matchRemarks || matchTags;
+                if (!matchesSearch) return false;
+
+                // Date filter match
+                if (activeDateFilter === 'all') return true;
+
+                if (!item.dateTime) return false;
+                const itemDate = new Date(item.dateTime);
+
+                if (activeDateFilter === 'week') {
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(now.getDate() - 7);
+                    return itemDate >= sevenDaysAgo && itemDate <= now;
+                }
+
+                if (activeDateFilter === 'month') {
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(now.getDate() - 30);
+                    return itemDate >= thirtyDaysAgo && itemDate <= now;
+                }
+
+                if (activeDateFilter === 'custom') {
+                    let matchesStart = true;
+                    let matchesEnd = true;
+                    if (startDateVal) {
+                        const start = new Date(startDateVal);
+                        start.setHours(0, 0, 0, 0);
+                        matchesStart = itemDate >= start;
+                    }
+                    if (endDateVal) {
+                        const end = new Date(endDateVal);
+                        end.setHours(23, 59, 59, 999);
+                        matchesEnd = itemDate <= end;
+                    }
+                    return matchesStart && matchesEnd;
+                }
+
+                return true;
+            });
+        }
+
+        function handleFilterChange() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Backup & Restore Permanent Functions
+        function exportBackup() {
+            if (records.length === 0) {
+                alert("No records available to backup.");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `PPAK_Dispatch_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedRecords = JSON.parse(e.target.result);
+                    if (Array.isArray(importedRecords)) {
+                        records = importedRecords;
+                        saveData();
+                        renderTable();
+                        alert("Backup restored successfully!");
+                    } else {
+                        alert("Invalid backup file format.");
+                    }
+                } catch (err) {
+                    alert("Error reading backup file.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function openAddModal() {
+            document.getElementById('dispatchForm').reset();
+            document.getElementById('editRecordId').value = '';
+            document.getElementById('modalTitle').innerText = 'Log New Document Dispatch';
+            document.getElementById('saveButtonText').innerText = 'Save Record';
+            
+            document.getElementById('dateTimeContainer').style.display = 'none';
+            document.getElementById('inputDateTime').value = getLocalDateTimeString();
+
+            currentTags = [];
+            currentAttachments = [];
+            renderTagsInput();
+            renderLiveFilePreview();
+            recordModal.show();
+        }
+
+        function openEditModal(id) {
+            const record = records.find(r => String(r.id) === String(id));
+            if (!record) return;
+
+            document.getElementById('editRecordId').value = record.id;
+            document.getElementById('inputTitle').value = record.title;
+            document.getElementById('inputRemarks').value = record.remarks || '';
+            
+            document.getElementById('dateTimeContainer').style.display = 'block';
+            document.getElementById('inputDateTime').value = record.dateTime || getLocalDateTimeString();
+
+            document.getElementById('modalTitle').innerText = 'Edit Dispatch Record';
+            document.getElementById('saveButtonText').innerText = 'Update Record';
+
+            currentTags = [...(record.tags || [])];
+            currentAttachments = [...(record.attachments || [])];
+            renderTagsInput();
+            renderLiveFilePreview();
+
+            recordModal.show();
+        }
+
+        function toggleRowHistory(id) {
+            const historyRow = document.getElementById(`history-row-${id}`);
+            if (historyRow) {
+                if (historyRow.style.display === 'none' || historyRow.style.display === '') {
+                    historyRow.style.display = 'table-row';
+                } else {
+                    historyRow.style.display = 'none';
+                }
+            }
+        }
+
+        function renderTable() {
+            const filteredData = getFilteredRecords();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>No dispatch records found matching your filters.</td></tr>`;
+                document.getElementById('paginationInfo').innerText = `Showing 0 to 0 of 0 entries`;
+                document.getElementById('paginationContainer').innerHTML = '';
+                updateMetrics();
+                return;
+            }
+
+            // Pagination Calculations
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, filteredData.length);
+            const paginatedData = filteredData.slice(startIndex, endIndex);
+
+            paginatedData.forEach(item => {
+                let fileHtml = `<span class="text-muted small">-</span>`;
+                if (item.attachments && item.attachments.length > 0) {
+                    let attChips = item.attachments.slice(0, 2).map(att => {
+                        let thumbOrIcon = `<i class="bi bi-file-earmark-text text-primary"></i>`;
+                        if (att.data && att.data.startsWith('data:image/')) {
+                            thumbOrIcon = `<img src="${att.data}" style="width: 20px; height: 20px; object-fit: cover; border-radius: 3px;" class="flex-shrink-0">`;
+                        } else if (att.name.toLowerCase().endsWith('.pdf')) {
+                            thumbOrIcon = `<i class="bi bi-file-earmark-pdf-fill text-danger"></i>`;
+                        } else if (att.name.toLowerCase().match(/\.docx?$/)) {
+                            thumbOrIcon = `<i class="bi bi-file-earmark-word-fill text-primary"></i>`;
+                        } else if (att.name.toLowerCase().match(/\.xlsx?|\.csv$/)) {
+                            thumbOrIcon = `<i class="bi bi-file-earmark-excel-fill text-success"></i>`;
+                        }
+
+                        return `
+                            <div class="d-inline-flex align-items-center gap-1.5 bg-white border px-2 py-1 rounded-2 shadow-sm text-truncate me-1 mb-1" style="max-width: 130px; font-size: 0.75rem; cursor: pointer;" onclick="viewSingleFile('${att.data}')" title="View ${att.name}">
+                                ${thumbOrIcon}
+                                <span class="text-truncate fw-medium text-dark">${att.name}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const remainingCount = item.attachments.length - 2;
+                    if (remainingCount > 0) {
+                        attChips += `
+                            <button class="btn btn-sm btn-light border px-2 py-1 text-secondary rounded-2 shadow-sm mb-1 text-dark bg-white" style="font-size: 0.72rem;" onclick="showFilesModal('${item.id}')" title="View all files">+${remainingCount} more</button>
+                        `;
+                    }
+
+                    fileHtml = `<div class="d-flex flex-wrap align-items-center">${attChips}</div>`;
+                }
+
+                let tagsHtml = `<span class="text-muted small">-</span>`;
+                if (item.tags && item.tags.length > 0) {
+                    const visibleTags = item.tags.slice(0, 2);
+                    const remainingCount = item.tags.length - 2;
+                    
+                    tagsHtml = visibleTags.map(t => `<span class="tag-badge">${t}</span>`).join('');
+                    if (remainingCount > 0) {
+                        tagsHtml += `<span class="badge bg-light text-secondary border font-monospace ms-1" style="font-size: 0.7rem;" title="${item.tags.join(', ')}">+${remainingCount} more</span>`;
+                    }
+                }
+
+                const formattedDate = formatDisplayDate(item.dateTime);
+
+                // Main Row with Double-Click on Date Cell
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-nowrap text-secondary small fw-medium" style="cursor: pointer; user-select: none;" ondblclick="toggleRowHistory(${item.id})" title="Double-click to view complete audit log timeline">
+                        <i class="bi bi-clock-history me-1 text-primary opacity-75"></i>${formattedDate}
+                    </td>
+                    <td class="fw-semibold text-dark">${item.title}</td>
+                    <td>${tagsHtml}</td>
+                    <td class="text-secondary small text-truncate" style="max-width: 200px;" title="${item.remarks || ''}">${item.remarks || '-'}</td>
+                    <td>${fileHtml}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-light text-primary border-0 p-1.5 me-1 rounded-2 shadow-sm bg-white" onclick="openEditModal(${item.id})" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-sm btn-light text-danger border-0 p-1.5 rounded-2 shadow-sm bg-white" onclick="deleteRecord(${item.id})" title="Delete"><i class="bi bi-trash3"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                // Expandable Bottom History Row (Ultra-Premium Light SaaS Feed)
+                const historyTr = document.createElement('tr');
+                historyTr.id = `history-row-${item.id}`;
+                historyTr.style.display = 'none';
+                historyTr.className = 'bg-white border-bottom';
+
+                const historyArr = item.history && item.history.length > 0 ? item.history : [
+                    { timestamp: item.dateTime, action: 'Created', details: 'Initial record created' }
+                ];
+
+                let timelineCardsHtml = historyArr.map((h, hIdx) => {
+                    const isCreate = h.action === 'Created';
+                    const iconClass = isCreate ? 'bi-plus-circle-fill text-success' : 'bi-arrow-repeat text-indigo';
+                    const statusPill = isCreate 
+                        ? '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fw-bold" style="font-size: 0.65rem; letter-spacing: 0.03em;">CREATED</span>' 
+                        : '<span class="badge px-2 py-1 fw-bold text-indigo" style="font-size: 0.65rem; letter-spacing: 0.03em; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;">UPDATED</span>';
+                    
+                    return `
+                        <div class="d-flex align-items-start position-relative ps-4 pb-3 ${hIdx === historyArr.length - 1 ? 'pb-0' : ''}">
+                            <!-- Vertical Axis Line -->
+                            ${hIdx !== historyArr.length - 1 ? '<div class="position-absolute bg-slate-200 border-start" style="left: 7px; top: 20px; bottom: -8px; border-color: #cbd5e1 !important;"></div>' : ''}
+                            
+                            <!-- Node Indicator -->
+                            <div class="position-absolute bg-white rounded-circle border border-2 border-primary d-flex align-items-center justify-content-center shadow-xs" style="left: 0; top: 2px; width: 16px; height: 16px;">
+                                <div class="bg-primary rounded-circle" style="width: 6px; height: 6px;"></div>
+                            </div>
+
+                            <!-- High-End Micro Card -->
+                            <div class="d-flex flex-column w-100 bg-white border border-light rounded-3 p-3 shadow-xs ms-2" style="background: #fafafa !important; border-color: #f1f5f9 !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        ${statusPill}
+                                        <span class="text-dark fw-bold" style="font-size: 0.8rem;">Audit Event</span>
+                                    </div>
+                                    <span class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-clock me-1 text-secondary"></i>${formatDisplayDate(h.timestamp)}</span>
+                                </div>
+                                <p class="mb-0 text-secondary lh-relaxed" style="font-size: 0.8rem; font-weight: 500;">${h.details}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                historyTr.innerHTML = `
+                    <td colspan="6" class="p-4" style="background: #f8fafc;">
+                        <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-2 p-1.5 d-flex align-items-center justify-content-center shadow-xs" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-extrabold text-dark d-block" style="font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase;">Secure Audit Trail</span>
+                                    <span class="text-muted" style="font-size: 0.68rem;">Complete modification timeline with precise timestamps</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-light border bg-white text-secondary py-1 px-2.5 rounded-2 shadow-xs" style="font-size: 0.72rem;" onclick="toggleRowHistory(${item.id})">
+                                <i class="bi bi-chevron-up me-1"></i>Collapse Log
+                            </button>
+                        </div>
+                        <div class="d-flex flex-column ps-1" style="max-width: 760px;">
+                            ${timelineCardsHtml}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(historyTr);
+            });
+
+            // Update Pagination Info and Controls
+            document.getElementById('paginationInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${filteredData.length} entries`;
+            renderPaginationControls(totalPages);
+            updateMetrics();
+        }
+
+        function renderPaginationControls(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            // Previous Button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+            container.appendChild(prevLi);
+
+            // Page Number Buttons
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                container.appendChild(li);
+            }
+
+            // Next Button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+            container.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            const filteredData = getFilteredRecords();
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        function showFilesModal(id) {
+            const record = records.find(r => String(r.id) === String(id));
+            if (!record || !record.attachments) return;
+
+            const listContainer = document.getElementById('modalFilesList');
+            listContainer.innerHTML = '';
+
+            record.attachments.forEach(att => {
+                const row = document.createElement('div');
+                row.className = 'd-flex align-items-center justify-content-between p-2.5 border rounded-3 bg-light';
+                row.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                        <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                        <span class="text-truncate small fw-medium" title="${att.name}">${att.name}</span>
+                    </div>
+                    <div class="d-flex gap-1 flex-shrink-0">
+                        <button class="btn btn-sm btn-white border px-2.5 py-1 shadow-sm bg-white text-dark" onclick="viewSingleFile('${att.data}')"><i class="bi bi-eye"></i> View</button>
+                        <button class="btn btn-sm btn-primary px-2.5 py-1 shadow-sm text-white" onclick="downloadSingleFile('${att.data}', '${att.name}')"><i class="bi bi-download"></i></button>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            });
+
+            filesModal.show();
+        }
+
+        function viewSingleFile(data) {
+            let w = window.open('');
+            w.document.write(`<iframe src="${data}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+        }
+
+        function downloadSingleFile(data, name) {
+            const a = document.createElement('a');
+            a.href = data;
+            a.download = name || 'document';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function exportToExcel() {
+            const filteredRecords = getFilteredRecords();
+            if (filteredRecords.length === 0) {
+                alert("No records available to export for the selected filter.");
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date & Time,Document Title,Tags,Remarks,Attachments Count\r\n";
+            
+            filteredRecords.forEach(function(row) {
+                let date = `"${row.dateTime ? formatDisplayDate(row.dateTime) : ''}"`;
+                let title = `"${row.title || ''}"`;
+                let tags = `"${(row.tags || []).join(', ')}"`;
+                let remarks = `"${(row.remarks || '').replace(/"/g, '""')}"`;
+                let attCount = row.attachments ? row.attachments.length : 0;
+                
+                csvContent += [date, title, tags, remarks, attCount].join(",") + "\r\n";
+            });
+            
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `PPAK_Dispatch_Report_${activeDateFilter}_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('dispatchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('editRecordId').value;
+            const title = document.getElementById('inputTitle').value;
+            const remarks = document.getElementById('inputRemarks').value;
+            const tagsToSave = [...currentTags];
+            const attachmentsToSave = [...currentAttachments];
+            const customDateTime = document.getElementById('inputDateTime').value;
+
+            if (editId) {
+                const index = records.findIndex(r => String(r.id) === String(editId));
+                if (index !== -1) {
+                    let oldRec = records[index];
+                    let changesSummary = [];
+                    
+                    if (oldRec.title !== title) {
+                        changesSummary.push(`Title changed from "${oldRec.title}" to "${title}"`);
+                    }
+                    if (oldRec.remarks !== remarks) {
+                        changesSummary.push(`Remarks modified to "${remarks || '-'}"`);
+                    }
+                    if (JSON.stringify(oldRec.tags) !== JSON.stringify(tagsToSave)) {
+                        changesSummary.push(`Tags updated [${tagsToSave.join(', ') || 'None'}]`);
+                    }
+                    if (oldRec.dateTime !== customDateTime) {
+                        changesSummary.push(`Timestamp rescheduled`);
+                    }
+                    if ((oldRec.attachments || []).length !== attachmentsToSave.length) {
+                        changesSummary.push(`Attachments modified (${attachmentsToSave.length} total files)`);
+                    }
+
+                    oldRec.title = title;
+                    oldRec.tags = tagsToSave;
+                    oldRec.remarks = remarks;
+                    oldRec.dateTime = customDateTime || oldRec.dateTime;
+                    oldRec.attachments = attachmentsToSave;
+
+                    if (!oldRec.history) oldRec.history = [];
+                    oldRec.history.unshift({
+                        timestamp: getLocalDateTimeString(),
+                        action: 'Updated',
+                        details: changesSummary.length > 0 ? changesSummary.join(' | ') : 'Record updated successfully'
+                    });
+                }
+            } else {
+                const newEntry = {
+                    id: Date.now(),
+                    dateTime: getLocalDateTimeString(),
+                    title,
+                    tags: tagsToSave,
+                    remarks,
+                    attachments: attachmentsToSave,
+                    history: [
+                        {
+                            timestamp: getLocalDateTimeString(),
+                            action: 'Created',
+                            details: `Record created: Title '${title}', Tags [${tagsToSave.join(', ') || 'None'}], Remarks '${remarks || 'None'}'`
+                        }
+                    ]
+                };
+                records.unshift(newEntry);
+                setDateFilter('all');
+                document.getElementById('searchInput').value = '';
+            }
+
+            saveData();
+            renderTable();
+            recordModal.hide();
+        });
+
+        function deleteRecord(id) {
+            if (confirm("Are you sure you want to delete this dispatch record?")) {
+                records = records.filter(r => r.id !== id);
+                saveData();
+                renderTable();
+            }
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

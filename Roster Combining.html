@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPAK Roster Combiner</title>
+
+    <!-- SheetJS (Excel processing) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #f3f4f7;
+            --surface: #ffffff;
+            --ink: #171b22;
+            --ink-soft: #626c7a;
+            --ink-faint: #9aa3b0;
+            --line: #e3e6ec;
+
+            --primary: #0f6f66;
+            --primary-dark: #0b5951;
+            --primary-soft: #e4f2f0;
+
+            --day: #f0a93a;
+            --day-soft: #fdf1dc;
+            --evening: #e2683d;
+            --evening-soft: #fce6db;
+            --night: #3e4f8c;
+            --night-soft: #e6e9f5;
+            --off: #8a93a3;
+            --off-soft: #eef0f3;
+            --leave: #8156a8;
+            --leave-soft: #f0e7f6;
+            --open: #1f8a70;
+            --open-soft: #dcf1ea;
+
+            --danger: #d1382f;
+            --danger-soft: #fbe4e2;
+
+            --duplicate: #b3267a;
+            --duplicate-soft: #fbe3f0;
+
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 1px 2px rgba(23,27,34,0.04), 0 8px 24px -12px rgba(23,27,34,0.12);
+
+            --action-w: 34px;
+            --code-w: 84px;
+            --name-w: 172px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Signature: day → night gradient strip, echoes the shift cycle the tool organizes */
+        .shift-strip {
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg,
+                var(--day) 0%, var(--day) 20%,
+                var(--evening) 38%, var(--evening) 52%,
+                var(--night) 68%, var(--night) 100%);
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        header.top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .brand-eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); display: inline-block; }
+
+        h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            margin: 0 0 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .subtitle {
+            color: var(--ink-soft);
+            font-size: 15px;
+            max-width: 560px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .legend {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            max-width: 480px;
+            justify-content: flex-end;
+        }
+
+        .legend-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--ink-soft);
+            cursor: default;
+        }
+        .legend-chip .swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-body { padding: 28px; }
+
+        .field-label {
+            font-weight: 600;
+            font-size: 13.5px;
+            margin-bottom: 10px;
+            display: block;
+            color: var(--ink);
+        }
+
+        .dropzone {
+            border: 1.5px dashed var(--line);
+            border-radius: var(--radius-md);
+            background: #fafbfc;
+            padding: 26px 20px;
+            text-align: center;
+            transition: border-color 0.15s ease, background 0.15s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .dropzone:hover, .dropzone.drag-over {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+        .dropzone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .dropzone-icon {
+            width: 38px; height: 38px;
+            margin: 0 auto 10px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px;
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+        .dropzone-title { font-weight: 600; font-size: 14.5px; margin-bottom: 3px; }
+        .dropzone-hint { font-size: 12.5px; color: var(--ink-faint); }
+        .file-list {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .file-pill {
+            font-size: 12.5px;
+            font-weight: 500;
+            background: var(--off-soft);
+            color: var(--ink-soft);
+            padding: 5px 10px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .actions-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        button {
+            font-family: 'Inter', sans-serif;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: transform 0.06s ease, box-shadow 0.15s ease, background 0.15s ease, color .15s ease, border-color .15s ease;
+        }
+        button:active { transform: translateY(1px); }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            padding: 13px 26px;
+            font-size: 14.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary:disabled { background: var(--ink-faint); cursor: not-allowed; }
+
+        .btn-success {
+            background: var(--ink);
+            color: #fff;
+            padding: 11px 20px;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+        .btn-success:hover { background: #000; }
+
+        .btn-outline {
+            background: var(--surface);
+            color: var(--primary-dark);
+            border: 1.5px solid var(--primary);
+            padding: 10px 18px;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+        .btn-outline:hover { background: var(--primary-soft); }
+
+        .btn-convert {
+            background: var(--open-soft);
+            color: var(--open);
+            border: 1.5px solid var(--open);
+            padding: 10px 18px;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+        .btn-convert:hover { background: var(--open); color: #fff; }
+
+        .btn-toggle {
+            background: var(--surface);
+            color: var(--ink-soft);
+            border: 1.5px solid var(--line);
+            padding: 8px 14px;
+            font-size: 12.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .btn-toggle:hover { border-color: var(--ink-faint); }
+        .btn-toggle.active-dup { background: var(--duplicate-soft); color: var(--duplicate); border-color: var(--duplicate); }
+        .btn-toggle.active-invalid { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+
+        /* Table section */
+        .table-card { display: none; }
+
+        /* Full-bleed breakout so the roster grid gets maximum horizontal room on wide screens */
+        #tableContainer.table-card {
+            width: 100vw;
+            max-width: 100vw;
+            position: relative;
+            left: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+        }
+        #tableContainer .table-toolbar,
+        #tableContainer .search-row,
+        #tableContainer .table-scroll {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--line);
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .table-toolbar h4 {
+            font-family: 'Sora', sans-serif;
+            font-size: 18px;
+            margin: 0;
+            font-weight: 700;
+        }
+        .table-toolbar .hint {
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            margin-top: 4px;
+            line-height: 1.5;
+            max-width: 520px;
+        }
+        .hint b { color: var(--danger); }
+        .hint b.dup { color: var(--duplicate); }
+
+        .stats-bar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .stat-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+        .stat-chip-dup { background: var(--duplicate-soft); color: var(--duplicate); }
+        .stat-chip-invalid { background: var(--danger-soft); color: var(--danger); }
+
+        .toolbar-actions { display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+        /* Search row */
+        .search-row {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--line);
+            background: #fafbfc;
+            flex-wrap: wrap;
+        }
+        .search-box {
+            flex: 1 1 240px;
+            min-width: 200px;
+            max-width: 360px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1.5px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 14px;
+            transition: border-color .15s ease;
+        }
+        .search-box:focus-within { border-color: var(--primary); }
+        .search-box svg { flex-shrink: 0; color: var(--ink-faint); }
+        .search-box input {
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            width: 100%;
+            background: transparent;
+            color: var(--ink);
+        }
+        .search-box input::placeholder { color: var(--ink-faint); }
+        .search-clear {
+            border: none;
+            background: transparent;
+            color: var(--ink-faint);
+            cursor: pointer;
+            padding: 0;
+            display: none;
+            align-items: center;
+        }
+        .search-clear:hover { color: var(--danger); }
+        .search-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--ink-soft);
+            white-space: nowrap;
+        }
+
+        .table-scroll {
+            max-height: 640px;
+            overflow: auto;
+            border-top: 1px solid var(--line);
+            scroll-behavior: smooth;
+        }
+
+        table#rosterTable {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+        #rosterTable th, #rosterTable td {
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            padding: 6px 4px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        #rosterTable thead th {
+            position: sticky;
+            top: 0;
+            background: var(--ink) !important;
+            color: #fff !important;
+            font-weight: 600;
+            z-index: 2;
+            font-family: 'Inter', sans-serif;
+            font-size: 11.5px;
+            padding: 10px 4px;
+        }
+
+        /* Frozen Actions / E.Code# / Employee Name columns */
+        #rosterTable th:nth-child(1), #rosterTable td:nth-child(1) {
+            width: var(--action-w); min-width: var(--action-w); max-width: var(--action-w);
+            position: sticky; left: 0; z-index: 3;
+            background: var(--surface);
+            padding: 4px;
+        }
+        #rosterTable th:nth-child(2), #rosterTable td:nth-child(2) {
+            width: var(--code-w); min-width: var(--code-w); max-width: var(--code-w);
+            position: sticky; left: var(--action-w); z-index: 3;
+            background: var(--surface);
+            font-weight: 700; color: var(--primary-dark);
+        }
+        #rosterTable th:nth-child(3), #rosterTable td:nth-child(3) {
+            width: var(--name-w); min-width: var(--name-w); max-width: var(--name-w);
+            position: sticky; left: calc(var(--action-w) + var(--code-w)); z-index: 3;
+            background: var(--surface);
+            box-shadow: 3px 0 6px -3px rgba(23,27,34,0.12);
+        }
+        #rosterTable thead th:nth-child(1),
+        #rosterTable thead th:nth-child(2),
+        #rosterTable thead th:nth-child(3) {
+            z-index: 4;
+            background: var(--ink) !important;
+        }
+        .days-row td:nth-child(1),
+        .days-row td:nth-child(2),
+        .days-row td:nth-child(3) {
+            z-index: 4;
+            background: #eef0f3 !important;
+        }
+
+        /* Compact duty-day columns so all 30/31 days fit with minimal scrolling */
+        #rosterTable th:nth-child(n+4),
+        #rosterTable td:nth-child(n+4) {
+            width: 40px; min-width: 40px; max-width: 40px;
+        }
+
+        .days-row {
+            position: sticky;
+            top: 33px;
+            background: #eef0f3 !important;
+            font-weight: 700;
+            z-index: 1;
+            color: var(--ink-soft);
+            font-family: 'Inter', sans-serif;
+            font-size: 10.5px;
+        }
+
+        .actions-cell { text-align: center; }
+        .row-delete-btn {
+            width: 24px; height: 24px;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--ink-faint);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .row-delete-btn:hover { background: var(--danger-soft); color: var(--danger); }
+
+        .name-cell {
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 5px;
+            padding-left: 8px !important;
+        }
+        .name-text {
+            flex: 1 1 auto;
+            min-width: 0;
+            outline: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .name-text:focus { background: var(--primary-soft); border-radius: 4px; }
+        .name-text mark, .code-cell mark {
+            background: #fff1a8;
+            color: inherit;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        .source-tag {
+            flex-shrink: 0;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+        }
+        .source-tag svg { width: 9px; height: 9px; }
+
+        .source-tooltip {
+            position: fixed;
+            background: var(--ink);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11.5px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -6px);
+            transition: opacity .12s ease, transform .12s ease;
+            z-index: 9999;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+        }
+        .source-tooltip.visible { opacity: 1; transform: translate(-50%, -10px); }
+
+        td[contenteditable="true"] { cursor: text; }
+        td[contenteditable="true"]:hover { outline: 1.5px solid var(--primary); outline-offset: -1.5px; }
+        td[contenteditable="true"]:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: -2px;
+            background: var(--primary-soft) !important;
+            color: var(--ink) !important;
+        }
+
+        /* Smooth full-row hover highlight */
+        #rosterTable tbody tr:not(.days-row) { transition: filter .1s ease; }
+        #rosterTable tbody tr:not(.days-row):hover td { filter: brightness(0.96); }
+
+        #rosterTable tbody tr.row-removing { opacity: 0; transform: scale(0.98); transition: opacity .15s ease, transform .15s ease; }
+        #rosterTable tbody tr.row-flash td { animation: flashRow 1.1s ease; }
+        @keyframes flashRow { 0%{ box-shadow: inset 0 0 0 2px var(--primary);} 100%{ box-shadow: inset 0 0 0 0 transparent; } }
+
+        .invalid-duty { background: var(--danger-soft) !important; color: var(--danger) !important; font-weight: 700; }
+        .dup-employee { background: var(--duplicate-soft) !important; color: var(--duplicate) !important; font-weight: 700; }
+
+        .shift-day { background: var(--day-soft); color: #8a5c11; font-weight: 700; }
+        .shift-evening { background: var(--evening-soft); color: #a4451f; font-weight: 700; }
+        .shift-night { background: var(--night-soft); color: var(--night); font-weight: 700; }
+        .shift-off { background: var(--off-soft); color: var(--ink-soft); font-weight: 600; }
+        .shift-leave { background: var(--leave-soft); color: var(--leave); font-weight: 700; }
+        .shift-open { background: var(--open-soft); color: var(--open); font-weight: 700; }
+
+        /* Duty dropdown cells */
+        td.duty-cell { padding: 0 !important; position: relative; }
+        select.duty-select {
+            width: 100%;
+            height: 100%;
+            min-height: 26px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            text-align-last: center;
+            -moz-text-align-last: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            font-weight: inherit;
+            color: inherit;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            padding: 6px 2px;
+            outline: none;
+        }
+        select.duty-select:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: -2px;
+        }
+        td.duty-cell.invalid-duty select.duty-select { color: var(--danger); font-weight: 700; }
+
+        @media (max-width: 700px) {
+            .page { padding: 24px 14px 60px; }
+            .card-body { padding: 20px; }
+            h1 { font-size: 24px; }
+            #tableContainer.table-card { left: 0; margin-left: 0; margin-right: 0; width: 100%; }
+        }
+    </style>
+
+    <!-- ============================================================
+         NEW FEATURE STYLES (additive only — nothing above this was edited)
+         Covers: clickable file pills, source-files bar, employee popup
+         modal, and the Compare Sheets modal.
+    ============================================================= -->
+    <style id="gpakNewFeaturesStyle">
+        .file-pill.clickable { cursor: pointer; transition: background .15s ease, color .15s ease; }
+        .file-pill.clickable:hover { background: var(--primary-soft); color: var(--primary-dark); }
+        .file-pill .gpak-pill-remove {
+            margin-left: 2px;
+            background: transparent;
+            border: none;
+            color: inherit;
+            opacity: .6;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            padding: 0;
+        }
+        .file-pill .gpak-pill-remove:hover { opacity: 1; color: var(--danger); }
+
+        #tableContainer #sourceFilesBar { max-width: 1440px; margin: 0 auto; }
+        .source-files-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--line);
+            background: #fafbfc;
+            flex-wrap: wrap;
+        }
+        .sf-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--ink-soft);
+            margin-right: 2px;
+            white-space: nowrap;
+        }
+        .sf-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--surface);
+            border: 1.5px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 10px 6px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+        }
+        .sf-chip:hover { border-color: var(--primary); background: var(--primary-soft); }
+        .sf-chip .sf-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 700;
+            background: var(--primary);
+            color: #fff;
+            padding: 1px 7px;
+            border-radius: 999px;
+        }
+        .sf-chip .sf-remove {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 17px; height: 17px;
+            border-radius: 50%;
+            color: var(--ink-faint);
+        }
+        .sf-chip .sf-remove:hover { background: var(--danger-soft); color: var(--danger); }
+        .sf-compare-btn {
+            margin-left: auto;
+            background: var(--open-soft);
+            border-color: var(--open);
+            color: var(--open);
+        }
+        .sf-compare-btn:hover { background: var(--open); color: #fff; }
+
+        /* Modal scaffold */
+        .gpak-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(23,27,34,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .15s ease;
+        }
+        .gpak-modal-overlay.visible { opacity: 1; pointer-events: auto; }
+        .gpak-modal-box {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 760px;
+            max-height: 84vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(10px);
+            transition: transform .15s ease;
+        }
+        .gpak-modal-overlay.visible .gpak-modal-box { transform: translateY(0); }
+        .gpak-modal-box.wide { max-width: 980px; }
+        .gpak-modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--line);
+        }
+        .gpak-modal-header h3 { font-family: 'Sora', sans-serif; font-size: 17px; margin: 0 0 4px; }
+        .gpak-modal-header p { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+        .gpak-modal-close {
+            flex-shrink: 0;
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            background: var(--off-soft);
+            color: var(--ink-soft);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .gpak-modal-close:hover { background: var(--danger-soft); color: var(--danger); }
+        .gpak-modal-body { padding: 18px 24px 24px; overflow: auto; }
+        .gpak-modal-footer {
+            padding: 14px 24px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #fafbfc;
+            flex-wrap: wrap;
+        }
+
+        /* Employee rows inside modals */
+        .gpak-emp-row {
+            display: flex;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #fafbfc;
+        }
+        .gpak-emp-row input {
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: var(--surface);
+            color: var(--ink);
+        }
+        .gpak-emp-row input.gpak-emp-code { width: 78px; font-weight: 700; color: var(--primary-dark); flex-shrink: 0; }
+        .gpak-emp-row input.gpak-emp-name { flex: 1 1 auto; font-family: 'Inter', sans-serif; font-weight: 500; min-width: 0; }
+        .gpak-emp-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .gpak-icon-btn {
+            width: 28px; height: 28px;
+            border-radius: 7px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink-soft);
+        }
+        .gpak-icon-btn:hover { border-color: var(--ink-faint); }
+        .gpak-icon-btn.danger:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+        .gpak-icon-btn.locate:hover { background: var(--primary-soft); color: var(--primary-dark); border-color: var(--primary); }
+        .gpak-empty-state { text-align: center; padding: 32px 10px; color: var(--ink-faint); font-size: 13px; }
+
+        .gpak-mini-days { display: grid; grid-template-columns: repeat(31, 1fr); gap: 2px; margin-top: 8px; }
+        .gpak-mini-day {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5px;
+            font-weight: 700;
+            text-align: center;
+            padding: 3px 0;
+            border-radius: 3px;
+        }
+
+        /* Compare Sheets */
+        .gpak-compare-pickers { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 18px; }
+        .gpak-compare-pickers .pk { display: flex; flex-direction: column; gap: 6px; flex: 1 1 200px; }
+        .gpak-compare-pickers label { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
+        .gpak-compare-pickers select {
+            padding: 9px 10px;
+            border: 1.5px solid var(--line);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            background: var(--surface);
+            color: var(--ink);
+        }
+        .gpak-compare-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .gpak-compare-row { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+        .gpak-compare-row.only-a { border-left: 4px solid var(--primary); }
+        .gpak-compare-row.only-b { border-left: 4px solid var(--evening); }
+        .gpak-compare-row.differs { border-left: 4px solid var(--duplicate); background: var(--duplicate-soft); }
+        .gpak-compare-row.match { border-left: 4px solid var(--open); }
+        .gpak-compare-row-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .gpak-compare-row-head .who { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13.5px; }
+        .gpak-compare-row-head .code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink-soft); }
+        .gpak-compare-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .gpak-mini-btn { font-size: 11.5px; font-weight: 700; padding: 6px 10px; border-radius: 7px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+        .gpak-mini-btn:hover { border-color: var(--ink-faint); }
+        .gpak-mini-btn.keep-a:hover { border-color: var(--primary); color: var(--primary-dark); background: var(--primary-soft); }
+        .gpak-mini-btn.keep-b:hover { border-color: var(--evening); color: #a4451f; background: var(--evening-soft); }
+        .gpak-mini-btn.del-both:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+        @media (max-width: 700px) {
+            .source-files-bar { padding: 12px 14px; }
+            .gpak-modal-box { max-width: 94vw; }
+            .gpak-emp-row { flex-direction: column; align-items: stretch; }
+            .gpak-emp-row .gpak-emp-actions { margin-top: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="shift-strip"></div>
+
+<div class="page">
+    <header class="top">
+        <div>
+            <div class="brand-eyebrow"><span class="dot"></span>GPAK Roster Tools</div>
+            <h1>Roster Combiner &amp; Editor</h1>
+            <p class="subtitle">Merge multiple Excel duty rosters into one clean sheet, catch invalid duty codes and duplicate employees automatically, and fine-tune before export.</p>
+        </div>
+        <div class="legend" id="dutyLegend">
+            <!-- populated dynamically from the time-slot table -->
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="card-body">
+            <label class="field-label" for="fileInput">Select roster Excel files</label>
+            <div class="dropzone" id="dropzone">
+                <input type="file" id="fileInput" multiple accept=".xlsx, .xls">
+                <div class="dropzone-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="dropzone-title">Drop files here or click to browse</div>
+                <div class="dropzone-hint">Accepts .xlsx and .xls · legend tables are skipped automatically</div>
+            </div>
+            <div class="file-list" id="fileList"></div>
+
+            <div class="actions-row">
+                <button id="combineBtn" class="btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Process &amp; View
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card table-card" id="tableContainer">
+        <div class="table-toolbar">
+            <div>
+                <h4>Preview &amp; edit combined roster</h4>
+                <div class="hint">Click any duty cell to pick a valid code from the dropdown. <b>Red</b> cells are codes not in the time-slot table ("O" is accepted as OFF, "L" is accepted as G, "M12" is accepted as M). <b class="dup">Pink</b> cells mark a duplicate employee code. A default <b style="color:var(--ink)">0000 / HCM</b> row is always added at the top. Use <b style="color:var(--open)">Convert to Time Slot ID</b> to map every cell to its numeric ID (e.g. G → 101) and fill empty cells with <b style="color:var(--ink)">G (101)</b>.</div>
+                <div class="stats-bar" id="statsBar"></div>
+            </div>
+            <div class="toolbar-actions">
+                <button id="convertBtn" class="btn-convert">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Convert to Time Slot ID
+                </button>
+                <button id="addRowBtn" class="btn-outline">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Employee
+                </button>
+                <button id="downloadBtn" class="btn-success">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download as Excel
+                </button>
+            </div>
+        </div>
+        <div class="search-row" id="searchRow">
+            <div class="search-box">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Search by employee name or code...">
+                <button type="button" class="search-clear" id="searchClearBtn" title="Clear search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <button type="button" class="btn-toggle" id="dupOnlyBtn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Duplicates only
+            </button>
+            <button type="button" class="btn-toggle" id="invalidOnlyBtn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Invalid duties only
+            </button>
+            <span class="search-count" id="searchCount"></span>
+        </div>
+        <div class="table-scroll">
+            <table id="rosterTable" class="table">
+                <!-- Table content will be injected here via JavaScript -->
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="source-tooltip" id="sourceTooltip"></div>
+
+<script>
+    // ---- Duty / time-slot reference table (from the provided time-slot sheet) ----
+    // start/end are 24h "HH:MM"; slots without fixed times (OFF, GH) use empty strings.
+    const timeSlots = [
+        { id: '101', code: 'G',          start: '09:00', end: '17:00', aliases: ['L'] },
+        { id: '102', code: 'G1',         start: '08:30', end: '16:30' },
+        { id: '103', code: 'E',          start: '15:00', end: '23:00' },
+        { id: '104', code: 'M',          start: '07:00', end: '15:00', aliases: ['M12'] },
+        { id: '105', code: 'N',          start: '23:00', end: '07:00' },
+        { id: '106', code: 'N12',        start: '19:00', end: '03:00' },
+        { id: '108', code: 'OFF',        start: '',      end: '',      aliases: ['O'] },
+        { id: '109', code: 'GH',         start: '',      end: ''      },
+        { id: '111', code: 'Open Shift', start: '00:01', end: '23:59' }
+    ];
+    const validDuties = timeSlots.map(s => s.code);
+    const DEFAULT_DUTY = 'G';
+
+    const daysRow = ['', 'Days', '', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+    const TRASH_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+    const TAG_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+
+    // Maps a valid duty code to a shift-type class purely for visual grouping (does not affect validation)
+    function getShiftClass(duty) {
+        switch (duty) {
+            case 'G': case 'G1': case 'M':
+                return 'shift-day';
+            case 'E':
+                return 'shift-evening';
+            case 'N': case 'N12':
+                return 'shift-night';
+            case 'GH':
+                return 'shift-leave';
+            case 'OFF':
+                return 'shift-off';
+            case 'Open Shift':
+                return 'shift-open';
+            default:
+                return '';
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // Normalizes a duty code for comparison: uppercase, trimmed, spaces collapsed away
+    function normCode(s) {
+        return String(s || '').trim().toUpperCase().replace(/\s+/g, '');
+    }
+
+    // Normalizes a time fragment like "9:00", "0900", "17.30" into "HH:MM" (24h)
+    function normalizeTime(t) {
+        if (t === null || t === undefined) return null;
+        let s = String(t).trim();
+        let m = s.match(/^(\d{1,2})[:.]?(\d{2})$/);
+        if (!m) return null;
+        let h = parseInt(m[1], 10);
+        let mm = parseInt(m[2], 10);
+        if (h > 23 || mm > 59) return null;
+        return String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+    }
+
+    // Extracts a "start-end" time range from free text like "09:00-17:00" / "0900 to 1700" / "09:00–17:00"
+    function parseTimeRange(str) {
+        let m = String(str || '').trim().match(/(\d{1,2}[:.]?\d{2})\s*(?:-|to|~|–|—)\s*(\d{1,2}[:.]?\d{2})/i);
+        if (!m) return null;
+        const start = normalizeTime(m[1]);
+        const end = normalizeTime(m[2]);
+        if (!start || !end) return null;
+        return { start, end };
+    }
+
+    // Resolves any raw cell value to its matching time-slot object using: exact code match ->
+    // alias match (e.g. "O" -> OFF) -> time-slot ID match -> time-range match. Returns null if nothing matches.
+    function resolveDutySlot(raw) {
+        let trimmed = String(raw || '').trim();
+        if (trimmed === '') return timeSlots.find(s => s.code === DEFAULT_DUTY) || null;
+
+        let norm = normCode(trimmed);
+        let direct = timeSlots.find(s =>
+            normCode(s.code) === norm ||
+            (s.aliases && s.aliases.some(a => normCode(a) === norm))
+        );
+        if (direct) return direct;
+
+        let idMatch = timeSlots.find(s => s.id === trimmed);
+        if (idMatch) return idMatch;
+
+        let range = parseTimeRange(trimmed);
+        if (range) {
+            let slotMatch = timeSlots.find(s => s.start && s.end && s.start === range.start && s.end === range.end);
+            if (slotMatch) return slotMatch;
+        }
+
+        return null;
+    }
+
+    // Resolves any raw cell value into { code, valid } for the code-based dropdown display.
+    function resolveDutyCode(raw) {
+        let trimmed = String(raw || '').trim();
+        if (trimmed === '') return { code: DEFAULT_DUTY, valid: true };
+        let slot = resolveDutySlot(raw);
+        if (slot) return { code: slot.code, valid: true };
+        return { code: trimmed, valid: false };
+    }
+
+    // Builds the standard list of duty-code <option> tags, marking selectedCode as selected if given.
+    function dutyCodeOptionsHTML(selectedCode) {
+        let options = '';
+        validDuties.forEach(code => {
+            const isSelected = selectedCode !== null && normCode(code) === normCode(selectedCode);
+            options += `<option value="${escapeHtml(code)}"${isSelected ? ' selected' : ''}>${escapeHtml(code)}</option>`;
+        });
+        return options;
+    }
+
+    // Builds a single duty <td> containing a <select> restricted to valid duty codes.
+    // Values that don't match the time-slot table are kept as a flagged "wrong" option so the user can see + fix them.
+    function dutyCellHTML(rawVal) {
+        const resolved = resolveDutyCode(rawVal);
+        const cls = resolved.valid ? getShiftClass(resolved.code) : 'invalid-duty';
+
+        let options = '';
+        if (!resolved.valid) {
+            options += `<option value="${escapeHtml(resolved.code)}" selected data-wrong="1">${escapeHtml(resolved.code)} ⚠</option>`;
+        }
+        options += dutyCodeOptionsHTML(resolved.valid ? resolved.code : null);
+
+        return `<td class="duty-cell ${cls}"><select class="duty-select">${options}</select></td>`;
+    }
+
+    // Builds a duty <td> selected to its Time Slot ID (e.g. "101") instead of the short code — used by Convert to Time Slot ID.
+    // The full code list stays available underneath so the user can switch back to a letter code at any time.
+    function dutyIdCellHTML(rawVal) {
+        const slot = resolveDutySlot(rawVal);
+        if (!slot) {
+            const trimmed = String(rawVal || '').trim();
+            const options = `<option value="${escapeHtml(trimmed)}" selected data-wrong="1">${escapeHtml(trimmed)} ⚠</option>` + dutyCodeOptionsHTML(null);
+            return { html: `<td class="duty-cell invalid-duty"><select class="duty-select">${options}</select></td>`, matched: false };
+        }
+        const cls = getShiftClass(slot.code);
+        const idOption = `<option value="${escapeHtml(slot.id)}" selected data-id-display="1">${escapeHtml(slot.id)}</option>`;
+        const options = idOption + dutyCodeOptionsHTML(null);
+        return { html: `<td class="duty-cell ${cls}"><select class="duty-select">${options}</select></td>`, matched: true, slot };
+    }
+
+    // ---- Populate the legend dynamically from the time-slot table ----
+    function renderLegend() {
+        const legend = document.getElementById('dutyLegend');
+        let html = '';
+        timeSlots.forEach(s => {
+            const cls = getShiftClass(s.code);
+            const colorVar = cls === 'shift-day' ? '--day'
+                : cls === 'shift-evening' ? '--evening'
+                : cls === 'shift-night' ? '--night'
+                : cls === 'shift-leave' ? '--leave'
+                : cls === 'shift-open' ? '--open'
+                : '--off';
+            const timeLabel = s.start && s.end ? `${s.start}–${s.end}` : 'no fixed time';
+            html += `<span class="legend-chip" title="ID ${escapeHtml(s.id)} · ${escapeHtml(s.code)}: ${escapeHtml(timeLabel)}"><span class="swatch" style="background:var(${colorVar})"></span>${escapeHtml(s.code)}</span>`;
+        });
+        html += `<span class="legend-chip" title="Duty code not found in the time-slot table"><span class="swatch" style="background:var(--danger)"></span>Invalid</span>`;
+        html += `<span class="legend-chip" title="Same employee code appears more than once"><span class="swatch" style="background:var(--duplicate)"></span>Duplicate</span>`;
+        legend.innerHTML = html;
+    }
+    renderLegend();
+
+    // Helper function to extract day (1-31) from various cell formats (Numbers, Dates, Strings)
+    function getDayNumber(cellVal) {
+        if (cellVal === '' || cellVal === null || cellVal === undefined) return -1;
+        let num = Number(cellVal);
+
+        if (!isNaN(num)) {
+            if (num >= 1 && num <= 31) return num; // Standard 1-31 format
+            if (num > 30000 && num < 70000) { // Excel Serial Date format
+                let date = new Date(Math.round((num - 25569) * 86400 * 1000));
+                return date.getUTCDate();
+            }
+        } else {
+            let str = String(cellVal).trim();
+            let d = new Date(str);
+            if (!isNaN(d.getTime())) { // Standard Date String format
+                return d.getDate();
+            }
+            let parts = str.split(/[-/]/);
+            if (parts.length >= 2) { // Edge case "01-Jul" format
+                 let maybeDay = parseInt(parts[0]);
+                 if (!isNaN(maybeDay) && maybeDay >= 1 && maybeDay <= 31) return maybeDay;
+                 let maybeDay2 = parseInt(parts[1]);
+                 if (!isNaN(maybeDay2) && maybeDay2 >= 1 && maybeDay2 <= 31) return maybeDay2;
+            }
+        }
+        return -1;
+    }
+
+    // ---- Dropzone UX (drag & drop + selected file pills) ----
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+
+    function renderFilePills() {
+        fileList.innerHTML = '';
+        Array.from(fileInput.files).forEach(f => {
+            const pill = document.createElement('span');
+            pill.className = 'file-pill';
+            pill.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${escapeHtml(f.name)}`;
+            fileList.appendChild(pill);
+        });
+    }
+    fileInput.addEventListener('change', renderFilePills);
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropzone.classList.add('drag-over');
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+        });
+    });
+    dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+            fileInput.files = dt.files;
+            renderFilePills();
+        }
+    });
+
+    // Builds the 31 duty-day <td> cells for a row, given an array of up to 31 values
+    function buildDutyCellsHTML(days) {
+        const out = [];
+        for (let i = 0; i < 31; i++) {
+            out.push(dutyCellHTML(days[i] || ''));
+        }
+        return out.join('');
+    }
+
+    // Builds one full employee row: [delete action][E.Code#][Name + source tag][31 duty cells]
+    function buildRowHTML(code, name, source, days) {
+        return `<tr>
+            <td class="actions-cell"><button type="button" class="row-delete-btn" title="Delete row" aria-label="Delete row">${TRASH_SVG}</button></td>
+            <td contenteditable="true" class="code-cell">${escapeHtml(code)}</td>
+            <td class="name-cell">
+                <span class="name-text" contenteditable="true">${escapeHtml(name)}</span>
+                <span class="source-tag" data-source="${escapeHtml(source || 'Manually added')}">${TAG_SVG}</span>
+            </td>
+            ${buildDutyCellsHTML(days)}
+        </tr>`;
+    }
+
+    document.getElementById('combineBtn').addEventListener('click', async () => {
+        if (fileInput.files.length === 0) {
+            alert('Please select at least one Excel file to combine.');
+            return;
+        }
+
+        document.getElementById('tableContainer').style.display = 'none';
+        document.getElementById('searchRow').style.display = 'none';
+
+        // Each record: { code, name, source, days:[31] }
+        let combinedData = [];
+
+        for (let file of fileInput.files) {
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                for (let sheetName of workbook.SheetNames) {
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+
+                    let headerRowIdx = -1;
+                    let colMap = {};
+
+                    // Step 1: Identify header row safely (handling actual Dates now)
+                    for (let i = 0; i < rows.length; i++) {
+                        let row = rows[i];
+                        if (!row) continue;
+
+                        let foundDates = 0;
+                        let tempMap = {};
+
+                        for (let j = 0; j < row.length; j++) {
+                            let cell = row[j];
+                            let cellStr = String(cell || '').trim();
+                            let normCell = cellStr.replace(/\s+/g, '').toLowerCase();
+
+                            if (normCell.includes('e.code') || normCell.includes('empcode') || normCell === 'ecode#') tempMap['E.Code#'] = j;
+                            if (normCell.includes('employeename') || normCell.includes('empname') || normCell === 'name' || normCell.includes('employeesname')) tempMap['Employee Name'] = j;
+
+                            // Check if cell evaluates to a day of the month
+                            let dayNum = getDayNumber(cell);
+                            if (dayNum !== -1) {
+                                tempMap[dayNum] = j;
+                                foundDates++;
+                            }
+                        }
+
+                        if (foundDates >= 28) {
+                            headerRowIdx = i;
+                            colMap = tempMap;
+                            break;
+                        }
+                    }
+
+                    // Step 2: Extract data mapping accurately
+                    if (headerRowIdx !== -1) {
+                        const sourceTag = `${file.name} · ${sheetName}`;
+
+                        for (let i = headerRowIdx + 1; i < rows.length; i++) {
+                            let row = rows[i];
+                            if (!row || row.length === 0) continue;
+
+                            let eCodeCol = colMap['E.Code#'];
+                            let eCode = eCodeCol !== undefined ? row[eCodeCol] : undefined;
+                            let eCodeStr = String(eCode || '').trim();
+                            let upperECode = eCodeStr.toUpperCase();
+
+                            // Stopper: If we hit the abbreviations table at the bottom, end the loop entirely
+                            if (upperECode.includes('ABBREVIATION')) {
+                                break;
+                            }
+
+                            const invalidIdentifiers = ['days', 'e.code#', 'sr#', 'sr.', 'employee name', 'employees names', ''];
+
+                            // Skipper: Ensure it's not a header reprint or a single abbreviation letter acting as an ID
+                            if (!invalidIdentifiers.includes(upperECode.toLowerCase()) && !validDuties.includes(upperECode)) {
+
+                                let name = colMap['Employee Name'] !== undefined ? String(row[colMap['Employee Name']] || '').trim() : '';
+                                let days = [];
+                                for (let d = 1; d <= 31; d++) {
+                                    if (colMap[d] !== undefined) {
+                                        let val = String(row[colMap[d]] || '').trim();
+                                        // Validation: any empty duty cell defaults to G
+                                        days.push(val === '' ? DEFAULT_DUTY : val);
+                                    } else {
+                                        days.push('');
+                                    }
+                                }
+
+                                combinedData.push({ code: eCodeStr, name, source: sourceTag, days });
+                            }
+                        }
+                        break;
+                    }
+                }
+            } catch (err) {
+                console.error(`Error processing ${file.name}:`, err);
+                alert(`Error processing ${file.name}: ${err.message}`);
+            }
+        }
+
+        if (combinedData.length === 0) {
+            alert('No data extracted! Please check that the file(s) contain a valid roster table.');
+            return;
+        }
+
+        // Always add a default reference row at the very top: E.Code# 0000, Name HCM
+        combinedData.unshift({ code: '0000', name: 'HCM', source: 'Default row', days: new Array(31).fill(DEFAULT_DUTY) });
+
+        // Step 3: Render Data to HTML Table
+        const header1 = ['', 'E.Code#', 'Employee Name'];
+        for (let i = 1; i <= 31; i++) header1.push(i);
+
+        let theadHTML = '<thead><tr>';
+        header1.forEach(h => theadHTML += `<th>${h}</th>`);
+        theadHTML += '</tr></thead>';
+
+        let bodyRowsHTML = ['<tr class="days-row">' + daysRow.map(d => `<td>${d}</td>`).join('') + '</tr>'];
+        combinedData.forEach(rec => bodyRowsHTML.push(buildRowHTML(rec.code, rec.name, rec.source, rec.days)));
+
+        document.getElementById('rosterTable').innerHTML = theadHTML + '<tbody>' + bodyRowsHTML.join('') + '</tbody>';
+        document.getElementById('tableContainer').style.display = 'block';
+        document.getElementById('searchRow').style.display = 'flex';
+        document.getElementById('tableContainer').scrollIntoView({ behavior: 'smooth' });
+
+        // reset search state on fresh data
+        searchInput.value = '';
+        dupOnlyActive = false;
+        invalidOnlyActive = false;
+        dupOnlyBtn.classList.remove('active-dup');
+        invalidOnlyBtn.classList.remove('active-invalid');
+        searchClearBtn.style.display = 'none';
+
+        // Validation: flag duplicate employee codes + refresh stats
+        recomputeDuplicates();
+    });
+
+    // Scans all data rows and highlights E.Code# / Name cells that share a duplicate E.Code#,
+    // recomputes invalid-duty counts, refreshes stats, and re-applies the active search/filters
+    function recomputeDuplicates() {
+        const table = document.getElementById('rosterTable');
+        const bodyRows = Array.from(table.querySelectorAll('tbody tr:not(.days-row)'));
+
+        let counts = {};
+        bodyRows.forEach(tr => {
+            const code = tr.children[1].innerText.trim().toUpperCase();
+            if (code === '') return;
+            counts[code] = (counts[code] || 0) + 1;
+        });
+
+        let dupCodeSet = new Set();
+        let invalidRowCount = 0;
+        bodyRows.forEach(tr => {
+            const codeCell = tr.children[1];
+            const nameCell = tr.children[2];
+            const code = codeCell.innerText.trim().toUpperCase();
+            const isDup = code !== '' && counts[code] > 1;
+            codeCell.classList.toggle('dup-employee', isDup);
+            nameCell.classList.toggle('dup-employee', isDup);
+            if (isDup) dupCodeSet.add(code);
+
+            const hasInvalid = !!tr.querySelector('td.duty-cell.invalid-duty');
+            tr.dataset.hasInvalid = hasInvalid ? '1' : '0';
+            if (hasInvalid) invalidRowCount++;
+        });
+
+        updateStats(bodyRows.length, dupCodeSet.size, invalidRowCount);
+        applyFilters();
+    }
+
+    function updateStats(total, dupCount, invalidCount) {
+        const statsBar = document.getElementById('statsBar');
+        if (!statsBar) return;
+        let html = `<span class="stat-chip">${total} employee${total !== 1 ? 's' : ''}</span>`;
+        if (dupCount > 0) {
+            html += `<span class="stat-chip stat-chip-dup">${dupCount} duplicate code${dupCount !== 1 ? 's' : ''}</span>`;
+        }
+        if (invalidCount > 0) {
+            html += `<span class="stat-chip stat-chip-invalid">${invalidCount} row${invalidCount !== 1 ? 's' : ''} with invalid duty</span>`;
+        }
+        statsBar.innerHTML = html;
+    }
+
+    // ---- Search + Duplicates-only + Invalid-only filtering ----
+    const searchInput = document.getElementById('searchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const dupOnlyBtn = document.getElementById('dupOnlyBtn');
+    const invalidOnlyBtn = document.getElementById('invalidOnlyBtn');
+    const searchCount = document.getElementById('searchCount');
+    let dupOnlyActive = false;
+    let invalidOnlyActive = false;
+
+    function applyFilters() {
+        const term = searchInput.value.trim().toLowerCase();
+        searchClearBtn.style.display = term ? 'inline-flex' : 'none';
+
+        const table = document.getElementById('rosterTable');
+        const rows = Array.from(table.querySelectorAll('tbody tr:not(.days-row)'));
+        let shown = 0;
+
+        rows.forEach(tr => {
+            const codeCell = tr.children[1];
+            const nameEl = tr.children[2].querySelector('.name-text');
+            const code = codeCell.innerText.trim();
+            const name = nameEl ? nameEl.innerText.trim() : '';
+
+            // highlight matches in code/name cells
+            if (term) {
+                codeCell.innerHTML = highlightMatch(code, term);
+                if (nameEl) nameEl.innerHTML = highlightMatch(name, term);
+            } else {
+                codeCell.textContent = code;
+                if (nameEl) nameEl.textContent = name;
+            }
+
+            const matchesTerm = term === '' || code.toLowerCase().includes(term) || name.toLowerCase().includes(term);
+            const matchesDup = !dupOnlyActive || codeCell.classList.contains('dup-employee');
+            const matchesInvalid = !invalidOnlyActive || tr.dataset.hasInvalid === '1';
+            const visible = matchesTerm && matchesDup && matchesInvalid;
+
+            tr.style.display = visible ? '' : 'none';
+            if (visible) shown++;
+        });
+
+        searchCount.textContent = (term || dupOnlyActive || invalidOnlyActive) ? `${shown} match${shown !== 1 ? 'es' : ''}` : '';
+    }
+
+    function highlightMatch(text, term) {
+        if (!term) return escapeHtml(text);
+        const idx = text.toLowerCase().indexOf(term);
+        if (idx === -1) return escapeHtml(text);
+        return escapeHtml(text.slice(0, idx)) + '<mark>' + escapeHtml(text.slice(idx, idx + term.length)) + '</mark>' + escapeHtml(text.slice(idx + term.length));
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    searchClearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        applyFilters();
+        searchInput.focus();
+    });
+    dupOnlyBtn.addEventListener('click', () => {
+        dupOnlyActive = !dupOnlyActive;
+        dupOnlyBtn.classList.toggle('active-dup', dupOnlyActive);
+        applyFilters();
+    });
+    invalidOnlyBtn.addEventListener('click', () => {
+        invalidOnlyActive = !invalidOnlyActive;
+        invalidOnlyBtn.classList.toggle('active-invalid', invalidOnlyActive);
+        applyFilters();
+    });
+
+    // ---- Convert to Time Slot ID: maps raw values (codes, times, stray text) to the numeric Time Slot ID ----
+    document.getElementById('convertBtn').addEventListener('click', () => {
+        const table = document.getElementById('rosterTable');
+        const dutyTds = Array.from(table.querySelectorAll('tbody tr:not(.days-row) td.duty-cell'));
+
+        let converted = 0, stillInvalid = 0, filledEmpty = 0;
+
+        dutyTds.forEach(td => {
+            const sel = td.querySelector('select.duty-select');
+            if (!sel) return;
+            const rawBefore = sel.value;
+            const wasEmpty = rawBefore.trim() === '';
+            const result = dutyIdCellHTML(rawBefore);
+
+            const tpl = document.createElement('template');
+            tpl.innerHTML = result.html;
+            td.replaceWith(tpl.content.firstElementChild);
+
+            if (wasEmpty) filledEmpty++;
+            else if (result.matched) converted++;
+            else stillInvalid++;
+        });
+
+        recomputeDuplicates();
+
+        let msg = `Converted to time-slot IDs. ${filledEmpty} empty cell${filledEmpty !== 1 ? 's' : ''} filled with G (ID 101), ${converted} value${converted !== 1 ? 's' : ''} mapped to their time-slot ID.`;
+        if (stillInvalid > 0) msg += ` ${stillInvalid} cell${stillInvalid !== 1 ? 's' : ''} could not be matched to the time-slot table and are marked invalid (red) — pick a code from the dropdown, then convert again.`;
+        alert(msg);
+    });
+
+    // ---- Add employee row ----
+    document.getElementById('addRowBtn').addEventListener('click', () => {
+        const table = document.getElementById('rosterTable');
+        let tbody = table.querySelector('tbody');
+        if (!tbody) return; // nothing processed yet
+
+        const blankDays = new Array(31).fill(DEFAULT_DUTY);
+        const wrapper = document.createElement('tbody');
+        wrapper.innerHTML = buildRowHTML('', '', 'Manually added', blankDays);
+        const newRow = wrapper.firstElementChild;
+        tbody.appendChild(newRow);
+
+        recomputeDuplicates();
+        newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const codeCell = newRow.children[1];
+        codeCell.focus();
+    });
+
+    // ---- Delete employee row ----
+    document.getElementById('tableContainer').addEventListener('click', (e) => {
+        const btn = e.target.closest('.row-delete-btn');
+        if (!btn) return;
+        const row = btn.closest('tr');
+        if (!row || row.classList.contains('days-row')) return;
+
+        row.classList.add('row-removing');
+        setTimeout(() => {
+            row.remove();
+            recomputeDuplicates();
+        }, 150);
+    });
+
+    // Step 4: Handle Download — rebuilt from the live table so Actions/tags are excluded and Source is preserved
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        try {
+            const table = document.getElementById('rosterTable');
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+            const aoa = [];
+            const header = ['E.Code#', 'Employee Name', 'Source'];
+            for (let i = 1; i <= 31; i++) header.push(i);
+            aoa.push(header);
+
+            rows.forEach(tr => {
+                if (tr.classList.contains('days-row')) {
+                    aoa.push(['Days', '', ...daysRow.slice(3)]);
+                    return;
+                }
+                const code = tr.children[1].innerText.trim();
+                const nameEl = tr.children[2].querySelector('.name-text');
+                const tagEl = tr.children[2].querySelector('.source-tag');
+                const name = nameEl ? nameEl.innerText.trim() : '';
+                const source = tagEl ? tagEl.dataset.source : '';
+                const days = [];
+                for (let i = 3; i < tr.children.length; i++) {
+                    const sel = tr.children[i].querySelector('select.duty-select');
+                    days.push(sel ? sel.value.trim() : tr.children[i].innerText.trim());
+                }
+                aoa.push([code, name, source, ...days]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Combined Roster");
+            XLSX.writeFile(workbook, "Combined_Roster_Output.xlsx");
+        } catch (err) {
+            console.error('Error generating output:', err);
+            alert(`Error generating output: ${err.message}`);
+        }
+    });
+
+    // Duty dropdown change: update cell styling, drop leftover flagged options once fixed, recheck duplicates/filters
+    document.getElementById('tableContainer').addEventListener('change', function (e) {
+        const sel = e.target.closest('select.duty-select');
+        if (!sel) return;
+        const td = sel.closest('td');
+        const newVal = sel.value;
+        const isValidCode = validDuties.some(code => normCode(code) === normCode(newVal));
+        const idSlot = timeSlots.find(s => s.id === newVal);
+        const isValid = isValidCode || !!idSlot;
+        const shiftCls = isValidCode ? getShiftClass(newVal) : (idSlot ? getShiftClass(idSlot.code) : '');
+
+        td.classList.remove('invalid-duty', 'shift-day', 'shift-evening', 'shift-night', 'shift-off', 'shift-leave', 'shift-open');
+        td.classList.add(isValid ? shiftCls : 'invalid-duty');
+
+        const wrongOpt = sel.querySelector('option[data-wrong="1"]');
+        if (wrongOpt && wrongOpt.value !== sel.value) wrongOpt.remove();
+        const idOpt = sel.querySelector('option[data-id-display="1"]');
+        if (idOpt && idOpt.value !== sel.value) idOpt.remove();
+
+        const row = td.closest('tr');
+        row.dataset.hasInvalid = row.querySelector('td.duty-cell.invalid-duty') ? '1' : '0';
+        updateStats(
+            document.querySelectorAll('#rosterTable tbody tr:not(.days-row)').length,
+            document.querySelectorAll('#rosterTable tbody tr:not(.days-row) td:nth-child(2).dup-employee').length,
+            document.querySelectorAll('#rosterTable tbody tr:not(.days-row)[data-has-invalid="1"]').length
+        );
+        applyFilters();
+    });
+
+    // Recheck duplicates whenever the E.Code# cell is edited
+    document.getElementById('tableContainer').addEventListener('input', function (e) {
+        const cell = e.target.closest('td.code-cell');
+        if (!cell) return;
+        recomputeDuplicates();
+    });
+
+    // ---- Source tag hover tooltip (fixed-position so it escapes the scroll container) ----
+    const sourceTooltip = document.getElementById('sourceTooltip');
+    document.getElementById('tableContainer').addEventListener('mouseover', (e) => {
+        const tag = e.target.closest('.source-tag');
+        if (!tag) return;
+        const rect = tag.getBoundingClientRect();
+        sourceTooltip.textContent = tag.dataset.source;
+        sourceTooltip.style.left = (rect.left + rect.width / 2) + 'px';
+        sourceTooltip.style.top = rect.top + 'px';
+        sourceTooltip.classList.add('visible');
+    });
+    document.getElementById('tableContainer').addEventListener('mouseout', (e) => {
+        if (e.target.closest('.source-tag')) sourceTooltip.classList.remove('visible');
+    });
+</script>
+
+<!-- ============================================================
+     NEW FEATURES (additive only — every line above this comment
+     is byte-for-byte the original file, nothing was changed).
+
+     Adds:
+       1. Clickable uploaded-file pills -> preview popup of that
+          file's parsed employee data, before combining.
+       2. A "Source files" bar on the combined table -> click a
+          file name to open a popup listing its employees, with
+          inline edit (code/name), delete, locate-in-table, and
+          "remove all rows from this file".
+       3. A "Compare Sheets" popup: pick two source files and see
+          who's only in A, only in B, who differs (and on which
+          days), with quick actions to keep A's version, keep B's
+          version, or delete either/both entries.
+============================================================= -->
+<script>
+(function () {
+    'use strict';
+
+    /* ---------------------------------------------------------
+       Shared modal scaffold
+    --------------------------------------------------------- */
+    function gpakEscHandler(e) {
+        if (e.key === 'Escape') closeGpakModal();
+    }
+
+    function openGpakModal(innerHTML, opts) {
+        opts = opts || {};
+        closeGpakModal();
+        const overlay = document.createElement('div');
+        overlay.className = 'gpak-modal-overlay';
+        overlay.id = 'gpakModalOverlay';
+        overlay.innerHTML = '<div class="gpak-modal-box' + (opts.wide ? ' wide' : '') + '">' + innerHTML + '</div>';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('visible'));
+        overlay.addEventListener('mousedown', (e) => {
+            if (e.target === overlay) closeGpakModal();
+        });
+        document.addEventListener('keydown', gpakEscHandler);
+        return overlay;
+    }
+
+    function closeGpakModal() {
+        const existing = document.getElementById('gpakModalOverlay');
+        if (existing) existing.remove();
+        document.removeEventListener('keydown', gpakEscHandler);
+    }
+
+    /* ---------------------------------------------------------
+       Stable IDs so modal controls can reference live <tr> rows
+    --------------------------------------------------------- */
+    let gpakRowIdCounter = 0;
+    function ensureTrId(tr) {
+        if (!tr.dataset.gpakId) tr.dataset.gpakId = 'gr' + (++gpakRowIdCounter);
+        return tr.dataset.gpakId;
+    }
+    function getTrById(id) {
+        return document.querySelector('#rosterTable tbody tr[data-gpak-id="' + id + '"]');
+    }
+
+    /* ===========================================================
+       1) PRE-PROCESSING: clickable uploaded-file pills -> preview
+       =========================================================== */
+
+    // Re-implements the same header-detection/extraction the Process
+    // button uses, but read-only and scoped to a single file, purely
+    // for the "preview before combining" popup.
+    async function parseRosterFile(file) {
+        const records = [];
+        try {
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            for (let sheetName of workbook.SheetNames) {
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+                let headerRowIdx = -1;
+                let colMap = {};
+
+                for (let i = 0; i < rows.length; i++) {
+                    let row = rows[i];
+                    if (!row) continue;
+                    let foundDates = 0;
+                    let tempMap = {};
+                    for (let j = 0; j < row.length; j++) {
+                        let cell = row[j];
+                        let cellStr = String(cell || '').trim();
+                        let normCell = cellStr.replace(/\s+/g, '').toLowerCase();
+                        if (normCell.includes('e.code') || normCell.includes('empcode') || normCell === 'ecode#') tempMap['E.Code#'] = j;
+                        if (normCell.includes('employeename') || normCell.includes('empname') || normCell === 'name' || normCell.includes('employeesname')) tempMap['Employee Name'] = j;
+                        let dayNum = getDayNumber(cell);
+                        if (dayNum !== -1) { tempMap[dayNum] = j; foundDates++; }
+                    }
+                    if (foundDates >= 28) { headerRowIdx = i; colMap = tempMap; break; }
+                }
+
+                if (headerRowIdx !== -1) {
+                    for (let i = headerRowIdx + 1; i < rows.length; i++) {
+                        let row = rows[i];
+                        if (!row || row.length === 0) continue;
+                        let eCodeCol = colMap['E.Code#'];
+                        let eCode = eCodeCol !== undefined ? row[eCodeCol] : undefined;
+                        let eCodeStr = String(eCode || '').trim();
+                        let upperECode = eCodeStr.toUpperCase();
+                        if (upperECode.includes('ABBREVIATION')) break;
+                        const invalidIdentifiers = ['days', 'e.code#', 'sr#', 'sr.', 'employee name', 'employees names', ''];
+                        if (!invalidIdentifiers.includes(upperECode.toLowerCase()) && !validDuties.includes(upperECode)) {
+                            let name = colMap['Employee Name'] !== undefined ? String(row[colMap['Employee Name']] || '').trim() : '';
+                            let days = [];
+                            for (let d = 1; d <= 31; d++) {
+                                if (colMap[d] !== undefined) {
+                                    let val = String(row[colMap[d]] || '').trim();
+                                    days.push(val === '' ? DEFAULT_DUTY : val);
+                                } else {
+                                    days.push('');
+                                }
+                            }
+                            records.push({ code: eCodeStr, name, sheet: sheetName, days });
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (err) {
+            console.error('Preview parse error for ' + file.name + ':', err);
+        }
+        return records;
+    }
+
+    function buildPreviewEmpRowHTML(rec) {
+        const dayCells = rec.days.map((d, i) => {
+            const resolved = resolveDutyCode(d);
+            const cls = resolved.valid ? getShiftClass(resolved.code) : 'invalid-duty';
+            return '<span class="gpak-mini-day ' + cls + '" title="Day ' + (i + 1) + ': ' + escapeHtml(resolved.code || '\u2013') + '">' + escapeHtml(resolved.code || '\u2013') + '</span>';
+        }).join('');
+        return '<div class="gpak-emp-row" style="flex-direction:column;align-items:stretch;">' +
+            '<div style="display:flex;align-items:center;gap:10px;">' +
+                '<span style="width:72px;flex-shrink:0;font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:var(--primary-dark);">' + escapeHtml(rec.code || '\u2014') + '</span>' +
+                '<span style="font-family:\'Inter\',sans-serif;font-weight:500;flex:1;min-width:0;">' + escapeHtml(rec.name || '\u2014') + '</span>' +
+                '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;">' + escapeHtml(rec.sheet) + '</span>' +
+            '</div>' +
+            '<div style="overflow-x:auto;"><div class="gpak-mini-days" style="min-width:620px;">' + dayCells + '</div></div>' +
+        '</div>';
+    }
+
+    async function previewInputFile(file) {
+        const overlay = openGpakModal(
+            '<div class="gpak-modal-header">' +
+                '<div><h3>' + escapeHtml(file.name) + '</h3><p>Reading roster data\u2026</p></div>' +
+                '<button type="button" class="gpak-modal-close" id="gpakCloseBtn">\u2715</button>' +
+            '</div>' +
+            '<div class="gpak-modal-body" id="gpakModalBody"><div class="gpak-empty-state">Parsing file\u2026</div></div>',
+            { wide: true }
+        );
+        overlay.querySelector('#gpakCloseBtn').addEventListener('click', closeGpakModal);
+
+        const records = await parseRosterFile(file);
+        const liveOverlay = document.getElementById('gpakModalOverlay');
+        if (!liveOverlay) return; // closed while parsing
+
+        const body = liveOverlay.querySelector('#gpakModalBody');
+        const headerP = liveOverlay.querySelector('.gpak-modal-header p');
+        headerP.textContent = records.length + ' employee' + (records.length !== 1 ? 's' : '') + ' found \u00b7 before combining';
+
+        if (records.length === 0) {
+            body.innerHTML = '<div class="gpak-empty-state">No roster table detected in this file yet \u2014 it will be skipped when you click Process &amp; View.</div>';
+            return;
+        }
+        body.innerHTML = records.map(buildPreviewEmpRowHTML).join('');
+    }
+
+    function removeInputFile(idx) {
+        const dt = new DataTransfer();
+        Array.from(fileInput.files).forEach((f, i) => { if (i !== idx) dt.items.add(f); });
+        fileInput.files = dt.files;
+        renderFilePills();
+        enhanceFilePills();
+    }
+
+    function enhanceFilePills() {
+        const pills = fileList.querySelectorAll('.file-pill');
+        const files = Array.from(fileInput.files);
+        pills.forEach((pill, idx) => {
+            pill.classList.add('clickable');
+            pill.title = "Click to preview this file's roster data";
+            pill.addEventListener('click', () => previewInputFile(files[idx]));
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'gpak-pill-remove';
+            removeBtn.title = 'Remove file from selection';
+            removeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeInputFile(idx);
+            });
+            pill.appendChild(removeBtn);
+        });
+    }
+
+    fileInput.addEventListener('change', () => setTimeout(enhanceFilePills, 0));
+    dropzone.addEventListener('drop', () => setTimeout(enhanceFilePills, 0));
+
+    /* ===========================================================
+       2) POST-PROCESSING: source-files bar + per-file employee modal
+       =========================================================== */
+
+    function getSourceGroups() {
+        const rows = Array.from(document.querySelectorAll('#rosterTable tbody tr:not(.days-row)'));
+        const groups = new Map(); // label -> { rows:[], isSystem:bool }
+        rows.forEach(tr => {
+            const tag = tr.querySelector('.source-tag');
+            const src = tag ? (tag.dataset.source || '') : '';
+            let label, isSystem = false;
+            if (src === 'Default row' || src === 'Manually added') {
+                label = src; isSystem = true;
+            } else if (src.includes(' \u00b7 ')) {
+                label = src.split(' \u00b7 ')[0];
+            } else if (!src) {
+                label = 'Unknown source'; isSystem = true;
+            } else {
+                label = src;
+            }
+            if (!groups.has(label)) groups.set(label, { rows: [], isSystem });
+            groups.get(label).rows.push(tr);
+        });
+        return groups;
+    }
+
+    let sfDebounce = null;
+    const rosterTableEl = document.getElementById('rosterTable');
+    const sfObserver = new MutationObserver(() => {
+        clearTimeout(sfDebounce);
+        sfDebounce = setTimeout(renderSourceFilesBar, 80);
+    });
+    sfObserver.observe(rosterTableEl, { childList: true, subtree: true });
+
+    function renderSourceFilesBar() {
+        const tableContainer = document.getElementById('tableContainer');
+        if (!tableContainer) return;
+        const groups = getSourceGroups();
+
+        let bar = document.getElementById('sourceFilesBar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'sourceFilesBar';
+            bar.className = 'source-files-bar';
+            const toolbar = tableContainer.querySelector('.table-toolbar');
+            if (!toolbar) return;
+            toolbar.insertAdjacentElement('afterend', bar);
+        }
+
+        if (groups.size === 0 || tableContainer.style.display === 'none') {
+            bar.style.display = 'none';
+            return;
+        }
+        bar.style.display = 'flex';
+
+        let html = '<span class="sf-label">Source files:</span>';
+        groups.forEach((g, label) => {
+            html += '<button type="button" class="sf-chip" data-sf-label="' + escapeHtml(label) + '">' +
+                escapeHtml(label) + ' <span class="sf-count">' + g.rows.length + '</span>' +
+                (g.isSystem ? '' : '<span class="sf-remove" data-sf-remove="' + escapeHtml(label) + '" title="Remove all rows from this file">&times;</span>') +
+                '</button>';
+        });
+        html += '<button type="button" class="sf-chip sf-compare-btn" id="sfCompareBtn">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>' +
+            ' Compare Sheets</button>';
+        bar.innerHTML = html;
+
+        bar.querySelectorAll('.sf-chip[data-sf-label]').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                if (e.target.closest('.sf-remove')) return;
+                openFileEmployeesModal(chip.dataset.sfLabel);
+            });
+        });
+        bar.querySelectorAll('.sf-remove').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const label = btn.dataset.sfRemove;
+                if (confirm('Remove all rows sourced from "' + label + '"? This cannot be undone.')) {
+                    removeSourceGroup(label);
+                }
+            });
+        });
+        const compareBtn = document.getElementById('sfCompareBtn');
+        if (compareBtn) compareBtn.addEventListener('click', openCompareModal);
+    }
+
+    function removeSourceGroup(label) {
+        const groups = getSourceGroups();
+        const g = groups.get(label);
+        if (!g) return;
+        g.rows.forEach(tr => tr.remove());
+        recomputeDuplicates();
+    }
+
+    function buildEditableEmpRowHTML(tr) {
+        const id = ensureTrId(tr);
+        const code = tr.children[1].innerText.trim();
+        const nameEl = tr.querySelector('.name-cell .name-text');
+        const name = nameEl ? nameEl.innerText.trim() : '';
+        const selects = tr.querySelectorAll('td.duty-cell select.duty-select');
+        const dayCells = Array.from(selects).map((sel, i) => {
+            const val = sel.value;
+            const resolved = resolveDutyCode(val);
+            const cls = resolved.valid ? getShiftClass(resolved.code) : 'invalid-duty';
+            return '<span class="gpak-mini-day ' + cls + '" title="Day ' + (i + 1) + '">' + escapeHtml(val || '\u2013') + '</span>';
+        }).join('');
+
+        return '<div class="gpak-emp-row" style="flex-direction:column;align-items:stretch;">' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+                '<input type="text" class="gpak-emp-code" data-gpak-code-input data-gpak-tr-id="' + id + '" value="' + escapeHtml(code) + '">' +
+                '<input type="text" class="gpak-emp-name" data-gpak-name-input data-gpak-tr-id="' + id + '" value="' + escapeHtml(name) + '">' +
+                '<div class="gpak-emp-actions">' +
+                    '<button type="button" class="gpak-icon-btn locate" data-gpak-locate="' + id + '" title="Show in table"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>' +
+                    '<button type="button" class="gpak-icon-btn danger" data-gpak-delete="' + id + '" title="Delete row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>' +
+                '</div>' +
+            '</div>' +
+            '<div style="overflow-x:auto;"><div class="gpak-mini-days" style="min-width:620px;">' + dayCells + '</div></div>' +
+        '</div>';
+    }
+
+    function openFileEmployeesModal(label) {
+        const overlay = openGpakModal(
+            '<div class="gpak-modal-header">' +
+                '<div><h3>' + escapeHtml(label) + '</h3><p id="gpakEmpModalSub"></p></div>' +
+                '<button type="button" class="gpak-modal-close" id="gpakCloseBtn">\u2715</button>' +
+            '</div>' +
+            '<div class="gpak-modal-body" id="gpakEmpModalBody"></div>' +
+            '<div class="gpak-modal-footer">' +
+                '<button type="button" class="btn-outline" id="gpakEmpDeleteAll" style="border-color:var(--danger);color:var(--danger);">Remove all rows from this file</button>' +
+                '<button type="button" class="btn-primary" id="gpakEmpDone">Done</button>' +
+            '</div>',
+            { wide: true }
+        );
+        overlay.querySelector('#gpakCloseBtn').addEventListener('click', closeGpakModal);
+        overlay.querySelector('#gpakEmpDone').addEventListener('click', closeGpakModal);
+        overlay.querySelector('#gpakEmpDeleteAll').addEventListener('click', () => {
+            if (confirm('Remove all rows sourced from "' + label + '"? This cannot be undone.')) {
+                removeSourceGroup(label);
+                closeGpakModal();
+            }
+        });
+        renderFileEmployeesModalBody(label);
+    }
+
+    function renderFileEmployeesModalBody(label) {
+        const overlay = document.getElementById('gpakModalOverlay');
+        if (!overlay) return;
+        const groups = getSourceGroups();
+        const g = groups.get(label);
+        const body = overlay.querySelector('#gpakEmpModalBody');
+        const sub = overlay.querySelector('#gpakEmpModalSub');
+
+        if (!g || g.rows.length === 0) {
+            if (sub) sub.textContent = '0 employees';
+            if (body) body.innerHTML = '<div class="gpak-empty-state">No rows left for this source.</div>';
+            return;
+        }
+        if (sub) sub.textContent = g.rows.length + ' employee' + (g.rows.length !== 1 ? 's' : '') + ' \u00b7 edits here update the main table instantly';
+        body.innerHTML = g.rows.map(buildEditableEmpRowHTML).join('');
+
+        body.querySelectorAll('[data-gpak-code-input]').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+                const tr = getTrById(e.target.dataset.gpakTrId);
+                if (tr) { tr.children[1].innerText = e.target.value; recomputeDuplicates(); }
+            });
+        });
+        body.querySelectorAll('[data-gpak-name-input]').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+                const tr = getTrById(e.target.dataset.gpakTrId);
+                const nameEl = tr ? tr.querySelector('.name-cell .name-text') : null;
+                if (nameEl) nameEl.innerText = e.target.value;
+            });
+        });
+        body.querySelectorAll('[data-gpak-locate]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tr = getTrById(btn.dataset.gpakLocate);
+                if (!tr) return;
+                closeGpakModal();
+                tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                tr.classList.add('row-flash');
+                setTimeout(() => tr.classList.remove('row-flash'), 1200);
+            });
+        });
+        body.querySelectorAll('[data-gpak-delete]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tr = getTrById(btn.dataset.gpakDelete);
+                if (!tr) return;
+                if (!confirm('Delete this employee row from the combined roster?')) return;
+                tr.classList.add('row-removing');
+                setTimeout(() => {
+                    tr.remove();
+                    recomputeDuplicates();
+                    renderFileEmployeesModalBody(label);
+                }, 150);
+            });
+        });
+    }
+
+    /* ===========================================================
+       3) COMPARE SHEETS
+       =========================================================== */
+
+    function openCompareModal() {
+        const groups = getSourceGroups();
+        const labels = Array.from(groups.keys());
+        if (labels.length < 2) {
+            alert('Need at least two different source files in the table to compare.');
+            return;
+        }
+        const options = labels.map(l => '<option value="' + escapeHtml(l) + '">' + escapeHtml(l) + ' (' + groups.get(l).rows.length + ')</option>').join('');
+        const overlay = openGpakModal(
+            '<div class="gpak-modal-header">' +
+                '<div><h3>Compare Sheets</h3><p>Pick two source files to see who differs, and resolve duplicates.</p></div>' +
+                '<button type="button" class="gpak-modal-close" id="gpakCloseBtn">\u2715</button>' +
+            '</div>' +
+            '<div class="gpak-modal-body">' +
+                '<div class="gpak-compare-pickers">' +
+                    '<div class="pk"><label>File A</label><select id="gpakCmpA">' + options + '</select></div>' +
+                    '<div class="pk"><label>File B</label><select id="gpakCmpB">' + options + '</select></div>' +
+                    '<div class="pk"><button type="button" class="btn-outline" id="gpakCmpRun" style="width:100%;justify-content:center;">Compare</button></div>' +
+                '</div>' +
+                '<div id="gpakCmpResults"></div>' +
+            '</div>',
+            { wide: true }
+        );
+        overlay.querySelector('#gpakCloseBtn').addEventListener('click', closeGpakModal);
+        const selA = overlay.querySelector('#gpakCmpA');
+        const selB = overlay.querySelector('#gpakCmpB');
+        if (labels.length > 1) selB.value = labels[1];
+        overlay.querySelector('#gpakCmpRun').addEventListener('click', () => runCompare(selA.value, selB.value));
+        runCompare(selA.value, selB.value);
+    }
+
+    function compareRowHTML(kind, code, trA, trB, labelA, labelB, diffDays) {
+        const nameAEl = trA ? trA.querySelector('.name-cell .name-text') : null;
+        const nameBEl = trB ? trB.querySelector('.name-cell .name-text') : null;
+        const nameA = nameAEl ? nameAEl.innerText.trim() : '';
+        const nameB = nameBEl ? nameBEl.innerText.trim() : '';
+        const idA = trA ? ensureTrId(trA) : '';
+        const idB = trB ? ensureTrId(trB) : '';
+
+        let title, sub, actions = '';
+        if (kind === 'only-a') {
+            title = escapeHtml(code) + ' \u00b7 ' + escapeHtml(nameA);
+            sub = 'Only in ' + escapeHtml(labelA);
+            actions = '<div class="gpak-compare-actions"><button type="button" class="gpak-mini-btn del-both" data-gpak-single-drop="1" data-gpak-drop="' + idA + '">Remove this entry</button></div>';
+        } else if (kind === 'only-b') {
+            title = escapeHtml(code) + ' \u00b7 ' + escapeHtml(nameB);
+            sub = 'Only in ' + escapeHtml(labelB);
+            actions = '<div class="gpak-compare-actions"><button type="button" class="gpak-mini-btn del-both" data-gpak-single-drop="1" data-gpak-drop="' + idB + '">Remove this entry</button></div>';
+        } else if (kind === 'differs') {
+            title = escapeHtml(code) + ' \u00b7 ' + escapeHtml(nameA || nameB);
+            sub = 'Differs on ' + diffDays.length + ' day' + (diffDays.length !== 1 ? 's' : '') + ': ' + diffDays.join(', ');
+            actions = '<div class="gpak-compare-actions">' +
+                '<button type="button" class="gpak-mini-btn keep-a" data-gpak-keep="' + idA + '" data-gpak-drop="' + idB + '">Keep ' + escapeHtml(labelA) + '\u2019s version</button>' +
+                '<button type="button" class="gpak-mini-btn keep-b" data-gpak-keep="' + idB + '" data-gpak-drop="' + idA + '">Keep ' + escapeHtml(labelB) + '\u2019s version</button>' +
+                '<button type="button" class="gpak-mini-btn del-both" data-gpak-delboth="1" data-gpak-del-a="' + idA + '" data-gpak-del-b="' + idB + '">Delete both</button>' +
+            '</div>';
+        } else {
+            title = escapeHtml(code) + ' \u00b7 ' + escapeHtml(nameA || nameB);
+            sub = 'Matches on all duty days';
+        }
+
+        return '<div class="gpak-compare-row ' + kind + '">' +
+            '<div class="gpak-compare-row-head"><span class="who">' + title + '</span><span class="code">' + sub + '</span></div>' +
+            actions +
+        '</div>';
+    }
+
+    function runCompare(labelA, labelB) {
+        const overlay = document.getElementById('gpakModalOverlay');
+        if (!overlay) return;
+        const results = overlay.querySelector('#gpakCmpResults');
+
+        if (labelA === labelB) {
+            results.innerHTML = '<div class="gpak-empty-state">Choose two different files to compare.</div>';
+            return;
+        }
+        const groups = getSourceGroups();
+        const gA = groups.get(labelA), gB = groups.get(labelB);
+        if (!gA || !gB) {
+            results.innerHTML = '<div class="gpak-empty-state">One of the selected files is no longer present.</div>';
+            return;
+        }
+
+        const mapA = new Map(); gA.rows.forEach(tr => mapA.set(tr.children[1].innerText.trim().toUpperCase(), tr));
+        const mapB = new Map(); gB.rows.forEach(tr => mapB.set(tr.children[1].innerText.trim().toUpperCase(), tr));
+        const allCodes = Array.from(new Set([...mapA.keys(), ...mapB.keys()])).filter(c => c !== '').sort();
+
+        let onlyA = 0, onlyB = 0, differ = 0, match = 0, html = '';
+        allCodes.forEach(code => {
+            const trA = mapA.get(code), trB = mapB.get(code);
+            if (trA && !trB) {
+                onlyA++; html += compareRowHTML('only-a', code, trA, null, labelA, labelB);
+            } else if (trB && !trA) {
+                onlyB++; html += compareRowHTML('only-b', code, null, trB, labelA, labelB);
+            } else {
+                const daysA = Array.from(trA.querySelectorAll('td.duty-cell select.duty-select')).map(s => s.value);
+                const daysB = Array.from(trB.querySelectorAll('td.duty-cell select.duty-select')).map(s => s.value);
+                const diffDays = [];
+                for (let i = 0; i < 31; i++) {
+                    if ((daysA[i] || '') !== (daysB[i] || '')) diffDays.push(i + 1);
+                }
+                if (diffDays.length > 0) { differ++; html += compareRowHTML('differs', code, trA, trB, labelA, labelB, diffDays); }
+                else { match++; html += compareRowHTML('match', code, trA, trB, labelA, labelB); }
+            }
+        });
+
+        results.innerHTML =
+            '<div class="gpak-compare-summary">' +
+                '<span class="stat-chip">' + allCodes.length + ' total codes</span>' +
+                (onlyA ? '<span class="stat-chip">' + onlyA + ' only in ' + escapeHtml(labelA) + '</span>' : '') +
+                (onlyB ? '<span class="stat-chip">' + onlyB + ' only in ' + escapeHtml(labelB) + '</span>' : '') +
+                (differ ? '<span class="stat-chip stat-chip-dup">' + differ + ' differ</span>' : '') +
+                (match ? '<span class="stat-chip">' + match + ' match</span>' : '') +
+            '</div>' +
+            (html || '<div class="gpak-empty-state">Nothing to show.</div>');
+
+        results.querySelectorAll('[data-gpak-keep]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dropTr = getTrById(btn.dataset.gpakDrop);
+                if (dropTr) { dropTr.remove(); recomputeDuplicates(); }
+                runCompare(labelA, labelB);
+            });
+        });
+        results.querySelectorAll('[data-gpak-delboth]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const a = getTrById(btn.dataset.gpakDelA), b = getTrById(btn.dataset.gpakDelB);
+                if (a) a.remove();
+                if (b) b.remove();
+                recomputeDuplicates();
+                runCompare(labelA, labelB);
+            });
+        });
+        results.querySelectorAll('[data-gpak-single-drop]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tr = getTrById(btn.dataset.gpakDrop);
+                if (tr && confirm('Remove this entry from the roster?')) { tr.remove(); recomputeDuplicates(); }
+                runCompare(labelA, labelB);
+            });
+        });
+    }
+
+    // Initial paint in case of any pre-existing state
+    renderSourceFilesBar();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roster Compliance | Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #4f46e5; 
+            --primary-dark: #3730a3;
+            --primary-light: #f5f3ff;
+            --success: #10b981; 
+            --pending: #f59e0b; 
+            --danger: #ef4444; 
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            --glass: rgba(255, 255, 255, 0.9);
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main);
+            letter-spacing: -0.015em;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .header-outer-wrapper {
+            position: sticky;
+            top: 1rem;
+            z-index: 1050;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-section {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-premium);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .input-group-premium {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-icon-left {
+            position: absolute;
+            left: 1rem;
+            z-index: 10;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .premium-input {
+            background: #ffffff !important;
+            border: 1.2px solid var(--border) !important;
+            border-radius: 14px !important;
+            padding: 0.65rem 1rem 0.65rem 2.8rem !important;
+            font-size: 0.88rem !important;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-sm) !important;
+            width: 100%;
+        }
+
+        .premium-input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+        }
+
+        .date-container { width: 180px; flex: none; }
+        .email-process-group { flex: 1.5; min-width: 280px; }
+        .email-process-group .premium-input { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; padding-left: 1rem !important;}
+
+        .btn-sm {
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .main-card { 
+            background: var(--surface); 
+            border-radius: 24px; 
+            box-shadow: var(--shadow-premium); 
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .table thead th { 
+            background: #fcfcfd;
+            font-size: 0.68rem; 
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border);
+            padding: 1.25rem 1rem;
+        }
+
+        .unit-pill { 
+            font-size: 0.62rem; 
+            padding: 4px 10px; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            background: var(--primary-light); 
+            color: var(--primary); 
+            margin-right: 4px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .status-received { color: var(--success); font-size: 1.25rem; }
+        .status-pending { color: var(--danger); font-size: 1.25rem; }
+
+        .summary-badge {
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
+        .nav-pills .nav-link { 
+            font-size: 0.82rem; 
+            padding: 8px 20px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            color: var(--text-muted);
+        }
+
+        .nav-pills .nav-link.active {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-container {
+            max-height: calc(100vh - 350px);
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .history-item { 
+            font-size: 0.75rem; 
+            border-left: 4px solid var(--primary); 
+            padding: 12px 16px; 
+            margin-bottom: 12px; 
+            background: #fbfcfe;
+            border-radius: 12px;
+        }
+
+        .fab-add { 
+            position: fixed; bottom: 40px; right: 40px; 
+            width: 60px; height: 60px; border-radius: 18px; 
+            background: var(--primary); color: white; border: none; 
+            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.3); 
+            display: none; align-items: center; justify-content: center; 
+            font-size: 24px; z-index: 1000;
+        }
+
+        #toast { position: fixed; top: 2rem; right: 2rem; z-index: 9999; display: none; }
+        .custom-toast {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            display: flex; align-items: center; gap: 12px; font-weight: 600;
+        }
+
+        .cursor-pointer { cursor: pointer; }
+        
+        .admin-switch-container {
+            transition: all 0.3s ease;
+        }
+
+        /* FORCE HIDE FOR TRANSFER ACTIONS UNLESS JS SHOWS THEM */
+        #transferActions {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast">
+    <div class="custom-toast animate__animated">
+        <div id="toastIconBox" class="toast-icon" style="width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white;">
+            <i id="toastIcon" class="bi"></i>
+        </div>
+        <span id="toastMsg"></span>
+    </div>
+</div>
+
+<div class="header-outer-wrapper">
+    <div class="container-fluid">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0" style="color: #0f172a; letter-spacing: -0.02em;">Roster Compliance</h4>
+                        <p class="text-muted small mb-0 fw-semibold" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Strategic Attendance Tracking</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="admin-switch-container d-flex align-items-center py-2 px-3 border rounded-pill bg-light" id="adminContainer">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="adminModeToggle" onclick="toggleAdminMode()">
+                            <label class="form-check-label fw-bold text-secondary small ms-1" for="adminModeToggle" id="modeLabel">VIEW ONLY</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 bg-light p-1 rounded-4">
+                        <div class="nav nav-pills" id="pills-tab" role="tablist">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-focal">Focal</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-summary">Summary</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <div class="input-group-premium date-container">
+                    <i class="bi bi-calendar3 input-icon-left"></i>
+                    <input type="date" id="dateInput" class="form-control premium-input">
+                </div>
+
+                <div class="input-group email-process-group">
+                    <input type="text" id="emailInput" class="form-control premium-input" placeholder="Paste email to auto-receive roster...">
+                    <button class="btn btn-primary px-4 rounded-end-4" onclick="processIncomingEmail()">
+                        <i class="bi bi-lightning-fill"></i>
+                    </button>
+                </div>
+
+                <div class="input-group-premium">
+                    <i class="bi bi-search input-icon-left"></i>
+                    <input type="text" id="tableSearch" class="form-control premium-input" placeholder="Search focal or department..." onkeyup="searchTable()">
+                </div>
+
+                <div class="input-group-premium" style="flex: 0.5; min-width: 150px;">
+                    <i class="bi bi-filter-right input-icon-left"></i>
+                    <select id="filterSelect" class="form-select premium-input" onchange="render()">
+                        <option value="all">All Records</option>
+                        <option value="pending">Pending</option>
+                        <option value="received">Received</option>
+                        <option value="az">Sort A-Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-light">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#emailTemplateModal" onclick="refreshEmailRecipientList()">
+                        <i class="bi bi-envelope-at me-2"></i>Email Format
+                    </button>
+                    <button class="btn btn-sm btn-outline-dark px-4" onclick="copyEmails('pending')">
+                        <i class="bi bi-clock-history me-2"></i>Copy Pending (<span id="pendingCount">0</span>)
+                    </button>
+                    
+                    <div id="transferActions" class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary px-4" onclick="exportData()">
+                            <i class="bi bi-copy me-2"></i>Export System Data
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary px-4" onclick="importData()">
+                            <i class="bi bi-box-arrow-in-down me-2"></i>Import System Data
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning px-3 fw-bold rounded-pill" onclick="showConfirmModal('Reset all active units to Pending and Clear Activity?', resetAllStatuses)">Reset Status</button>
+                        <button class="btn btn-sm btn-outline-danger px-3 fw-bold rounded-pill" onclick="showConfirmModal('Wipe all system data and Activity?', fullSystemReset)">Wipe Data</button>
+                    </div>
+                </div>
+                <div class="text-muted small fw-bold">
+                    <i class="bi bi-dot text-success" style="font-size: 1.5rem; vertical-align: middle;"></i>
+                    System Online <span class="mx-2">|</span> <span id="displayCurrentMonthYear"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt-2">
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-focal">
+            <div class="row g-4">
+                <div class="col-lg-9">
+                    <div class="main-card">
+                        <div class="table-responsive" style="max-height: calc(100vh - 350px);">
+                            <table class="table table-hover align-middle" id="mainTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%;">Focal Person</th>
+                                        <th style="width: 20%;">Department</th>
+                                        <th class="text-center">IPAK</th>
+                                        <th class="text-center">CPAK</th>
+                                        <th class="text-center">PPAK</th>
+                                        <th class="text-center">GPAK</th>
+                                        <th class="admin-only text-center" style="display:none;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="focalBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="main-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="fw-bold mb-0 text-primary small" style="letter-spacing: 0.05em;"><i class="bi bi-activity me-2"></i>LIVE ACTIVITY</h6>
+                        </div>
+                        <div id="historyLogFocal" class="history-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-summary">
+            <div class="row g-4">
+                <div class="col-lg-9">
+                    <div class="main-card">
+                        <div class="table-responsive" style="max-height: calc(100vh - 350px);">
+                            <table class="table table-hover align-middle text-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" class="text-start border-end">Department</th>
+                                        <th colspan="2" class="bg-light">IPAK</th>
+                                        <th colspan="2">CPAK</th>
+                                        <th colspan="2" class="bg-light">PPAK</th>
+                                        <th colspan="2">GPAK</th>
+                                    </tr>
+                                    <tr style="font-size: 0.6rem;">
+                                        <th class="bg-light">Status</th><th class="bg-light border-end">Date</th>
+                                        <th>Status</th><th class="border-end">Date</th>
+                                        <th class="bg-light">Status</th><th class="bg-light border-end">Date</th>
+                                        <th>Status</th><th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="summaryBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="main-card">
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0 text-primary small"><i class="bi bi-activity me-2"></i>LIVE ACTIVITY</h6>
+                            </div>
+                            <button class="btn btn-sm btn-success w-100 shadow-sm fw-bold" onclick="exportSummaryToExcel()">
+                                <i class="bi bi-file-earmark-excel-fill me-2"></i>Download Summary
+                            </button>
+                        </div>
+                        <div id="historyLogSummary" class="history-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-center">
+            <div class="modal-body p-4">
+                <i class="bi bi-exclamation-circle text-warning mb-3" style="font-size: 3rem;"></i>
+                <h6 class="fw-bold mb-3" id="confirmMsg">Are you sure?</h6>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light w-100 fw-bold rounded-3" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger w-100 fw-bold rounded-3" id="confirmBtn">Proceed</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="focalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold" id="modalTitle">Record Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-2">Full Name</label>
+                    <input type="text" id="mName" class="form-control premium-input">
+                </div>
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-2">Email Address</label>
+                    <input type="email" id="mEmail" class="form-control premium-input">
+                </div>
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-2">Department</label>
+                    <input type="text" id="mDept" class="form-control premium-input">
+                </div>
+                <div class="p-3 rounded-4 bg-light border">
+                    <label class="small fw-bold text-muted d-block mb-3">Unit Assignments</label>
+                    <div id="unitSelector" class="d-flex gap-2 flex-wrap"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button class="btn btn-primary w-100 py-3 fw-bold rounded-4 shadow-sm" onclick="saveModalData()">Save Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="emailTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 p-4 pb-0">
+                <div class="w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Roster Request Format</h5>
+                    <button class="btn btn-sm btn-outline-secondary fw-bold rounded-pill" onclick="resetEmailTemplate()">Reset</button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row mb-3 g-3">
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted mb-1">Target Month</label>
+                        <select id="tempMonth" class="form-select premium-input" style="padding-left:1rem !important" onchange="updateEmailTemplate()">
+                            <option value="January">January</option><option value="February">February</option>
+                            <option value="March">March</option><option value="April" selected>April</option>
+                            <option value="May">May</option><option value="June">June</option>
+                            <option value="July">July</option><option value="August">August</option>
+                            <option value="September">September</option><option value="October">October</option>
+                            <option value="November">November</option><option value="December">December</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small fw-bold text-muted mb-1">Year</label>
+                        <input type="number" id="tempYear" class="form-control premium-input" style="padding-left:1rem !important" onchange="updateEmailTemplate()">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="small fw-bold text-muted mb-1">Copy Emails For:</label>
+                        <div class="input-group">
+                            <select id="emailRecipientType" class="form-select premium-input" style="padding-left:1rem !important" onchange="refreshEmailRecipientList()">
+                                <option value="pending">Pending Only</option>
+                                <option value="received">Received Only</option>
+                                <option value="all">All Records</option>
+                            </select>
+                            <button class="btn btn-dark rounded-end-4 px-3" onclick="copyRecipientList()"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <textarea id="emailRecipientDisplay" class="form-control bg-light small" style="height: 60px; font-size: 0.72rem; border-radius: 12px; border: 1.2px solid var(--border);" readonly></textarea>
+                </div>
+                <div id="emailPreviewBox" contenteditable="true" style="max-height: 250px; overflow-y: auto; border: 1.2px solid var(--border); padding: 18px; border-radius: 16px; background: #fff; font-size: 0.85rem; line-height: 1.6;"></div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button class="btn btn-primary w-100 py-3 fw-bold rounded-4 shadow-sm" onclick="copyTemplateToClipboard()">Copy Body</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="fab-add" id="fabAdd" onclick="openModal(-1)"><i class="bi bi-plus-lg"></i></button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const now = new Date();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    document.getElementById('displayCurrentMonthYear').innerText = months[now.getMonth()] + " " + now.getFullYear();
+    document.getElementById('dateInput').valueAsDate = now;
+    document.getElementById('tempYear').value = now.getFullYear();
+    document.getElementById('tempMonth').value = months[now.getMonth()];
+
+    const UNITS_LIST = ["IPAK", "CPAK", "PPAK", "GPAK"];
+    let isAdminMode = false;
+    let selectedModalUnits = [];
+
+    const defaultData = [
+        { name: "Farukh Azeem", dept: "CERD & QA", units: ["GPAK", "PPAK"], email: "farukh.azeem@petpakfilms.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Gulfam", dept: "Metalizer", units: ["GPAK"], email: "gulfam.akhter@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Wajahat Hussain / Hussain", dept: "Power Plant", units: ["GPAK", "PPAK"], email: "wajahat.hussain@petpakfilms.com.pk; muhammad.hussain@ipak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Muaz Waseem", dept: "Electrical", units: ["GPAK", "PPAK"], email: "muaz.waseem@ipak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Waleed Khalid", dept: "Mechanical", units: ["GPAK", "PPAK"], email: "waleed.khalid@ipak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Akbar Hayat", dept: "Carpentry", units: ["GPAK"], email: "packing@petpakfilms.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Iqabal Shahid", dept: "Dispatch", units: ["GPAK"], email: "iqbal.shahid@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Ali Iftikhar", dept: "Dispatch", units: ["PPAK"], email: "ali.iftikhar@petpakfilms.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "N/A" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Aqib Mushtaq", dept: "IT", units: ["GPAK", "PPAK"], email: "aqib.mushtaq@ipak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Osama Adil", dept: "OD", units: ["PPAK", "IPAK"], email: "osama.adil@ipak.com.pk", status: { IPAK: "Pending", CPAK: "N/A", PPAK: "Pending", GPAK: "N/A" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Adnan & Waqas", dept: "Fire/Safety/MS", units: ["GPAK", "PPAK"], email: "waqas.bhatti@ipak.com.pk; madnan@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Umair", dept: "Packing", units: ["GPAK"], email: "packing@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Qadeer Ahamd", dept: "Packing & Slitter", units: ["PPAK"], email: "qadeer.ahmed@petpakfilms.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "N/A" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Arslan", dept: "Slitter", units: ["GPAK"], email: "arslan.khaliq@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Suleman/Qaiser", dept: "Filmline/Recycling", units: ["GPAK"], email: "filmline@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Maaz Elahi", dept: "Filmline/Recycling", units: ["PPAK"], email: "maaz.elahi@ipak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "N/A" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Faisal Hussain", dept: "HR Operations", units: UNITS_LIST, email: "faisal.hussain@petpakfilms.com.pk", status: { IPAK: "Pending", CPAK: "Pending", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Abdul Moeed Toor", dept: "HRBP", units: UNITS_LIST, email: "abdul.moeed@ipak.com.pk", status: { IPAK: "Pending", CPAK: "Pending", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Arsalan", dept: "Admin", units: ["GPAK", "PPAK"], email: "employee.services@petpakfilms.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Abbas Ali", dept: "Store", units: ["PPAK"], email: "abbas.ali@petpakfilms.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "N/A" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Abdul Sattar", dept: "Store", units: ["GPAK"], email: "abdul.sattar@gpak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Noman Tariq", dept: "Supply Chain", units: UNITS_LIST, email: "noman.tariq@ipak.com.pk", status: { IPAK: "Pending", CPAK: "Pending", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Waqas Afzal", dept: "Sales", units: UNITS_LIST, email: "waqas.afzal@petpakfilms.com.pk", status: { IPAK: "Pending", CPAK: "Pending", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Muhammad Essa", dept: "Planning", units: ["GPAK", "PPAK"], email: "muhammad.essa@ipak.com.pk", status: { IPAK: "N/A", CPAK: "N/A", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Atif Rehman", dept: "Internal Audit", units: UNITS_LIST, email: "atif.rehman@petpakfilms.com.pk", status: { IPAK: "Pending", CPAK: "Pending", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } },
+        { name: "Farhan Rasheed", dept: "SAP", units: UNITS_LIST, email: "farhan.rasheed@ipak.com.pk", status: { IPAK: "Pending", CPAK: "Pending", PPAK: "Pending", GPAK: "Pending" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } }
+    ];
+
+    let rawData = JSON.parse(localStorage.getItem('rosterDB')) || defaultData;
+    let historyData = JSON.parse(localStorage.getItem('rosterHistory')) || [];
+
+    function exportData() {
+        const dataStr = btoa(JSON.stringify({db: rawData, history: historyData}));
+        navigator.clipboard.writeText(dataStr);
+        showToast("System Code Copied!");
+    }
+
+    function importData() {
+        const code = prompt("Paste System Code here:");
+        if(!code) return;
+        try {
+            const decoded = JSON.parse(atob(code));
+            rawData = decoded.db;
+            historyData = decoded.history;
+            saveAndRender();
+            showToast("System Synced Successfully!");
+        } catch(e) {
+            showToast("Invalid System Code", "error");
+        }
+    }
+
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastInner = toast.querySelector('.custom-toast');
+        const toastMsg = document.getElementById('toastMsg');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastIconBox = document.getElementById('toastIconBox');
+        toastMsg.innerText = msg;
+        toastIcon.className = type === 'success' ? 'bi bi-check-lg' : 'bi bi-exclamation-triangle';
+        toastIconBox.style.background = type === 'success' ? 'var(--success)' : 'var(--danger)';
+        toast.style.display = 'block';
+        toastInner.className = 'custom-toast animate__animated animate__slideInRight';
+        setTimeout(() => {
+            toastInner.className = 'custom-toast animate__animated animate__fadeOutUp';
+            setTimeout(() => { toast.style.display = 'none'; }, 500);
+        }, 3000);
+    }
+
+    function showConfirmModal(msg, action) {
+        document.getElementById('confirmMsg').innerText = msg;
+        const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        document.getElementById('confirmBtn').onclick = () => { action(); modal.hide(); };
+        modal.show();
+    }
+
+    function renderHistory() {
+        const logFocal = document.getElementById('historyLogFocal');
+        const logSummary = document.getElementById('historyLogSummary');
+        const content = historyData.length === 0 ? `<p class="text-muted small text-center py-4">No recent activity</p>` : historyData.map(h => `
+            <div class="history-item animate__animated animate__fadeIn">
+                <span class="fw-bold text-primary" style="font-size:0.6rem; display:block;">${h.time}</span>
+                <div>${h.msg}</div>
+            </div>`).join('');
+        if(logFocal) logFocal.innerHTML = content;
+        if(logSummary) logSummary.innerHTML = content;
+    }
+
+    function render() {
+        const focal = document.getElementById('focalBody');
+        const summary = document.getElementById('summaryBody');
+        const adminCols = document.querySelectorAll('.admin-only');
+        const fab = document.getElementById('fabAdd');
+        const modeLabel = document.getElementById('modeLabel');
+        const transferActions = document.getElementById('transferActions');
+        const filterVal = document.getElementById('filterSelect').value;
+
+        focal.innerHTML = summary.innerHTML = "";
+        
+        adminCols.forEach(col => col.style.display = isAdminMode ? 'table-cell' : 'none');
+        fab.style.display = isAdminMode ? 'flex' : 'none';
+        
+        if (isAdminMode) {
+            transferActions.setAttribute('style', 'display: flex !important');
+        } else {
+            transferActions.setAttribute('style', 'display: none !important');
+        }
+        
+        modeLabel.innerText = isAdminMode ? "EDITING MODE" : "VIEW ONLY";
+
+        let displayData = [...rawData];
+        if(filterVal === 'pending') displayData = displayData.filter(i => i.units.some(u => i.status[u] === "Pending"));
+        if(filterVal === 'received') displayData = displayData.filter(i => i.units.every(u => i.status[u] === "Received" || i.status[u] === "N/A"));
+        if(filterVal === 'az') displayData.sort((a,b) => a.name.localeCompare(b.name));
+
+        displayData.forEach((item, index) => {
+            let actualIndex = rawData.indexOf(item);
+            focal.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="fw-bold d-block text-dark">${item.name} ${isAdminMode ? `<i class="bi bi-pencil-square ms-1 text-muted cursor-pointer" onclick="openModal(${actualIndex})"></i>` : ''}</span>
+                        <span class="text-muted small" style="font-size: 0.65rem;">${item.email}</span>
+                    </td>
+                    <td>
+                        <div class="small fw-bold text-dark">${item.dept}</div>
+                        <div class="mt-1">${item.units.map(u => `<span class="unit-pill">${u}</span>`).join('')}</div>
+                    </td>
+                    ${UNITS_LIST.map(u => `
+                        <td class="text-center">
+                            <span class="${isAdminMode ? 'cursor-pointer' : ''}" onclick="${isAdminMode ? `toggleStatus(${actualIndex}, '${u}')` : ''}">
+                                ${formatIcon(item.status[u])}
+                            </span>
+                        </td>`).join('')}
+                    ${isAdminMode ? `<td class="admin-only text-center"><button class="btn btn-light btn-sm text-danger border" onclick="showConfirmModal('Delete?', () => deleteRow(${actualIndex}))"><i class="bi bi-trash"></i></button></td>` : ''}
+                </tr>`;
+
+            summary.innerHTML += `
+                <tr>
+                    <td class="text-start small fw-bold text-dark border-end">${item.dept}</td>
+                    ${UNITS_LIST.map(u => `
+                        <td class="bg-light">
+                            <span class="summary-badge ${item.status[u]==='Received'?'summary-received':(item.status[u]==='Pending'?'summary-pending':'summary-na')}">
+                                ${item.status[u] === 'N/A' ? '—' : item.status[u]}
+                            </span>
+                        </td>
+                        <td class="border-end"><span class="text-muted" style="font-size:0.6rem">${item.dates[u]}</span></td>
+                    `).join('')}
+                </tr>`;
+        });
+        
+        document.getElementById('pendingCount').innerText = rawData.filter(i => i.units.some(u => i.status[u] === "Pending")).length;
+        localStorage.setItem('rosterDB', JSON.stringify(rawData));
+        renderHistory();
+        searchTable(); 
+    }
+
+    function searchTable() {
+        let input = document.getElementById("tableSearch").value.toLowerCase();
+        let focalRows = document.querySelector("#focalBody").rows;
+        for (let row of focalRows) row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+    }
+
+    function addHistory(name, unit, status, dept) {
+        const n = new Date();
+        const stamp = `${n.getHours().toString().padStart(2, '0')}:${n.getMinutes().toString().padStart(2, '0')} | ${n.getDate()}-${months[n.getMonth()].substring(0,3)}`;
+        historyData.unshift({ msg: `<b>${name}</b> (${unit} | ${dept}) -> <b>${status}</b>`, time: stamp });
+        if(historyData.length > 50) historyData.pop();
+        localStorage.setItem('rosterHistory', JSON.stringify(historyData));
+        renderHistory();
+    }
+
+    function resetAllStatuses() {
+        rawData.forEach(item => { UNITS_LIST.forEach(u => { item.status[u] = item.units.includes(u) ? "Pending" : "N/A"; item.dates[u] = "-"; }); });
+        historyData = [];
+        localStorage.removeItem('rosterHistory');
+        saveAndRender();
+        showToast("System Reset Successfully!");
+    }
+
+    function fullSystemReset() { localStorage.clear(); location.reload(); }
+
+    function formatIcon(s) {
+        if(s === "N/A") return '<i class="bi bi-dash-circle text-light"></i>';
+        if(s === "Received") return '<i class="bi bi-check-circle-fill status-received"></i>';
+        return '<i class="bi bi-exclamation-circle-fill status-pending"></i>';
+    }
+
+    function toggleAdminMode() { isAdminMode = document.getElementById('adminModeToggle').checked; render(); }
+
+    function toggleStatus(index, unit) {
+        if (!rawData[index].units.includes(unit)) return; 
+        const dateRaw = document.getElementById('dateInput').value;
+        const formattedDate = new Date(dateRaw).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        if (rawData[index].status[unit] === "Received") {
+            rawData[index].status[unit] = "Pending";
+            rawData[index].dates[unit] = "-";
+            addHistory(rawData[index].name, unit, "Pending", rawData[index].dept);
+        } else {
+            rawData[index].status[unit] = "Received";
+            rawData[index].dates[unit] = formattedDate;
+            addHistory(rawData[index].name, unit, "Received", rawData[index].dept);
+        }
+        saveAndRender();
+    }
+
+    function openModal(index) {
+        const modal = new bootstrap.Modal(document.getElementById('focalModal'));
+        document.getElementById('editIndex').value = index;
+        selectedModalUnits = index === -1 ? [] : [...rawData[index].units];
+        document.getElementById('mName').value = index === -1 ? "" : rawData[index].name;
+        document.getElementById('mEmail').value = index === -1 ? "" : rawData[index].email;
+        document.getElementById('mDept').value = index === -1 ? "" : rawData[index].dept;
+        renderUnitSelector();
+        modal.show();
+    }
+
+    function renderUnitSelector() {
+        document.getElementById('unitSelector').innerHTML = UNITS_LIST.map(u => `
+            <div class="btn btn-sm ${selectedModalUnits.includes(u) ? 'btn-primary' : 'btn-outline-secondary'} me-2 mb-2" onclick="toggleModalUnit('${u}')">${u}</div>`).join('');
+    }
+
+    function toggleModalUnit(u) {
+        if(selectedModalUnits.includes(u)) selectedModalUnits = selectedModalUnits.filter(unit => unit !== u);
+        else selectedModalUnits.push(u);
+        renderUnitSelector();
+    }
+
+    function saveModalData() {
+        const index = parseInt(document.getElementById('editIndex').value);
+        const name = document.getElementById('mName').value.trim();
+        const email = document.getElementById('mEmail').value.trim();
+        const dept = document.getElementById('mDept').value.trim();
+        if(!name || !email || !dept || selectedModalUnits.length === 0) return;
+        const entry = { name, email, dept, units: selectedModalUnits, status: { IPAK: "N/A", CPAK: "N/A", PPAK: "N/A", GPAK: "N/A" }, dates: { IPAK: "-", CPAK: "-", PPAK: "-", GPAK: "-" } };
+        if(index === -1) { selectedModalUnits.forEach(u => entry.status[u] = "Pending"); rawData.push(entry); }
+        else { UNITS_LIST.forEach(u => { if(selectedModalUnits.includes(u)) { entry.status[u] = rawData[index].status[u] === "N/A" ? "Pending" : rawData[index].status[u]; entry.dates[u] = rawData[index].dates[u]; } }); rawData[index] = entry; }
+        bootstrap.Modal.getInstance(document.getElementById('focalModal')).hide();
+        saveAndRender();
+        showToast("Entry Saved!");
+    }
+
+    function deleteRow(index) { rawData.splice(index, 1); saveAndRender(); showToast("Entry Deleted!"); }
+
+    function processIncomingEmail() {
+        const mail = document.getElementById('emailInput').value.trim().toLowerCase();
+        const dateRaw = document.getElementById('dateInput').value;
+        const formattedDate = new Date(dateRaw).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        if(!mail) return;
+        let found = false;
+        rawData.forEach(item => { if (item.email.toLowerCase().includes(mail)) { item.units.forEach(u => { if(item.status[u] === "Pending"){ item.status[u] = "Received"; item.dates[u] = formattedDate; addHistory(item.name, u, "Received", item.dept); found = true; } }); } });
+        if(found) { document.getElementById('emailInput').value = ""; saveAndRender(); showToast("Email Processed!"); }
+    }
+
+    function updateEmailTemplate() {
+        const month = document.getElementById('tempMonth').value;
+        const year = document.getElementById('tempYear').value;
+        const lastDay = new Date(year, document.getElementById('tempMonth').selectedIndex + 1, 0).getDate();
+        const template = `I hope this message finds you well.\nKindly submit your Monthly Department Roster for ${month}- ${year} at your earliest convenience.\nIn addition to adhering to the guidelines mentioned in the previous email, please ensure the following:\n\n• The roster format must strictly follow the attached template.\n• Employee ID/Code must be clearly indicated.\n• Off days/weekly rest days must comply with company policy; no additional off days should be marked.\n• The duty roster should cover the entire month, from 1st ${month} to ${lastDay}th ${month}-${year}.\n• The roster must include employees working in the general shift to identify their alternative off on Saturdays.\n• The Last date of roster submission is 25th of every month.\n• Employees Will be perform normal duty from 1st ${month} to so on. i.e., G,M,E,N Shifts. \n\nPlease ensure strict adherence to these guidelines and timely submission to facilitate effective employee time management.\nShould you have any questions or require further clarification, feel free to reach out.\n\nThank you for your cooperation.\n\nBest regards,\nTime Office PPAK`;
+        document.getElementById('emailPreviewBox').innerText = template;
+    }
+
+    function resetEmailTemplate() { updateEmailTemplate(); }
+
+    function refreshEmailRecipientList() {
+        const type = document.getElementById('emailRecipientType').value;
+        let emails = [];
+        if (type === 'all') emails = rawData.map(item => item.email);
+        else if (type === 'pending') emails = rawData.filter(item => item.units.some(u => item.status[u] === "Pending")).map(item => item.email);
+        else if (type === 'received') emails = rawData.filter(item => item.units.every(u => item.status[u] === "Received" || item.status[u] === "N/A")).map(item => item.email);
+        document.getElementById('emailRecipientDisplay').value = emails.join("; ");
+    }
+
+    function copyRecipientList() { navigator.clipboard.writeText(document.getElementById('emailRecipientDisplay').value); showToast("Emails Copied!"); }
+    function copyTemplateToClipboard() { navigator.clipboard.writeText(document.getElementById('emailPreviewBox').innerText); showToast("Body Copied!"); }
+    function saveAndRender() { localStorage.setItem('rosterDB', JSON.stringify(rawData)); render(); }
+    function copyEmails(type) {
+        const emails = rawData.filter(item => item.units.some(u => item.status[u] === "Pending")).map(item => item.email).join("; ");
+        navigator.clipboard.writeText(emails); showToast("Pending Emails Copied!");
+    }
+
+    // --- PROPER EXCEL EXPORT LOGIC ---
+    function exportSummaryToExcel() {
+        const reportMonth = document.getElementById('displayCurrentMonthYear').innerText;
+        const timestamp = new Date().toLocaleString('en-GB');
+
+        // Prepare the Data Header (Replacing N/A with -)
+        const excelRows = rawData.map(item => ({
+            "Department": item.dept,
+            "Focal Person": item.name,
+            "IPAK Status": item.status.IPAK === "N/A" ? "-" : item.status.IPAK,
+            "IPAK Date": item.dates.IPAK,
+            "CPAK Status": item.status.CPAK === "N/A" ? "-" : item.status.CPAK,
+            "CPAK Date": item.dates.CPAK,
+            "PPAK Status": item.status.PPAK === "N/A" ? "-" : item.status.PPAK,
+            "PPAK Date": item.dates.PPAK,
+            "GPAK Status": item.status.GPAK === "N/A" ? "-" : item.status.GPAK,
+            "GPAK Date": item.dates.GPAK
+        }));
+
+        // Create the Worksheet
+        const ws = XLSX.utils.json_to_sheet([]);
+        
+        // Add Header Information to Sheet
+        XLSX.utils.sheet_add_aoa(ws, [
+            ["ROSTER COMPLIANCE SUMMARY REPORT"],
+            ["Report Month:", reportMonth],
+            ["Generated On:", timestamp],
+            [""] // Empty line before table
+        ], { origin: "A1" });
+
+        // Add the Table Data starting from row 5
+        XLSX.utils.sheet_add_json(ws, excelRows, { origin: "A5", skipHeader: false });
+
+        // Set Column Widths
+        const wscols = [
+            {wch: 25}, {wch: 25}, // Dept, Name
+            {wch: 12}, {wch: 15}, // IPAK
+            {wch: 12}, {wch: 15}, // CPAK
+            {wch: 12}, {wch: 15}, // PPAK
+            {wch: 12}, {wch: 15}  // GPAK
+        ];
+        ws['!cols'] = wscols;
+
+        // Create Workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Summary Report");
+
+        // Download File
+        const fileName = `Roster_Summary_${reportMonth.replace(' ', '_')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showToast("Excel Downloaded!");
+    }
+
+    render();
+    updateEmailTemplate();
+</script>
+</body>
+</html>

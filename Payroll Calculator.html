@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Calculator Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --danger: #f43f5e;
+            --input-bg: #f1f5f9;
+            --dark-surface: #0f172a;
+            --glass-white: rgba(255, 255, 255, 0.03);
+            --border-white: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 900px;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            border: 1px solid #eef2f6;
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .input-section { flex: 1; }
+
+        @media (max-width: 850px) {
+            .main-card { flex-direction: column; max-width: 420px; padding: 20px; }
+            .summary-card { width: 100% !important; flex: none !important; }
+        }
+
+        .app-header { text-align: left; margin-bottom: 20px; border-left: 3px solid var(--primary); padding-left: 12px; }
+        .app-header h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.03em; margin: 0; }
+        .app-header p { color: var(--text-muted); font-size: 0.75rem; font-weight: 500; margin: 0; }
+
+        .input-label { font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; display: block; }
+        
+        .custom-input-group {
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+        }
+
+        .custom-input-group:focus-within {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+        }
+        
+        .custom-input-group.is-invalid {
+            border-color: var(--danger) !important;
+            background: #fff1f2;
+        }
+
+        .custom-input-group i { font-size: 0.85rem; }
+        .custom-input-group input { border: none; background: transparent; outline: none; width: 100%; font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
+
+        .unit-chips { display: flex; gap: 4px; margin-bottom: 12px; }
+        .chip { flex: 1; padding: 5px 2px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); cursor: pointer; text-align: center; transition: 0.2s; }
+        .chip:hover { border-color: var(--primary); color: var(--primary); background: #f0fdf4; }
+
+        .extra-options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0; }
+
+        .premium-toggle-card {
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s ease;
+            border: 1px solid transparent;
+            min-height: 40px;
+        }
+        .premium-toggle-card i { font-size: 0.8rem; }
+        .premium-toggle-card span { font-size: 0.75rem; font-weight: 600; }
+
+        .premium-toggle-card.active { background: #ffffff; border-color: var(--primary); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05); }
+
+        .slide-input-container {
+            max-height: 0; overflow: hidden; transition: all 0.3s ease; opacity: 0;
+        }
+
+        .adjustment-item.active .slide-input-container {
+            max-height: 50px; opacity: 1; padding-top: 4px;
+        }
+
+        .modern-slide-input {
+            width: 100%; background: transparent; border: none; border-bottom: 2px solid #e2e8f0; padding: 4px 0; font-size: 0.85rem; font-weight: 800; color: var(--primary); outline: none;
+        }
+
+        .summary-card {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            border-radius: 24px;
+            padding: 24px;
+            color: white;
+            flex: 0 0 320px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.5);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+        .summary-header .badge { 
+            background: rgba(16, 185, 129, 0.15); 
+            color: var(--primary); 
+            border-radius: 8px; 
+            padding: 6px 12px; 
+            font-weight: 800; 
+            font-size: 0.55rem; 
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            letter-spacing: 0.06em;
+            transition: all 0.3s ease;
+        }
+
+        .premium-group-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .sub-group-title { 
+            font-size: 0.58rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: #64748b; 
+            letter-spacing: 0.15em; 
+            margin-bottom: 12px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-item { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            font-size: 0.8rem;
+            animation: slideIn 0.4s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .summary-item:last-child { margin-bottom: 0; }
+        .summary-item .label { color: #94a3b8; font-weight: 500; letter-spacing: 0.01em; }
+        .summary-item .val { 
+            font-weight: 700; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            letter-spacing: -0.02em; 
+        }
+
+        .take-home-meter { margin: 10px 0 20px 0; padding: 0 4px; }
+        .meter-label { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 0.65rem; 
+            font-weight: 800; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em;
+            margin-bottom: 8px; 
+        }
+        .progress-bar-wrap { 
+            height: 6px; 
+            background: rgba(255,255,255,0.06); 
+            border-radius: 100px; 
+            overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+        .progress-bar-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, #10b981, #34d399); 
+            width: 0%; 
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); 
+        }
+
+        .grand-total-section { 
+            background: rgba(16, 185, 129, 0.06);
+            border-radius: 20px;
+            padding: 18px;
+            border: 1px dashed rgba(16, 185, 129, 0.25);
+            text-align: center;
+            margin-top: auto;
+            transition: transform 0.3s ease;
+        }
+        .grand-total-label { 
+            font-size: 0.6rem; 
+            text-transform: uppercase; 
+            color: #94a3b8; 
+            font-weight: 800; 
+            letter-spacing: 0.18em; 
+            margin-bottom: 6px; 
+            display: block; 
+        }
+        .grand-total-val { 
+            font-size: 2rem; 
+            font-weight: 800; 
+            display: block; 
+            letter-spacing: -0.05em; 
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .text-earn { color: #34d399 !important; font-weight: 700; }
+        .text-deduct { color: #fb7185 !important; font-weight: 700; }
+        .hidden-check { display: none; }
+
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-action {
+            flex: 1;
+            background: var(--input-bg);
+            border: none;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .btn-action:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+        .btn-download {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+        }
+        .btn-download:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        :root {
+            --primary: #2563eb; 
+            --bg: #f8fafc; 
+            --card-bg: #ffffff; 
+            --text-main: #0f172a; 
+            --text-muted: #64748b; 
+            --danger: #f43f5e; 
+            --input-bg: #f1f5f9; 
+            --dark-surface: #0f172a; 
+            --glass-white: rgba(255, 255, 255, 0.03);
+            --border-white: rgba(255, 255, 255, 0.08);
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            box-shadow: 0 15px 40px -12px rgba(37,99,235,0.1); 
+            border: 1px solid #eef2f6;
+        }
+        .summary-card {
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(37,99,235,0.4); 
+            color: #fff;
+        }
+        .custom-input-group:focus-within {
+            border-color: var(--primary);
+            background: #ffffff; 
+            box-shadow: 0 4px 12px rgba(37,99,235,0.1);
+        }
+        .chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eff6ff; 
+        }
+        .premium-toggle-card.active {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.05);
+        }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #2563eb, #60a5fa); 
+        }
+        .grand-total-section {
+            border: 1px dashed rgba(37,99,235,0.25); 
+            background: rgba(37,99,235,0.06); 
+        }
+        .text-earn { color: #60a5fa !important; font-weight: 700; }
+        .text-deduct { color: #fb7185 !important; font-weight: 700; }
+        .btn-download {
+            background: rgba(37,99,235,0.1);
+            color: var(--primary);
+        }
+        .btn-download:hover {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div id="calculatorContent">
+    <div class="main-card">
+        <div class="input-section">
+            <div class="app-header">
+                <h1>Payroll Calculator</h1>
+                <p id="currentDateDisplay">Salary tracking</p>
+            </div>
+
+            <span class="input-label">Gross Monthly Base</span>
+            <div class="custom-input-group" id="group-salary">
+                <i class="fas fa-coins me-2 text-muted"></i>
+                <input type="number" id="salary" placeholder="0.00" oninput="validateAndCalculate()">
+            </div>
+
+            <div class="row gx-2">
+                <div class="col-7">
+                    <span class="input-label">OT Hours</span>
+                    <div class="custom-input-group" id="group-ot">
+                        <i class="fas fa-stopwatch me-2 text-muted"></i>
+                        <input type="number" id="otHours" placeholder="0" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+                <div class="col-5">
+                    <span class="input-label">Month Days</span>
+                    <div class="custom-input-group" id="group-days">
+                        <input type="number" id="monthDays" min="28" max="31" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+            </div>
+
+            <span class="input-label">Late Units</span>
+            <div class="custom-input-group" id="group-late">
+                <i class="fas fa-clock-rotate-left me-2 text-muted"></i>
+                <input type="number" step="0.25" id="lateUnits" placeholder="0.00" oninput="validateAndCalculate()">
+            </div>
+            
+            <div class="unit-chips">
+                <div class="chip" onclick="setLate(0.25)">2h(0.25)</div>
+                <div class="chip" onclick="setLate(0.5)">4h(0.5)</div>
+                <div class="chip" onclick="setLate(0.75)">6h(0.75)</div>
+                <div class="chip" onclick="setLate(1.0)">1d(1.0)</div>
+            </div>
+
+            <span class="input-label">Additional Adjustments</span>
+            <div class="extra-options-container">
+                <div class="adjustment-item" id="bonusItem">
+                    <div class="premium-toggle-card" id="bonusCard" onclick="handleCardClick('bonus')">
+                        <input type="checkbox" id="bonusCheck" class="hidden-check">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Bonus</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="bonusValInput" class="modern-slide-input" placeholder="0" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+
+                <div class="adjustment-item" id="opdItem">
+                    <div class="premium-toggle-card" id="opdCard" onclick="handleCardClick('opd')">
+                        <input type="checkbox" id="opdCheck" class="hidden-check">
+                        <i class="fas fa-heart-pulse"></i>
+                        <span>OPD</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="opdValInput" class="modern-slide-input" placeholder="0" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+
+                <div class="adjustment-item" id="taxItem">
+                    <div class="premium-toggle-card" id="taxCard" onclick="handleCardClick('tax')">
+                        <input type="checkbox" id="taxCheck" class="hidden-check">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Tax</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="taxValInput" class="modern-slide-input" placeholder="0" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+
+                <div class="adjustment-item" id="arrerItem">
+                    <div class="premium-toggle-card" id="arrerCard" onclick="handleCardClick('arrer')">
+                        <input type="checkbox" id="arrerCheck" class="hidden-check">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Arrer</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="arrerValInput" class="modern-slide-input" placeholder="0" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+
+                <div class="adjustment-item" id="cplItem">
+                    <div class="premium-toggle-card" id="cplCard" onclick="handleCardClick('cpl')">
+                        <input type="checkbox" id="cplCheck" class="hidden-check">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>CPL Encashed</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="cplValInput" class="modern-slide-input" placeholder="Units (e.g. 1)" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+
+                <div class="adjustment-item" id="lfaItem">
+                    <div class="premium-toggle-card" id="lfaCard" onclick="handleCardClick('lfa')">
+                        <input type="checkbox" id="lfaCheck" class="hidden-check">
+                        <i class="fas fa-plane-departure"></i>
+                        <span>LFA</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="lfaValInput" class="modern-slide-input" placeholder="Units (e.g. 1)" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+
+                <div class="adjustment-item" id="loanItem">
+                    <div class="premium-toggle-card" id="loanCard" onclick="handleCardClick('loan')">
+                        <input type="checkbox" id="loanCheck" class="hidden-check">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                        <span>Loan/Adv.</span>
+                    </div>
+                    <div class="slide-input-container">
+                        <input type="number" id="loanValInput" class="modern-slide-input" placeholder="Deduct Amt" oninput="validateAndCalculate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn-action" onclick="resetForm()"><i class="fas fa-undo me-1"></i> Reset</button>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-header">
+                <i class="fas fa-fingerprint text-muted" style="font-size: 1rem; opacity: 0.5;"></i>
+                <div class="badge" id="statusBadge">AWAITING INPUT</div>
+            </div>
+
+            <div class="premium-group-box">
+                <span class="sub-group-title"><i class="fas fa-arrow-up text-earn"></i> Earnings Analysis</span>
+                <div class="summary-item">
+                    <span class="label">Base Basic (60%)</span>
+                    <span class="val" id="basicVal">Rs. 0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Overtime</span>
+                    <span class="val text-earn" id="otVal">+ 0</span>
+                </div>
+                <div class="summary-item" id="bonusRow" style="display:none">
+                    <span class="label">Bonus</span>
+                    <span class="val text-earn" id="summaryBonus">+ 0</span>
+                </div>
+                <div class="summary-item" id="opdRow" style="display:none">
+                    <span class="label">Medical (OPD)</span>
+                    <span class="val text-earn" id="summaryOpd">+ 0</span>
+                </div>
+                <div class="summary-item" id="arrerRow" style="display:none">
+                    <span class="label">Arrears Credit</span>
+                    <span class="val text-earn" id="summaryArrer">+ 0</span>
+                </div>
+                <div class="summary-item" id="cplRow" style="display:none">
+                    <span class="label">CPL Encashment</span>
+                    <span class="val text-earn" id="summaryCpl">+ 0</span>
+                </div>
+                <div class="summary-item" id="lfaRow" style="display:none">
+                    <span class="label">LFA Benefit</span>
+                    <span class="val text-earn" id="summaryLfa">+ 0</span>
+                </div>
+            </div>
+
+            <div class="premium-group-box">
+                <span class="sub-group-title"><i class="fas fa-arrow-down text-deduct"></i> Required Deductions</span>
+                <div class="summary-item">
+                    <span class="label">Tardiness</span>
+                    <span class="val text-deduct" id="lateDeductVal">- 0</span>
+                </div>
+                <div class="summary-item" id="taxRow" style="display:none">
+                    <span class="label">Income Tax</span>
+                    <span class="val text-deduct" id="summaryTax">- 0</span>
+                </div>
+                <div class="summary-item" id="loanRow" style="display:none">
+                    <span class="label">Loan/Advance</span>
+                    <span class="val text-deduct" id="summaryLoan">- 0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">EOBI / MASS Contribution</span>
+                    <span class="val text-deduct" id="fixedVal">- 0</span>
+                </div>
+            </div>
+
+            <div class="take-home-meter">
+                <div class="meter-label">
+                    <span>Pay Efficiency</span>
+                    <span id="takeHomePerc" style="color: var(--primary)">0%</span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="meterFill"></div>
+                </div>
+            </div>
+            
+            <div class="grand-total-section">
+                <span class="grand-total-label">Net Disbursement Amount</span>
+                <span class="grand-total-val" id="totalVal">Rs. 0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initApp() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1; 
+        const daysInCurrentMonth = new Date(year, month, 0).getDate();
+        
+        const savedSalary = localStorage.getItem('payroll_salary');
+        if(savedSalary) document.getElementById('salary').value = savedSalary;
+        
+        document.getElementById('monthDays').value = daysInCurrentMonth;
+        const monthName = now.toLocaleString('default', { month: 'long' });
+        document.getElementById('currentDateDisplay').innerText = `Payroll for ${monthName} ${year}`;
+        calculate();
+    }
+
+    function resetForm() {
+        if(confirm("Clear all data?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    function validateAndCalculate() {
+        const salary = document.getElementById('salary');
+        const days = document.getElementById('monthDays');
+        
+        if(salary.value < 0) {
+            document.getElementById('group-salary').classList.add('is-invalid');
+        } else {
+            document.getElementById('group-salary').classList.remove('is-invalid');
+            localStorage.setItem('payroll_salary', salary.value);
+        }
+
+        if(days.value < 28 || days.value > 31) {
+            document.getElementById('group-days').classList.add('is-invalid');
+        } else {
+            document.getElementById('group-days').classList.remove('is-invalid');
+        }
+
+        calculate();
+    }
+
+    function handleCardClick(type) {
+        const check = document.getElementById(type + 'Check');
+        const card = document.getElementById(type + 'Card');
+        const item = document.getElementById(type + 'Item');
+        
+        check.checked = !check.checked;
+        
+        if (check.checked) {
+            card.classList.add('active');
+            item.classList.add('active');
+            document.getElementById(type + 'Row').style.display = 'flex';
+        } else {
+            card.classList.remove('active');
+            item.classList.remove('active');
+            document.getElementById(type + 'Row').style.display = 'none';
+            document.getElementById(type + 'ValInput').value = '';
+        }
+        calculate();
+    }
+
+    function setLate(val) {
+        document.getElementById('lateUnits').value = val;
+        calculate();
+    }
+
+    function calculate() {
+        const salary = parseFloat(document.getElementById('salary').value) || 0;
+        let mDaysInput = document.getElementById('monthDays');
+        let mDays = parseFloat(mDaysInput.value) || 31;
+
+        const otHours = parseFloat(document.getElementById('otHours').value) || 0;
+        const lateUnits = parseFloat(document.getElementById('lateUnits').value) || 0;
+        const bonusAmount = parseFloat(document.getElementById('bonusValInput').value) || 0;
+        const opdAmount = parseFloat(document.getElementById('opdValInput').value) || 0;
+        const taxAmount = parseFloat(document.getElementById('taxValInput').value) || 0;
+        const arrerAmount = parseFloat(document.getElementById('arrerValInput').value) || 0;
+        const cplUnits = parseFloat(document.getElementById('cplValInput').value) || 0;
+        const lfaUnits = parseFloat(document.getElementById('lfaValInput').value) || 0;
+        const loanAmount = parseFloat(document.getElementById('loanValInput').value) || 0;
+
+        const safeSalary = Math.max(0, salary);
+        const safeOt = Math.max(0, otHours);
+
+        const fixed = safeSalary > 0 ? (1300 + 400) : 0;
+        const basic60 = safeSalary * 0.60;
+        const otEarning = ((basic60 / 26 / 8) * safeOt) * 2;
+        const latePenalty = (safeSalary / mDays) * lateUnits;
+        
+        // UPDATED CPL CALCULATION: (Basic / 26 * Units)
+        const cplEarning = (basic60 / 26) * cplUnits;
+        
+        const lfaEarning = (safeSalary / mDays) * 0.5 * lfaUnits;
+        
+        const totalNet = (safeSalary + otEarning + bonusAmount + opdAmount + arrerAmount + cplEarning + lfaEarning) - (latePenalty + fixed + taxAmount + loanAmount);
+
+        let efficiency = 0;
+        if(safeSalary > 0) {
+            efficiency = Math.round((totalNet / (safeSalary + otEarning + bonusAmount + opdAmount + arrerAmount + cplEarning + lfaEarning)) * 100);
+            if(efficiency < 0) efficiency = 0;
+            if(efficiency > 100) efficiency = 100; 
+            document.getElementById('statusBadge').innerText = "READY TO DISBURSE";
+            document.getElementById('statusBadge').style.color = "#10b981";
+        } else {
+            document.getElementById('statusBadge').innerText = "AWAITING INPUT";
+            document.getElementById('statusBadge').style.color = "#64748b";
+        }
+
+        const config = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
+        document.getElementById('basicVal').innerText = 'Rs. ' + basic60.toLocaleString(undefined, config);
+        document.getElementById('otVal').innerText = '+ ' + otEarning.toLocaleString(undefined, config);
+        document.getElementById('summaryBonus').innerText = '+ ' + bonusAmount.toLocaleString(undefined, config);
+        document.getElementById('summaryOpd').innerText = '+ ' + opdAmount.toLocaleString(undefined, config);
+        document.getElementById('summaryArrer').innerText = '+ ' + arrerAmount.toLocaleString(undefined, config);
+        document.getElementById('summaryCpl').innerText = '+ ' + cplEarning.toLocaleString(undefined, config);
+        document.getElementById('summaryLfa').innerText = '+ ' + lfaEarning.toLocaleString(undefined, config);
+        document.getElementById('summaryTax').innerText = '- ' + taxAmount.toLocaleString(undefined, config);
+        document.getElementById('summaryLoan').innerText = '- ' + loanAmount.toLocaleString(undefined, config);
+        document.getElementById('lateDeductVal').innerText = '- ' + latePenalty.toLocaleString(undefined, config);
+        document.getElementById('fixedVal').innerText = '- ' + fixed.toLocaleString(undefined, config);
+        document.getElementById('totalVal').innerText = 'Rs. ' + totalNet.toLocaleString(undefined, config);
+        
+        document.getElementById('takeHomePerc').innerText = efficiency + '%';
+        document.getElementById('meterFill').style.width = efficiency + '%';
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Pro | Attendance Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        :root {
+            --brand: #4f46e5;
+            --brand-light: #eef2ff;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body { 
+            background-color: var(--bg);
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container-xl { max-width: 1300px; padding-top: 0.5rem; }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.6rem 0;
+            margin-bottom: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* --- MODERN ADMIN DRAWER STYLES --- */
+        .admin-drawer {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: #0f172a;
+            color: white;
+            z-index: 2000;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .admin-drawer.open { right: 0; }
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1999;
+            backdrop-filter: blur(4px);
+        }
+        .admin-section { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-section-title { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .admin-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .admin-label { font-size: 0.8rem; font-weight: 500; color: #e2e8f0; }
+        .admin-input-small { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; width: 70px; text-align: center; font-weight: 700; font-size: 0.85rem; padding: 4px; }
+        .admin-input-small:focus { border-color: var(--brand); outline: none; }
+        .btn-admin-toggle { background: #0f172a; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 12px; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-admin-toggle:hover { background: #1e293b; transform: translateY(-2px); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            animation: slideDown 0.5s ease;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -5px rgba(0,0,0,0.05); border-color: var(--brand-light); }
+        .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .stat-value { font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; }
+        .text-danger .stat-value { color: var(--danger); }
+        .text-primary .stat-value { color: var(--brand); }
+
+        .upload-zone {
+            position: relative;
+            background: white;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+        }
+
+        .upload-zone:hover { border-color: var(--brand); background: var(--brand-light); }
+        .upload-zone input { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-text { font-size: 0.85rem; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 1rem;
+            border: 1px solid white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            height: 52px;
+            transition: all 0.2s ease;
+        }
+
+        .input-wrapper:focus-within { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-light); }
+        .input-wrapper input, .input-wrapper select { border: none; outline: none; width: 100%; font-weight: 600; font-size: 0.9rem; background: transparent; }
+
+        .btn-scan {
+            background: var(--brand);
+            color: white;
+            border: none;
+            padding: 0 1.5rem;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            height: 52px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-scan:hover { background: #4338ca; transform: scale(1.02); }
+
+        .data-container {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .custom-table { width: 100%; border-collapse: collapse; }
+        .custom-table thead th {
+            background: #fcfdfe;
+            padding: 1rem 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .custom-table tbody td { padding: 1rem 1.5rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+
+        .emp-flex { display: flex; align-items: center; gap: 0.8rem; }
+        .avatar {
+            width: 38px; height: 38px; border-radius: 12px;
+            background: var(--brand-light); color: var(--brand);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.9rem;
+        }
+
+        .badge-modern { padding: 0.4rem 0.7rem; border-radius: 8px; font-size: 0.65rem; font-weight: 800; }
+        .badge-shift { background: #f1f5f9; color: #475569; }
+        .badge-system { background: var(--brand-light); color: var(--brand); }
+        .badge-recheck { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+        .badge-gh { background: #f5f3ff; color: #7c3aed; border: 1px solid #ede9fe; }
+        .badge-night { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+        .night-spillover-row { background: #ecfeff !important; }
+        
+        .deduction-amount { color: var(--danger); font-weight: 800; font-size: 1rem; }
+        .deduction-neutral { color: #0e7490 !important; }
+        .summary-row { background: #fcfdfe !important; }
+        
+        .search-box { position: relative; flex-grow: 1; }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); opacity: 0.3; }
+        .search-box input { padding-left: 2.8rem !important; }
+
+        .dropdown-menu { border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 0.5rem; }
+        .dropdown-item { border-radius: 8px; font-size: 0.75rem; font-weight: 700; padding: 0.6rem 1rem; }
+        .dropdown-item:hover { background: var(--brand-light); color: var(--brand); }
+
+        .filter-strip {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        /* --- AI PILL --- */
+        .ai-pill {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            margin-left: 6px;
+            letter-spacing: 0.05em;
+            vertical-align: middle;
+        }
+
+        /* --- AI INSIGHTS PANEL --- */
+        .ai-insights-panel {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);
+            border: 1px solid #ede9fe;
+            border-radius: 20px;
+            padding: 1.2rem 1.4rem;
+            margin-bottom: 1.25rem;
+            animation: slideDown 0.4s ease;
+        }
+        .ai-insights-header { display: flex; flex-direction: column; margin-bottom: 0.9rem; }
+        .ai-insights-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.95rem; color: #5b21b6; }
+        .ai-icon { font-size: 1rem; }
+        .ai-insights-subtitle { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; margin-top: 2px; margin-left: 26px; }
+        .insight-item { display: flex; align-items: center; gap: 0.9rem; padding: 0.6rem 0; border-bottom: 1px solid rgba(139,92,246,0.12); }
+        .insight-item:last-child { border-bottom: none; }
+        .insight-avatar { width: 34px; height: 34px; border-radius: 10px; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+        .insight-info { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+        .insight-name { font-weight: 700; font-size: 0.85rem; }
+        .insight-detail { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+        .insight-score { text-align: right; flex-shrink: 0; }
+        .insight-score-value { display: block; font-weight: 800; font-size: 0.95rem; color: #7c3aed; }
+        .insight-score-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .animate-row { animation: fadeIn 0.4s ease forwards; }
+    </style>
+</head>
+<body>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="toggleAdmin()"></div>
+<div class="admin-drawer" id="adminDrawer">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-800 m-0" style="letter-spacing: -1px;">Logic Hub</h4>
+        <button class="btn btn-sm btn-outline-light rounded-circle" onclick="toggleAdmin()">✕</button>
+    </div>
+
+    <div class="admin-section">
+        <div class="admin-section-title">⚡ Grace Intervals</div>
+        <div class="admin-row">
+            <span class="admin-label">General (G) Shift</span>
+            <input type="number" id="cfg-grace-g" class="admin-input-small" value="15">
+        </div>
+        <div class="admin-row">
+            <span class="admin-label">All Other Shifts</span>
+            <input type="number" id="cfg-grace-other" class="admin-input-small" value="10">
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="admin-section-title">🔍 Intelligence Rules</div>
+        <div class="admin-row">
+            <span class="admin-label">Recheck Threshold (mins)</span>
+            <input type="number" id="cfg-recheck-limit" class="admin-input-small" value="180">
+        </div>
+        <div class="admin-row">
+            <span class="admin-label">Night Safety (mins)</span>
+            <input type="number" id="cfg-night-safety" class="admin-input-small" value="600">
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="admin-section-title">💸 Deduction Steps (Late)</div>
+        <div class="admin-row">
+            <span class="admin-label">Step 1 (0.25 Day)</span>
+            <input type="number" id="cfg-late-s1" class="admin-input-small" value="120">
+        </div>
+        <div class="admin-row">
+            <span class="admin-label">Step 2 (0.50 Day)</span>
+            <input type="number" id="cfg-late-s2" class="admin-input-small" value="240">
+        </div>
+        <div class="admin-row">
+            <span class="admin-label">Step 3 (0.75 Day)</span>
+            <input type="number" id="cfg-late-s3" class="admin-input-small" value="360">
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-primary w-100 fw-bold rounded-3 py-2" onclick="toggleAdmin()">Update System Values</button>
+        <p class="text-center text-muted mt-3 mb-0" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase;">Real-time logic binding active</p>
+    </div>
+</div>
+
+<nav class="glass-nav">
+    <div class="container-xl d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <div style="width: 32px; height: 32px; background: var(--brand); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <span class="fw-bold tracking-tight" style="font-size: 1.15rem; letter-spacing: -0.03em;">COMPLIANCE <span class="text-primary" style="font-weight: 500;">ENGINE</span><span class="ai-pill">AI</span></span>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn-admin-toggle" onclick="toggleAdmin()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+                ADMIN LOGIC
+            </button>
+            <div id="liveStatus" class="d-flex align-items-center gap-2">
+                <span style="height: 8px; width: 8px; background: var(--success); border-radius: 50%;"></span>
+                <span class="fw-bold text-muted" style="font-size: 0.65rem;">CORE READY</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-xl">
+    <div class="stats-grid" id="statsRow" style="display: none;">
+        <div class="stat-card">
+            <span class="stat-label">Total Alerts</span>
+            <span class="stat-value" id="count-alerts">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Employees Flagged</span>
+            <span class="stat-value" id="count-emp">0</span>
+        </div>
+        <div class="stat-card text-danger">
+            <span class="stat-label">Cumulative Deduction</span>
+            <span class="stat-value" id="count-deduction">0.00</span>
+        </div>
+        <div class="stat-card text-primary">
+            <span class="stat-label">Compliance Rate</span>
+            <span class="stat-value">99.8%</span>
+        </div>
+    </div>
+
+    <section class="control-panel">
+        <div class="row g-2 mb-3">
+            <div class="col-md-2">
+                <div class="input-wrapper">
+                    <input type="date" id="reportDate" value="2026-04-15">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="search-box input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="tableFilter" placeholder="Search employee..." oninput="filterTable()">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="upload-zone" id="dropZone">
+                    <div class="upload-text">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        <span>Upload Roster (PDF/Excel)</span>
+                    </div>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls, .pdf" onchange="handleFileSelect(this)">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button class="btn-scan w-100" onclick="processFile()">ANALYZE</button>
+            </div>
+        </div>
+
+        <div class="filter-strip" id="filterStrip" style="display: none;">
+            <div class="input-wrapper" style="height: 40px; flex: 1;">
+                <select id="issueFilter" onchange="filterTable()">
+                    <option value="all">All Flags</option>
+                    <option value="recheck">⚠️ Needs Recheck</option>
+                    <option value="high">🔥 High Deduction (>0.5)</option>
+                    <option value="missing">❓ Missing Punch</option>
+                    <option value="absent">🚫 Full Absents</option>
+                    <option value="ghignored">🟣 GH Early-Out Ignored</option>
+                    <option value="night">🌙 Night Duty (Spillover)</option>
+                </select>
+            </div>
+            <div class="input-wrapper" style="height: 40px; flex: 1;">
+                <select id="shiftFilter" onchange="filterTable()">
+                    <option value="all">All Shifts</option>
+                    <option value="M">Morning (M)</option>
+                    <option value="G">General (G)</option>
+                    <option value="E">Evening (E)</option>
+                    <option value="N">Night (N)</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <div id="status" class="status-alert alert mb-3 d-none" style="border-radius: 14px; font-size: 0.85rem; font-weight: 600;"></div>
+
+    <main id="resultsWrapper" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+            <h6 class="fw-bold m-0 text-muted text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Intelligence Report Output</h6>
+            
+            <div class="dropdown">
+                <button class="btn btn-success btn-sm dropdown-toggle rounded-pill px-3 fw-bold" type="button" data-bs-toggle="dropdown" style="font-size: 0.7rem; background: #10b981; border: none;">
+                    EXPORT EXCEL
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="exportResults('detailed')">Detailed Data Report</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportResults('tardiness')">Employee Tardiness Summary</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="ai-insights-panel" id="aiInsightsPanel" style="display: none;">
+            <div class="ai-insights-header">
+                <div class="ai-insights-title"><span class="ai-icon">✨</span><span>AI Pattern Intelligence</span></div>
+                <span class="ai-insights-subtitle">Employees showing recurring compliance flags this period</span>
+            </div>
+            <div id="aiInsightsBody"></div>
+        </div>
+        
+        <div class="data-container">
+            <table class="custom-table" id="complianceTable">
+                <thead>
+                    <tr>
+                        <th>Employee Flagged</th>
+                        <th>Date</th>
+                        <th>Roster Shift</th>
+                        <th>System Guess</th>
+                        <th>Punch In</th>
+                        <th>Punch Out</th>
+                        <th>Variance</th>
+                        <th>Deduction</th>
+                    </tr>
+                </thead>
+                <tbody id="reportDataContainer"></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    function toggleAdmin() {
+        document.getElementById('adminDrawer').classList.toggle('open');
+        document.getElementById('drawerOverlay').style.display = 
+            document.getElementById('adminDrawer').classList.contains('open') ? 'block' : 'none';
+    }
+
+    const SHIFT_RULES = [
+        { id: 'M', start: '07:00', end: '15:00', grace: 10 },
+        { id: 'G', start: '09:00', end: '17:00', grace: 15 },
+        { id: 'E', start: '15:00', end: '23:00', grace: 10 },
+        { id: 'N12', start: '19:00', end: '07:00', grace: 10 },
+        { id: 'N', start: '23:00', end: '07:00', grace: 10 }
+    ];
+
+    let processedData = [];
+
+    function handleFileSelect(input) {
+        if(input.files.length > 0) {
+            document.querySelector('.upload-text span').innerText = input.files[0].name;
+            document.getElementById('dropZone').style.borderColor = "var(--success)";
+        }
+    }
+
+    async function processFile() {
+        const fileInput = document.getElementById('excelFile');
+        const status = document.getElementById('status');
+        if (!fileInput.files[0]) return alert("Please select a file.");
+
+        const file = fileInput.files[0];
+        status.classList.remove('d-none');
+        status.className = "status-alert alert alert-info bg-white border";
+        status.innerHTML = "Processing data intelligence...";
+
+        if (file.name.toLowerCase().endsWith('.pdf')) {
+            processPDF(file);
+        } else {
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data);
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+            parseComplexSheet(rows);
+        }
+    }
+
+    async function processPDF(file) {
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let fullRows = [];
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const items = textContent.items;
+                
+                // Group text by Y coordinate (lines)
+                let lines = {};
+                items.forEach(item => {
+                    let y = Math.round(item.transform[5]);
+                    if (!lines[y]) lines[y] = [];
+                    lines[y].push(item);
+                });
+
+                let sortedY = Object.keys(lines).sort((a, b) => b - a);
+                sortedY.forEach(y => {
+                    let lineItems = lines[y].sort((a, b) => a.transform[4] - b.transform[4]);
+                    let row = lineItems.map(item => item.str);
+                    fullRows.push(row);
+                });
+            }
+            parseComplexSheet(fullRows);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function getLateDeduction(mins, shiftId) {
+        const thresholdG = parseInt(document.getElementById('cfg-grace-g').value);
+        const thresholdOther = parseInt(document.getElementById('cfg-grace-other').value);
+        const s1 = parseInt(document.getElementById('cfg-late-s1').value);
+        const s2 = parseInt(document.getElementById('cfg-late-s2').value);
+        const s3 = parseInt(document.getElementById('cfg-late-s3').value);
+
+        const threshold = (shiftId === 'G') ? thresholdG : thresholdOther;
+        
+        if (mins > threshold && mins <= s1) return 0.25;
+        if (mins > s1 && mins <= s2) return 0.5;
+        if (mins > s2 && mins <= s3) return 0.75;
+        if (mins > s3) return 1;
+        return 0;
+    }
+
+    function getEarlyDeduction(mins) {
+        if (mins >= 1 && mins <= 120) return 0.25;
+        if (mins >= 121 && mins <= 240) return 0.5;
+        if (mins >= 241 && mins <= 360) return 0.75;
+        if (mins >= 361 && mins <= 480) return 1;
+        return 0;
+    }
+
+    function inferShift(checkInTime) {
+        const checkInMin = timeToMinutes(checkInTime);
+        let bestShift = SHIFT_RULES[0];
+        let minDiff = Infinity;
+        SHIFT_RULES.forEach(shift => {
+            const shiftStartMin = timeToMinutes(shift.start);
+            let diff = Math.abs(checkInMin - shiftStartMin);
+            if (diff > 720) diff = 1440 - diff;
+            if (diff < minDiff) { minDiff = diff; bestShift = shift; }
+        });
+        return bestShift;
+    }
+
+    function timeToMinutes(timeStr) {
+        if(!timeStr || !timeStr.includes(':')) return 0;
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    // AI: returns the calendar date (DD-MM-YYYY) that comes immediately after
+    // the given date string. Used to detect overnight shifts where the
+    // checkout naturally lands on the next day.
+    function addOneDay(dateStr) {
+        if (!dateStr || !dateStr.includes('-')) return null;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return null;
+        const dd = parseInt(parts[0], 10), mm = parseInt(parts[1], 10), yyyy = parseInt(parts[2], 10);
+        if (!dd || !mm || !yyyy) return null;
+        const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+        d.setUTCDate(d.getUTCDate() + 1);
+        const nd = String(d.getUTCDate()).padStart(2, '0');
+        const nm = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const ny = d.getUTCFullYear();
+        return `${nd}-${nm}-${ny}`;
+    }
+
+    // AI: some rosters split a single day's In and Out punches across two
+    // separate table rows instead of one combined row (e.g. a duplicate date
+    // block a few rows above or below the main entry). Before a punch is
+    // treated as missing, this scans a small window of nearby rows for the
+    // same date and borrows whichever time is found there.
+    function findAdjacentPunch(rows, currentIndex, dateVal, colMap, missingType) {
+        const WINDOW = 8;
+        for (let offset = 1; offset <= WINDOW; offset++) {
+            const candidateIdxs = [currentIndex - offset, currentIndex + offset];
+            for (const idx of candidateIdxs) {
+                const candidate = rows[idx];
+                if (!candidate) continue;
+                const candDate = candidate[colMap.date];
+                if (candDate !== dateVal) continue;
+                const rawVal = (missingType === 'in') ? candidate[colMap.checkIn] : candidate[colMap.checkOut];
+                const val = parseTime(rawVal);
+                if (val) return val;
+            }
+        }
+        return null;
+    }
+
+    function parseComplexSheet(rows) {
+        let colMap = { date: -1, shift: -1, checkIn: -1, checkOut: -1, status: -1 };
+        let currentEmployeeName = "Unknown Employee";
+        let currentEmployeeCode = "N/A";
+        processedData = [];
+        let groupedRecords = {};
+        // AI: tracks dates whose morning punch was already carried over from the
+        // previous day's overnight/cross-date checkout, so that day isn't falsely
+        // re-flagged as a late arrival further down. Reset per employee.
+        let crossDateCoveredDates = new Set();
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const rowStr = row.join("|").toLowerCase();
+
+            // Detect Employee Block
+            if (rowStr.includes("employee name") || rowStr.includes("employee id")) {
+                crossDateCoveredDates.clear();
+                const combinedRow = row.join(" ");
+                const codeMatch = combinedRow.match(/Employee Id\s*(\d+)/i) || rowStr.match(/(\d{5})/);
+                const nameMatch = combinedRow.match(/Employee Name\s*([A-Za-z\s\-]+)/i);
+                
+                if (codeMatch) currentEmployeeCode = codeMatch[1] || codeMatch[0];
+                if (nameMatch) currentEmployeeName = nameMatch[1].trim();
+                
+                if (currentEmployeeCode === "N/A" && rows[i+1]) {
+                    const nextRowStr = rows[i+1].join(" ");
+                    const parts = nextRowStr.split(/\s+/);
+                    if (parts[0]) currentEmployeeCode = parts[0];
+                    if (parts[1]) currentEmployeeName = parts.slice(1).join(" ");
+                }
+            }
+
+            if (rowStr.includes("check-in") && rowStr.includes("check-out")) {
+                row.forEach((cell, idx) => {
+                    const c = String(cell).toLowerCase();
+                    if (c.includes("date") && c.includes("attendance")) colMap.date = idx;
+                    if (c.includes("slot") || c.includes("shift")) colMap.shift = idx;
+                    if (c.includes("status")) colMap.status = idx;
+                    if (c.includes("check-in")) {
+                        colMap.checkInDateCol = idx;
+                        for(let j=idx; j < idx+8; j++) if(rows[i+1] && String(rows[i+1][j]).toLowerCase() === "time") colMap.checkIn = j;
+                    }
+                    if (c.includes("check-out")) {
+                        colMap.checkOutDateCol = idx;
+                        for(let j=idx; j < idx+20; j++) if(rows[i+1] && String(rows[i+1][j]).toLowerCase() === "time") colMap.checkOut = j;
+                    }
+                });
+                continue;
+            }
+
+            if (colMap.date !== -1) {
+                const dateVal = row[colMap.date];
+                const originalShift = String(row[colMap.shift] || "").toUpperCase().trim();
+                const dayStatus = String(row[colMap.status] || "").toUpperCase().trim();
+                
+                // ADDED: Logic to verify if punch happened on a different date (Full Day Tardiness)
+                const inDateRaw = row[colMap.checkIn - 1]; // Date is usually 1 cell before time
+                const outDateRaw = row[colMap.checkOut - 1];
+                let isWrongDateTardiness = false;
+                
+                if (dateVal && dateVal.includes("-")) {
+                    if (inDateRaw && inDateRaw.includes("-") && inDateRaw !== dateVal) isWrongDateTardiness = true;
+                    if (outDateRaw && outDateRaw.includes("-") && outDateRaw !== dateVal) isWrongDateTardiness = true;
+                }
+
+                // AI: if this row's real checkout landed on a later calendar date (an
+                // overnight session bleeding into the next day), remember that date -
+                // its morning punch is already accounted for here and should not be
+                // re-evaluated as a fresh, standalone check-in on that later day's row.
+                const actualCheckOutDate = (colMap.checkOutDateCol !== undefined) ? String(row[colMap.checkOutDateCol] || "").trim() : "";
+                if (dateVal && actualCheckOutDate && actualCheckOutDate.includes("-") && actualCheckOutDate !== dateVal) {
+                    crossDateCoveredDates.add(actualCheckOutDate);
+                }
+
+                let inTime = parseTime(row[colMap.checkIn]);
+                let outTime = parseTime(row[colMap.checkOut]);
+
+                if (dayStatus.includes("LEAVE") || originalShift === "OFF") continue;
+
+                if (dateVal && dateVal.includes("-") && originalShift !== "") {
+
+                    // AI: overnight/night-duty spillover - this day has no check-in of
+                    // its own, and its only checkout is timestamped the very next
+                    // calendar date (e.g. clocked out ~07:00 AM the following morning).
+                    // That's a legitimate overnight shift, not a missing punch or a
+                    // tardiness violation - so it's shown for visibility only
+                    // (highlighted) and kept OUT of tardiness counts, deduction sums,
+                    // AI insights, and exports.
+                    const nextCalendarDate = addOneDay(dateVal);
+                    const isNightSpillover = (!inTime) && outTime && outDateRaw && nextCalendarDate && (outDateRaw === nextCalendarDate);
+
+                    if (isNightSpillover) {
+                        const spilloverRecord = {
+                            EmpCode: currentEmployeeCode, Employee: currentEmployeeName, Date: dateVal,
+                            FileShift: originalShift, InferredShift: "NIGHT", Timing: "Overnight Shift",
+                            In: "—", Out: `${outTime} (${outDateRaw})`,
+                            Late: 0, Early: 0, Deduction: 0, IsRecheck: false, IsAbsent: false,
+                            IsNightSpillover: true
+                        };
+                        if (!groupedRecords[currentEmployeeCode]) groupedRecords[currentEmployeeCode] = [];
+                        groupedRecords[currentEmployeeCode].push(spilloverRecord);
+                        // Intentionally NOT pushed to processedData - this keeps it out
+                        // of Total Alerts, Cumulative Deduction, AI insights and exports,
+                        // while still rendering (highlighted) in the table below.
+                        continue;
+                    }
+
+                    // AI: recover a punch that's missing on this row but present on a
+                    // nearby row for the same date, before any missing/recheck logic runs.
+                    if (!inTime) {
+                        const recoveredIn = findAdjacentPunch(rows, i, dateVal, colMap, 'in');
+                        if (recoveredIn) inTime = recoveredIn;
+                    }
+                    if (!outTime) {
+                        const recoveredOut = findAdjacentPunch(rows, i, dateVal, colMap, 'out');
+                        if (recoveredOut) outTime = recoveredOut;
+                    }
+
+                    // AI: this day's only punch is a checkout, and its check-in was
+                    // already carried over from the previous day's overnight session -
+                    // treat it purely as a checkout, don't fabricate a late arrival.
+                    if (crossDateCoveredDates.has(dateVal) && outTime && !inTime) {
+                        continue;
+                    }
+
+                    let record = null;
+                    const hasAnyPunchData = (inTime !== null || outTime !== null);
+
+                    // Flag full day tardiness for cross-date punches or absents
+                    if (!hasAnyPunchData || isWrongDateTardiness) {
+                        if (dayStatus.includes("ABSENT") || dayStatus === "" || isWrongDateTardiness) {
+                            record = {
+                                EmpCode: currentEmployeeCode, Employee: currentEmployeeName, Date: dateVal,
+                                FileShift: originalShift, InferredShift: isWrongDateTardiness ? "CROSS-DATE" : "MISSING", Timing: "N/A",
+                                In: isWrongDateTardiness ? "Wrong Date" : "Empty", Out: isWrongDateTardiness ? "Wrong Date" : "Empty", 
+                                Late: 0, Early: 0, Deduction: 1, IsRecheck: isWrongDateTardiness, IsAbsent: true
+                            };
+                        }
+                    } 
+                    else {
+                        const referenceTime = inTime || outTime;
+                        const shiftCfg = inferShift(referenceTime);
+                        let isRecheck = false;
+
+                        const adminRecheckLimit = parseInt(document.getElementById('cfg-recheck-limit').value);
+                        const adminNightSafety = parseInt(document.getElementById('cfg-night-safety').value);
+
+                        if (inTime && !outTime) {
+                            let distToStart = Math.abs(timeToMinutes(inTime) - timeToMinutes(shiftCfg.start));
+                            let distToEnd = Math.abs(timeToMinutes(inTime) - timeToMinutes(shiftCfg.end));
+                            if (distToEnd < distToStart) { outTime = inTime; inTime = null; }
+                            else if (distToStart > adminRecheckLimit) isRecheck = true; 
+                        } else if (!inTime && outTime) {
+                            let distToStart = Math.abs(timeToMinutes(outTime) - timeToMinutes(shiftCfg.start));
+                            let distToEnd = Math.abs(timeToMinutes(outTime) - timeToMinutes(shiftCfg.end));
+                            if (distToStart < distToEnd) { inTime = outTime; outTime = null; }
+                            else if (distToEnd > adminRecheckLimit) isRecheck = true;
+                        }
+
+                        let late = 0; let early = 0;
+                        if (inTime) {
+                            late = calculateDiff(shiftCfg.start, inTime);
+                        }
+                        if (outTime) {
+                            early = calculateDiff(outTime, shiftCfg.end);
+                            early = (early > 0) ? early : 0;
+                            if (shiftCfg.id.startsWith('N') || shiftCfg.id === 'M') { if (early > adminNightSafety) early = 0; }
+                        }
+
+                        // GH (General Holiday / short special-duty) shift: early-out is never a
+                        // tardiness violation, since GH duty does not carry a fixed shift end time.
+                        // Everything else (late-in, recheck, absence logic) is untouched.
+                        const isGHDuty = (originalShift === 'GH');
+                        const earlyDeductionRaw = getEarlyDeduction(early);
+                        const earlyDeductionApplied = isGHDuty ? 0 : earlyDeductionRaw;
+                        const totalDeduction = getLateDeduction(late, shiftCfg.id) + earlyDeductionApplied;
+
+                        if (totalDeduction > 0 || isRecheck) {
+                            record = {
+                                EmpCode: currentEmployeeCode, Employee: currentEmployeeName, Date: dateVal,
+                                FileShift: originalShift, InferredShift: shiftCfg.id,
+                                Timing: `${shiftCfg.start} - ${shiftCfg.end}`, 
+                                In: inTime || "0.00", Out: outTime || "0.00", 
+                                Late: (late > 0 ? late : 0), Early: (early > 0 ? early : 0), 
+                                Deduction: totalDeduction, IsRecheck: isRecheck, IsAbsent: false,
+                                IsGHDuty: isGHDuty, GHEarlyIgnored: (isGHDuty && earlyDeductionRaw > 0)
+                            };
+                        }
+                    }
+
+                    if (record) {
+                        if (!groupedRecords[currentEmployeeCode]) groupedRecords[currentEmployeeCode] = [];
+                        groupedRecords[currentEmployeeCode].push(record);
+                        processedData.push(record);
+                    }
+                }
+            }
+        }
+        renderGroupedTable(groupedRecords);
+        renderAIInsights(groupedRecords);
+        // AI: an employee whose only rows are highlighted night-duty spillovers
+        // isn't actually flagged for anything - don't count them in Employees Flagged.
+        let flaggedEmpCount = 0;
+        for (const emp in groupedRecords) {
+            if (groupedRecords[emp].some(r => !r.IsNightSpillover)) flaggedEmpCount++;
+        }
+        updateStats(processedData, flaggedEmpCount);
+        document.getElementById('status').className = "status-alert alert alert-success";
+        document.getElementById('status').innerHTML = "Scan complete. Multi-Filter Intelligence Ready.";
+        document.getElementById('resultsWrapper').style.display = 'block';
+        document.getElementById('statsRow').style.display = 'grid';
+        document.getElementById('filterStrip').style.display = 'flex';
+    }
+
+    function renderGroupedTable(groupedRecords) {
+        const reportBody = document.getElementById('reportDataContainer');
+        reportBody.innerHTML = "";
+        for (const empCode in groupedRecords) {
+            let empTotalDeduction = 0;
+            const records = groupedRecords[empCode];
+            records.forEach(rec => {
+                empTotalDeduction += rec.Deduction;
+                const tr = document.createElement('tr');
+                tr.className = "animate-row";
+                tr.dataset.search = (rec.Employee + " " + rec.EmpCode).toLowerCase();
+                tr.dataset.deduction = rec.Deduction;
+                tr.dataset.empcode = rec.EmpCode;
+                tr.dataset.shift = rec.InferredShift;
+                tr.dataset.isrecheck = rec.IsRecheck;
+                tr.dataset.ismissing = (rec.In === "0.00" || rec.Out === "0.00" || rec.In === "Empty");
+                tr.dataset.isabsent = rec.IsAbsent;
+                tr.dataset.isghignored = !!rec.GHEarlyIgnored;
+                tr.dataset.isnightspillover = !!rec.IsNightSpillover;
+                if (rec.IsNightSpillover) tr.classList.add('night-spillover-row');
+
+                tr.innerHTML = rec.IsNightSpillover ? `
+                    <td>
+                        <div class="emp-flex">
+                            <div class="avatar">${rec.Employee.charAt(0)}</div>
+                            <div>
+                                <span class="fw-bold d-block" style="font-size:0.9rem">${rec.Employee}</span>
+                                <span class="text-muted font-mono" style="font-size: 0.65rem;">${rec.EmpCode}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="fw-semibold text-muted" style="font-size:0.85rem">${rec.Date}</span></td>
+                    <td><span class="badge-modern badge-shift">${rec.FileShift}</span></td>
+                    <td><span class="badge-modern badge-night">🌙 NIGHT DUTY</span></td>
+                    <td><span class="fw-bold">${rec.In}</span></td>
+                    <td><span class="fw-bold">${rec.Out}</span></td>
+                    <td><span class="text-muted small fw-bold">Overnight spillover - not tardiness</span></td>
+                    <td><span class="deduction-amount deduction-neutral">0.00</span></td>
+                ` : `
+                    <td>
+                        <div class="emp-flex">
+                            <div class="avatar">${rec.Employee.charAt(0)}</div>
+                            <div>
+                                <span class="fw-bold d-block" style="font-size:0.9rem">${rec.Employee}</span>
+                                <span class="text-muted font-mono" style="font-size: 0.65rem;">${rec.EmpCode}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="fw-semibold text-muted" style="font-size:0.85rem">${rec.Date}</span></td>
+                    <td><span class="badge-modern badge-shift">${rec.FileShift}</span></td>
+                    <td>
+                        <span class="badge-modern badge-system">${rec.InferredShift}</span>
+                        ${rec.IsRecheck ? '<span class="badge-modern badge-recheck ms-1">RECHECK</span>' : ''}
+                        ${rec.IsGHDuty ? '<span class="badge-modern badge-gh ms-1">GH DUTY</span>' : ''}
+                    </td>
+                    <td><span class="fw-bold">${rec.In}</span></td>
+                    <td><span class="fw-bold">${rec.Out}</span></td>
+                    <td>
+                        <span class="text-muted small fw-bold">${rec.Late}m L / ${rec.Early}m E</span>
+                        ${rec.GHEarlyIgnored ? '<br><span class="badge-modern badge-gh mt-1 d-inline-block" style="font-size:0.6rem;">EARLY-OUT IGNORED</span>' : ''}
+                    </td>
+                    <td><span class="deduction-amount text-danger">-${rec.Deduction}</span></td>
+                `;
+                reportBody.appendChild(tr);
+            });
+            const summaryTr = document.createElement('tr');
+            summaryTr.className = 'summary-row';
+            summaryTr.dataset.empcode = empCode;
+            summaryTr.innerHTML = `
+                <td colspan="7" class="text-end py-3"><span class="text-muted fw-bold small">TOTAL VARIANCE DEDUCTION:</span></td>
+                <td class="py-3"><span class="badge bg-dark rounded-pill px-3">-${empTotalDeduction.toFixed(2)} Day</span></td>
+            `;
+            reportBody.appendChild(summaryTr);
+        }
+    }
+
+    // AI Pattern Intelligence: surfaces employees with recurring compliance flags
+    // (habitual lateness, repeated rechecks, absences) so admins can spot patterns
+    // at a glance instead of scanning every row. Purely additive - does not affect
+    // any deduction math above.
+    function renderAIInsights(groupedRecords) {
+        const panel = document.getElementById('aiInsightsPanel');
+        const body = document.getElementById('aiInsightsBody');
+        const empRisk = [];
+
+        for (const empCode in groupedRecords) {
+            // AI: night-duty spillover rows are highlight-only, not compliance
+            // flags - keep them out of the risk scoring entirely.
+            const records = groupedRecords[empCode].filter(r => !r.IsNightSpillover);
+            if (records.length === 0) continue;
+            const totalDeduction = records.reduce((s, r) => s + r.Deduction, 0);
+            const lateCount = records.filter(r => r.Late > 0).length;
+            const recheckCount = records.filter(r => r.IsRecheck).length;
+            const absentCount = records.filter(r => r.IsAbsent).length;
+            const riskScore = (lateCount * 1) + (recheckCount * 2) + (absentCount * 3);
+
+            empRisk.push({
+                empCode, name: records[0].Employee, totalDeduction,
+                lateCount, recheckCount, absentCount, riskScore,
+                instances: records.length
+            });
+        }
+
+        empRisk.sort((a, b) => b.riskScore - a.riskScore);
+        const top = empRisk.filter(e => e.riskScore >= 3).slice(0, 5);
+
+        if (top.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        panel.style.display = 'block';
+        body.innerHTML = top.map(e => `
+            <div class="insight-item">
+                <div class="insight-avatar">${e.name.charAt(0)}</div>
+                <div class="insight-info">
+                    <span class="insight-name">${e.name} <span class="text-muted fw-normal">(${e.empCode})</span></span>
+                    <span class="insight-detail">${e.instances} flagged instance${e.instances !== 1 ? 's' : ''} · ${e.lateCount} late${e.recheckCount > 0 ? ' · ' + e.recheckCount + ' recheck' + (e.recheckCount !== 1 ? 's' : '') : ''}${e.absentCount > 0 ? ' · ' + e.absentCount + ' absent' : ''}</span>
+                </div>
+                <div class="insight-score">
+                    <span class="insight-score-value">${e.totalDeduction.toFixed(2)}</span>
+                    <span class="insight-score-label">days lost</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filterTable() {
+        const query = document.getElementById("tableFilter").value.toLowerCase();
+        const issue = document.getElementById("issueFilter").value;
+        const shift = document.getElementById("shiftFilter").value;
+        const rows = document.getElementById("reportDataContainer").children;
+        
+        let visibleDeduction = 0;
+        let visibleAlerts = 0;
+        let visibleEmployees = new Set();
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.classList.contains('summary-row')) continue;
+
+            const matchesSearch = row.dataset.search.includes(query);
+            const matchesShift = (shift === 'all' || row.dataset.shift === shift);
+            
+            let matchesIssue = true;
+            if (issue === 'recheck') matchesIssue = (row.dataset.isrecheck === 'true');
+            if (issue === 'high') matchesIssue = (parseFloat(row.dataset.deduction) > 0.5);
+            if (issue === 'missing') matchesIssue = (row.dataset.ismissing === 'true');
+            if (issue === 'absent') matchesIssue = (row.dataset.isabsent === 'true');
+            if (issue === 'ghignored') matchesIssue = (row.dataset.isghignored === 'true');
+            if (issue === 'night') matchesIssue = (row.dataset.isnightspillover === 'true');
+
+            if (matchesSearch && matchesShift && matchesIssue) {
+                row.style.display = "";
+                // AI: night-duty spillover rows stay visible (highlighted) but are
+                // excluded from the numeric alert/deduction/employee counts below.
+                if (row.dataset.isnightspillover !== 'true') {
+                    visibleAlerts++;
+                    visibleDeduction += parseFloat(row.dataset.deduction) || 0;
+                    visibleEmployees.add(row.dataset.empcode);
+                }
+            } else {
+                row.style.display = "none";
+            }
+        }
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row.classList.contains('summary-row')) continue;
+            row.style.display = visibleEmployees.has(row.dataset.empcode) ? "" : "none";
+        }
+
+        document.getElementById('count-alerts').innerText = visibleAlerts;
+        document.getElementById('count-emp').innerText = visibleEmployees.size;
+        document.getElementById('count-deduction').innerText = visibleDeduction.toFixed(2);
+    }
+
+    function updateStats(data, empCount) {
+        let totalDeduction = 0;
+        data.forEach(r => totalDeduction += r.Deduction);
+        document.getElementById('count-alerts').innerText = data.length;
+        document.getElementById('count-emp').innerText = empCount;
+        document.getElementById('count-deduction').innerText = totalDeduction.toFixed(2);
+    }
+
+    function parseTime(val) {
+        if (!val || val === "" || val === 0 || val === "0.00") return null;
+        if (typeof val === 'number') {
+            let totalSec = Math.floor(val * 24 * 3600);
+            return `${String(Math.floor(totalSec/3600)).padStart(2,'0')}:${String(Math.floor((totalSec%3600)/60)).padStart(2,'0')}`;
+        }
+        let match = String(val).match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (!match) return null;
+        let hrs = parseInt(match[1]);
+        if (match[3] && match[3].toUpperCase() === 'PM' && hrs < 12) hrs += 12;
+        if (match[3] && match[3].toUpperCase() === 'AM' && hrs === 12) hrs = 0;
+        return `${String(hrs).padStart(2, '0')}:${match[2]}`;
+    }
+
+    function calculateDiff(start, end) {
+        const [h1, m1] = start.split(':').map(Number);
+        const [h2, m2] = end.split(':').map(Number);
+        return (h2 * 60 + m2) - (h1 * 60 + m1);
+    }
+
+    function exportResults(mode) {
+        if (processedData.length === 0) return alert("No data to export.");
+        const wb = XLSX.utils.book_new();
+        let ws;
+        let filename;
+
+        if (mode === 'detailed') {
+            ws = XLSX.utils.json_to_sheet(processedData);
+            filename = "Detailed_Compliance_Report.xlsx";
+        } else {
+            const summary = {};
+            processedData.forEach(row => {
+                if (!summary[row.EmpCode]) {
+                    summary[row.EmpCode] = { 
+                        "Employee ID": row.EmpCode, 
+                        "Name": row.Employee, 
+                        "Total Instances": 0, 
+                        "Total Late Mins": 0, 
+                        "Total Early Mins": 0, 
+                        "Total Deductions": 0 
+                    };
+                }
+                summary[row.EmpCode]["Total Instances"]++;
+                summary[row.EmpCode]["Total Late Mins"] += row.Late;
+                summary[row.EmpCode]["Total Early Mins"] += row.Early;
+                summary[row.EmpCode]["Total Deductions"] += row.Deduction;
+            });
+            ws = XLSX.utils.json_to_sheet(Object.values(summary));
+            filename = "Employee_Tardiness_Summary.xlsx";
+        }
+
+        XLSX.utils.book_append_sheet(wb, ws, "Report");
+        XLSX.writeFile(wb, filename);
+    }
+</script>
+</body>
+</html>

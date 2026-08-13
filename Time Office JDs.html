@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Office JDs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --accent: #6366f1;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+        }
+
+        body {
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 5rem;
+        }
+
+        .main-wrapper {
+            max-width: 1300px;
+            margin: auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 32px;
+            padding: 1.8rem;
+            height: 100%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-list-container { min-height: 100px; }
+
+        .task-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid transparent;
+            cursor: grab;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .task-row:active { cursor: grabbing; }
+        .task-row:hover {
+            background: #ffffff;
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+        }
+
+        .check-circle {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            margin-right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-row.is-done {
+            background: rgba(16, 185, 129, 0.03);
+            opacity: 0.8;
+        }
+
+        .task-row.is-done .check-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .task-row.is-done .task-text {
+            text-decoration: line-through;
+            color: var(--text-light);
+        }
+
+        .task-text {
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
+        /* Delete Visibility Mechanism */
+        .btn-delete {
+            display: none; /* Hidden by default */
+            color: var(--danger);
+            margin-left: 10px;
+            transition: 0.2s;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        /* Show delete only when management mode is active */
+        body.manage-mode .btn-delete {
+            display: inline-block;
+        }
+
+        .btn-group-premium .btn {
+            border: none;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-light);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 10px;
+            margin-left: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-group-premium .btn:hover { background: var(--accent); color: white; }
+
+        .date-pill {
+            background: #f1f5f9;
+            color: var(--text-light);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            margin-left: 10px;
+        }
+
+        .sortable-ghost { opacity: 0.3; background: var(--accent) !important; }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: shadow-pulse 2s infinite;
+        }
+
+        @keyframes shadow-pulse {
+            0% { box-shadow: 0 0 0 0px rgba(99, 102, 241, 0.4); }
+            100% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+        }
+
+        .modal-content { border-radius: 25px; border: none; padding: 1rem; }
+
+        .manage-toggle {
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid #ddd;
+            background: white;
+            transition: 0.3s;
+        }
+        
+        body.manage-mode .manage-toggle {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="text-center mb-5 animate__animated animate__fadeIn">
+        <h1 class="fw-800" style="font-size: 3rem; letter-spacing: -2px;">Time Office</h1>
+        <div class="d-flex justify-content-center align-items-center gap-3">
+            <p class="text-muted fw-semibold m-0"></p>
+            <div class="manage-toggle" onclick="toggleManageMode()">
+                <i class="bi bi-shield-lock-fill"></i> <span id="manage-text">Unlock Delete</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="glass-card">
+                <div class="card-header-flex">
+                    <span class="section-label"><div class="pulse"></div> Daily Operations</span>
+                    <div class="btn-group-premium">
+                        <button class="btn" onclick="openAddModal('daily-list')"><i class="bi bi-plus-lg"></i></button>
+                        <button class="btn" onclick="resetSection('daily-list')"><i class="bi bi-arrow-clockwise"></i></button>
+                    </div>
+                </div>
+                <div id="daily-list" class="task-list-container"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card">
+                <div class="card-header-flex">
+                    <span class="section-label"><div class="pulse"></div> Weekly Compliance</span>
+                    <div class="btn-group-premium">
+                        <button class="btn" onclick="openAddModal('weekly-list')"><i class="bi bi-plus-lg"></i></button>
+                        <button class="btn" onclick="resetSection('weekly-list')"><i class="bi bi-arrow-clockwise"></i></button>
+                    </div>
+                </div>
+                <div id="weekly-list" class="task-list-container"></div>
+                <div class="mt-auto pt-3">
+                    <div class="p-3 rounded-4 bg-white border border-light shadow-sm">
+                        <p class="small text-muted m-0">Finalize machine sync by <strong>18th</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card">
+                <div class="card-header-flex">
+                    <span class="section-label"><div class="pulse"></div> Monthly Cycle</span>
+                    <div class="btn-group-premium">
+                        <button class="btn" onclick="openAddModal('monthly-list')"><i class="bi bi-plus-lg"></i></button>
+                        <button class="btn" onclick="resetSection('monthly-list')"><i class="bi bi-arrow-clockwise"></i></button>
+                    </div>
+                </div>
+                <div id="monthly-list" class="task-list-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 opacity-50">
+        <p class="small text-uppercase fw-bold" style="letter-spacing: 2px;"></p>
+    </div>
+</div>
+
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-body">
+                <h5 class="fw-bold mb-3">Add New Task</h5>
+                <input type="text" id="newTaskInput" class="form-control rounded-4 py-3 mb-3 border-light bg-light" placeholder="Enter task name...">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-dark w-100 rounded-4 py-2" onclick="addNewTask()">Add to List</button>
+                    <button type="button" class="btn btn-light w-100 rounded-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let activeListId = '';
+
+    // Original Data
+    const defaultData = {
+        'daily-list': ["File Documentation", "Attendance Queries", "Mess Attendance", "Gate Pass Entry", "Short Leaves Record", "Dispatched Entries", "Reload Machine Data", "Work From Home"],
+        'weekly-list': [
+            {t: "Jubilee Claims Status", p: "WEEKLY"}, "Pending O.T & CPLs", "Tardiness Reimbursment", "Dispatched Follow-up", "CPL-S Tickets Process", "Roster Compliance"
+        ],
+        'monthly-list': [
+            {t: "O.T & CPLs Closing", p: "16-18th"}, {t: "Adjustment Tickets", p: "21-22nd"}, {t: "Roster Submission", p: "25th"},
+            {t: "Tardiness Absent Report", p: "27-28th"}, {t: "Roster Reminders", p: "28 & 30th"}, {t: "HR Dashboard", p: "4th", color: "var(--accent)"},
+            {t: "Leave Finalization", p: "23rd"}, {t: "Bank File", p: "END"}
+        ]
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        initSortable();
+    });
+
+    function initSortable() {
+        ['daily-list', 'weekly-list', 'monthly-list'].forEach(id => {
+            new Sortable(document.getElementById(id), {
+                group: 'tasks',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: saveData
+            });
+        });
+    }
+
+    function toggleManageMode() {
+        document.body.classList.toggle('manage-mode');
+        const isLocked = !document.body.classList.contains('manage-mode');
+        document.getElementById('manage-text').innerText = isLocked ? "Unlock Delete" : "Lock Delete";
+    }
+
+    function toggleTask(element, event) {
+        if (event.target.closest('.btn-delete')) return;
+        element.classList.toggle('is-done');
+        saveData();
+    }
+
+    function resetSection(listId) {
+        document.querySelectorAll(`#${listId} .task-row`).forEach(row => row.classList.remove('is-done'));
+        saveData();
+    }
+
+    function deleteTask(element) {
+        element.closest('.task-row').remove();
+        saveData();
+    }
+
+    function openAddModal(listId) {
+        activeListId = listId;
+        new bootstrap.Modal(document.getElementById('addTaskModal')).show();
+    }
+
+    function addNewTask() {
+        const input = document.getElementById('newTaskInput');
+        const val = input.value.trim();
+        if (val) {
+            addTaskToUI(activeListId, {t: val}, true);
+            saveData();
+            input.value = '';
+            bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
+        }
+    }
+
+    function addTaskToUI(listId, item, isNew = false) {
+        const list = document.getElementById(listId);
+        const text = typeof item === 'string' ? item : item.t;
+        const pill = item.p || "";
+        const color = item.color || "";
+        const done = item.done ? "is-done" : "";
+
+        const html = `
+            <div class="task-row ${done}" onclick="toggleTask(this, event)">
+                <div class="check-circle"><i class="bi bi-check-lg small"></i></div>
+                <span class="task-text" style="color:${color}">${text}</span>
+                ${pill ? `<span class="date-pill">${pill}</span>` : ''}
+                <i class="bi bi-trash3 btn-delete" onclick="deleteTask(this)"></i>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', html);
+    }
+
+    // Storage Engine
+    function saveData() {
+        const dashboardState = {};
+        ['daily-list', 'weekly-list', 'monthly-list'].forEach(id => {
+            dashboardState[id] = Array.from(document.querySelectorAll(`#${id} .task-row`)).map(row => ({
+                t: row.querySelector('.task-text').innerText,
+                p: row.querySelector('.date-pill')?.innerText || "",
+                color: row.querySelector('.task-text').style.color || "",
+                done: row.classList.contains('is-done')
+            }));
+        });
+        localStorage.setItem('rana_time_office_db', JSON.stringify(dashboardState));
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem('rana_time_office_db');
+        const data = saved ? JSON.parse(saved) : defaultData;
+        
+        Object.keys(data).forEach(id => {
+            document.getElementById(id).innerHTML = '';
+            data[id].forEach(item => addTaskToUI(id, item));
+        });
+    }
+</script>
+
+</body>
+</html>

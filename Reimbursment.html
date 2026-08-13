@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Office Pro - Data Entry Hub</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- PapaParse: robust CSV parsing (handles BOM, quoted commas, stray whitespace) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Flatpickr for Modern Date Selection -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary: #0d6e5c;
+            --primary-hover: #0a5747;
+            --primary-soft: #e3f3f0;
+            --navy: #16253d;
+            --text-dark: #101828;
+            --text-muted: #667085;
+            --border-color: #e4e8ee;
+            --input-bg: #f8f9fb;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            padding: 1.75rem 1rem 3rem;
+        }
+
+        .dashboard-container { max-width: 1360px; margin: 0 auto; }
+
+        .glass-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2, h5, h6 { font-family: 'Manrope', 'Inter', sans-serif; }
+        h2 { font-weight: 800; color: var(--navy); letter-spacing: -0.5px; }
+
+        .brand-badge {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: var(--navy); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; flex-shrink: 0;
+        }
+
+        .entry-section { border-top: 3px solid var(--primary); }
+
+        .form-floating > label { color: var(--text-muted); font-weight: 500; font-size: 0.9rem; }
+
+        .form-control, .form-select {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background-color: var(--input-bg);
+            font-weight: 500;
+            transition: all 0.15s ease-in-out;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13, 110, 92, 0.12);
+        }
+        .form-control[readonly] { background-color: #eef1f5; color: var(--text-muted); border-style: dashed; }
+
+        .btn-primary-custom {
+            background-color: var(--primary); color: #fff; border: none;
+            border-radius: 10px; font-weight: 700; padding: 1rem;
+            transition: all 0.15s ease; box-shadow: 0 4px 10px -4px rgba(13, 110, 92, 0.5);
+        }
+        .btn-primary-custom:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-cancel-edit {
+            border-radius: 10px; font-weight: 600; border: 1px solid var(--border-color);
+            background: #fff; color: var(--text-muted); padding: 1rem;
+        }
+        .btn-cancel-edit:hover { background: #f8f9fb; color: var(--text-dark); }
+
+        .table-responsive { border-radius: 12px; }
+        .table { margin-bottom: 0; background: white; }
+        .table thead th {
+            background-color: #f8f9fb; color: var(--text-muted); font-size: 0.72rem;
+            text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border-color);
+            padding: 0.9rem 1rem; font-weight: 700; position: sticky; top: 0; z-index: 1;
+        }
+        .table tbody td { vertical-align: middle; padding: 0.85rem 1rem; font-size: 0.88rem; border-bottom: 1px solid var(--border-color); }
+        .table tbody tr:hover { background-color: #fafbfc; }
+
+        .status-badge { padding: 0.35em 0.8em; border-radius: 6px; font-size: 0.75em; font-weight: 700; letter-spacing: 0.3px; }
+        .bg-ot { background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .bg-td { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+
+        .kpi-card {
+            border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; background: #fff;
+            border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;
+        }
+        .kpi-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .kpi-value { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); line-height: 1.2; font-family: 'Manrope', sans-serif; }
+        .kpi-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+        .status-cycler {
+            width: 100%; padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.83rem;
+            border: 1px solid transparent; transition: all 0.15s ease; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+        }
+        .state-pending { background: #fef9e0; color: #8a6100; border-color: #fbe396; }
+        .state-pending:hover { background: #fbe396; }
+        .state-paid { background: #dcf7e9; color: #0a6b41; border-color: #a7ecc6; }
+        .state-paid:hover { background: #a7ecc6; }
+        .state-void { background: #fde3e3; color: #a3242a; border-color: #f8bcbc; }
+        .state-void:hover { background: #f8bcbc; }
+
+        .modern-actions { display: flex; gap: 0.4rem; justify-content: center; }
+        .action-icon {
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; border: 1px solid #e4e8ee; background: #fff; color: #667085;
+            transition: all 0.15s; cursor: pointer; font-size: 0.95rem;
+        }
+        .action-icon.edit:hover { background: #eef6f4; color: var(--primary); border-color: #bfe2da; }
+        .action-icon.delete:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+        .date-tag {
+            font-size: 0.72rem; background: #f1f3f6; color: #475467; border: 1px solid #d0d5dd;
+            padding: 2px 8px; border-radius: 5px; display: inline-block; margin: 2px; font-weight: 600;
+        }
+
+        .dropdown-item:hover { background-color: #f8f9fb; }
+
+        .toolbar-input { border-radius: 9px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.87rem; font-weight: 500; }
+        .toolbar-input:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,110,92,0.1); }
+
+        .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.1rem; border-top: 1px solid var(--border-color); background: #fbfcfd; border-radius: 0 0 12px 12px; }
+        .page-btn { border: 1px solid var(--border-color); background: #fff; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-btn:not(:disabled):hover { background: var(--primary-soft); border-color: var(--primary); }
+
+        #toastStack { position: fixed; top: 1rem; right: 1rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .app-toast {
+            min-width: 260px; max-width: 340px; background: #fff; border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary); border-radius: 10px; padding: 0.75rem 1rem;
+            box-shadow: 0 8px 20px -4px rgba(16,24,40,0.15); font-size: 0.88rem; font-weight: 600; color: var(--text-dark);
+            display: flex; align-items: center; gap: 0.6rem; animation: toastIn 0.2s ease;
+        }
+        .app-toast.error { border-left-color: #dc2626; }
+        .app-toast.warn { border-left-color: #ea580c; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<div id="toastStack"></div>
+
+<div class="dashboard-container">
+
+    <!-- Header & Unified Admin Hub -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            <div class="brand-badge"><i class="bi bi-clock-history"></i></div>
+            <div>
+                <h2 class="mb-0">Time Office <span style="color: var(--primary);">Pro</span></h2>
+                <div class="text-muted fw-medium" style="font-size: 0.87rem;">Strategic Reimbursement &amp; Penalty Hub</div>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <input type="file" id="masterUpload" accept=".csv" style="display: none;">
+            <button class="btn btn-dark rounded-pill fw-semibold px-4 py-2 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="adminHubBtn">
+                <i class="bi bi-gear-fill me-2"></i>Admin Control
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2 mt-2" style="border-radius: 12px; min-width: 270px;">
+                <li>
+                    <div class="px-3 py-2 bg-light rounded mb-2 border">
+                        <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Master Data Link</div>
+                        <div class="fw-semibold d-flex align-items-center" style="font-size: 0.85rem;">
+                            <i class="bi bi-circle-fill text-danger me-2" id="statusDot" style="font-size: 0.6rem;"></i>
+                            <span id="masterStatus" class="text-dark">Awaiting Upload</span>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded py-2 d-flex align-items-center" href="#" onclick="document.getElementById('masterUpload').click(); return false;">
+                        <i class="bi bi-cloud-arrow-up text-primary fs-5 me-3"></i>
+                        <span class="fw-medium">Load Master CSV</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded py-2 d-flex align-items-center" href="#" onclick="exportData(); return false;">
+                        <i class="bi bi-file-earmark-spreadsheet text-success fs-5 me-3"></i>
+                        <span class="fw-medium">Export to Payroll</span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-2"></li>
+                <li>
+                    <a class="dropdown-item rounded py-2 d-flex align-items-center text-danger" href="#" onclick="clearMasterData(); return false;">
+                        <i class="bi bi-person-x fs-5 me-3"></i>
+                        <span class="fw-medium">Clear Master Data</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded py-2 d-flex align-items-center text-danger" href="#" onclick="clearData(); return false;">
+                        <i class="bi bi-trash3 fs-5 me-3"></i>
+                        <span class="fw-medium">Clear Session Data</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <input type="hidden" id="editingUid" value="">
+
+    <div class="glass-card entry-section mb-5 position-relative">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0 fw-bold" id="terminalHeader"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Fast Entry Terminal</h5>
+            <span class="badge bg-primary rounded-pill px-3 py-2" style="background-color: var(--primary) !important;"><i class="bi bi-keyboard me-1"></i> Press TAB to auto-fill</span>
+        </div>
+
+        <div class="row g-3 align-items-center">
+            <!-- Row 1 -->
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <input type="text" class="form-control fw-bold" style="color: var(--primary);" id="empId" placeholder="Employee ID" autofocus>
+                    <label for="empId"><i class="bi bi-search me-1"></i>Emp ID</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="empName" placeholder="Name" readonly tabindex="-1">
+                    <label for="empName">Verified Name</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="empDept" placeholder="Department" readonly tabindex="-1">
+                    <label for="empDept">Department / Position</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <select class="form-select fw-bold" id="recordType">
+                        <option value="Overtime">Overtime (Hours)</option>
+                        <option value="Tardiness">Tardiness (Days)</option>
+                    </select>
+                    <label for="recordType">Record Category</label>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <input type="number" class="form-control" id="units" placeholder="0.0" min="0" step="0.5">
+                    <label for="units" id="unitLabel">Total Hours</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="text" class="form-control fw-bold bg-white" style="color: var(--primary);" id="recordDates" placeholder="Select dates..." style="cursor: pointer;">
+                    <label for="recordDates" id="dateLabel"><i class="bi bi-calendar-event me-1"></i>Tagged Date(s)</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <input type="number" class="form-control fw-bold" style="color: var(--primary);" id="amount" placeholder="0" min="0">
+                    <label for="amount">Amount (Rs)</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="remarks" placeholder="Remarks">
+                    <label for="remarks">Remarks / Justification</label>
+                </div>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button class="btn btn-primary-custom w-100 h-100 d-flex align-items-center justify-content-center gap-2" id="saveRecordBtn">
+                    <i class="bi bi-plus-lg fs-5" id="submitIcon"></i>
+                    <span id="submitText">Log Entry</span>
+                </button>
+                <button class="btn btn-cancel-edit d-none" id="cancelEditBtn" title="Cancel edit">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="glass-card p-0 h-100 d-flex flex-column">
+                <div class="p-3 border-bottom bg-light d-flex flex-wrap align-items-center justify-content-between gap-2" style="border-radius: 14px 14px 0 0;">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-table me-2"></i>Session Ledger</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <span class="input-group-text toolbar-input border-end-0 bg-white"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control toolbar-input border-start-0" id="searchInput" placeholder="Search ID or name">
+                        </div>
+                        <select class="form-select form-select-sm toolbar-input" id="statusFilter" style="width: 130px;">
+                            <option value="All">All statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Void">Void</option>
+                        </select>
+                        <select class="form-select form-select-sm toolbar-input" id="typeFilter" style="width: 130px;">
+                            <option value="All">All categories</option>
+                            <option value="Overtime">Overtime</option>
+                            <option value="Tardiness">Tardiness</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive flex-grow-1" style="border: none;">
+                    <table class="table table-hover align-middle text-center">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%" class="text-start">Emp Details</th>
+                                <th style="width: 20%" class="text-start">Tagged Dates</th>
+                                <th style="width: 12%">Category</th>
+                                <th style="width: 10%">Units</th>
+                                <th style="width: 14%">Financials</th>
+                                <th style="width: 17%">1-Click Status</th>
+                                <th style="width: 12%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2 text-light"></i>Ledger is empty. Start typing an Employee ID above.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-bar">
+                    <span class="text-muted" style="font-size: 0.82rem;" id="pageSummary">0 records</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="page-btn" id="prevPageBtn"><i class="bi bi-chevron-left"></i> Prev</button>
+                        <span style="font-size: 0.85rem; font-weight: 600;" id="pageIndicator">Page 1 of 1</span>
+                        <button class="page-btn" id="nextPageBtn">Next <i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <h6 class="fw-bold mb-3 text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">Awaiting Processing</h6>
+
+            <div class="kpi-card" style="border-left: 4px solid #10b981;">
+                <div>
+                    <div class="kpi-label">Pending Overtime</div>
+                    <div class="kpi-value text-success">Rs. <span id="kpiOT">0</span></div>
+                </div>
+                <div class="kpi-icon" style="background: #ecfdf5; color: #10b981;"><i class="bi bi-graph-up-arrow"></i></div>
+            </div>
+
+            <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+                <div>
+                    <div class="kpi-label">Pending Tardiness</div>
+                    <div class="kpi-value" style="color: #d97706 !important;">Rs. <span id="kpiTD">0</span></div>
+                </div>
+                <div class="kpi-icon" style="background: #fff7ed; color: #f59e0b;"><i class="bi bi-graph-down-arrow"></i></div>
+            </div>
+
+            <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                <div>
+                    <div class="kpi-label">Unprocessed Logs</div>
+                    <div class="kpi-value"><span id="kpiCount">0</span> <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Entries</span></div>
+                </div>
+                <div class="kpi-icon" style="background: var(--primary-soft); color: var(--primary);"><i class="bi bi-files"></i></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ---------- Storage layer ---------- *
+       Uses Claude's persistent artifact storage (window.storage) when running
+       inside a Claude.ai artifact. Falls back to localStorage automatically
+       when the file is downloaded and opened as a standalone HTML page, so
+       the tool keeps working either way. */
+    const hasCloudStorage = (typeof window.storage !== 'undefined' && window.storage);
+
+    async function storageGet(key) {
+        if (hasCloudStorage) {
+            try { const r = await window.storage.get(key, false); return r ? r.value : null; }
+            catch (e) { return null; }
+        }
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    async function storageSet(key, value) {
+        if (hasCloudStorage) {
+            try { await window.storage.set(key, value, false); return true; }
+            catch (e) { return false; }
+        }
+        try { localStorage.setItem(key, value); return true; } catch (e) { return false; }
+    }
+    async function storageRemove(key) {
+        if (hasCloudStorage) {
+            try { await window.storage.delete(key, false); } catch (e) {}
+            return;
+        }
+        try { localStorage.removeItem(key); } catch (e) {}
+    }
+
+    async function loadMaster() { return JSON.parse((await storageGet('employeeMaster')) || '[]'); }
+    async function saveMaster(data) { return storageSet('employeeMaster', JSON.stringify(data)); }
+    async function loadLogs() { return JSON.parse((await storageGet('timeOfficeLogs')) || '[]'); }
+    async function saveLogs(data) { return storageSet('timeOfficeLogs', JSON.stringify(data)); }
+
+    /* ---------- Toasts ---------- */
+    function showToast(message, type = 'info') {
+        const stack = document.getElementById('toastStack');
+        const el = document.createElement('div');
+        el.className = 'app-toast' + (type === 'error' ? ' error' : type === 'warn' ? ' warn' : '');
+        const icon = type === 'error' ? 'bi-x-circle-fill' : type === 'warn' ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill';
+        el.innerHTML = `<i class="bi ${icon}"></i><span>${message}</span>`;
+        stack.appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3200);
+    }
+
+    let currentPage = 1;
+    const PAGE_SIZE = 50;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await checkMasterData();
+        await renderTable();
+
+        flatpickr("#recordDates", { mode: "multiple", dateFormat: "d-M-Y", defaultDate: "today", allowInput: true });
+    });
+
+    document.getElementById('recordType').addEventListener('change', (e) => {
+        document.getElementById('unitLabel').innerText = e.target.value === 'Overtime' ? 'Total Hours' : 'Total Days';
+    });
+
+    document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
+    document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; renderTable(); });
+    document.getElementById('typeFilter').addEventListener('change', () => { currentPage = 1; renderTable(); });
+    document.getElementById('prevPageBtn').addEventListener('click', () => { currentPage--; renderTable(); });
+    document.getElementById('nextPageBtn').addEventListener('click', () => { currentPage++; renderTable(); });
+
+    /* ---------- Master CSV import ---------- */
+    document.getElementById('masterUpload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        let text;
+        try {
+            text = await file.text();
+        } catch (err) {
+            showToast('Could not read the file.', 'error');
+            e.target.value = '';
+            return;
+        }
+
+        Papa.parse(text, {
+            header: true,
+            skipEmptyLines: true,
+            transformHeader: h => h.replace(/^\uFEFF/, '').trim(),
+            complete: async (results) => {
+                if (!results.data || results.data.length === 0) {
+                    showToast('That CSV has no readable rows.', 'error');
+                    return;
+                }
+
+                const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                const cleanData = results.data.map(row => {
+                    let cleanRow = {};
+                    for (let key in row) {
+                        const cleanKey = key.trim();
+                        const nk = norm(cleanKey);
+                        let rawVal = row[key];
+                        let val = (rawVal === undefined || rawVal === null) ? '' : String(rawVal).trim();
+
+                        if (['employeeid', 'id', 'empcode', 'emp', 'employeeno', 'empno'].includes(nk)) {
+                            cleanRow['Employee Id'] = val;
+                        } else if (['fullname', 'name', 'employeename'].includes(nk)) {
+                            cleanRow['Full Name'] = val;
+                        } else if (['position', 'designation', 'role', 'jobtitle'].includes(nk)) {
+                            cleanRow['Position'] = val;
+                        } else if (['department', 'dept', 'orglocation', 'division', 'function'].includes(nk)) {
+                            cleanRow['Department'] = val;
+                        } else {
+                            cleanRow[cleanKey] = val;
+                        }
+                    }
+                    return cleanRow;
+                }).filter(row => row['Employee Id']);
+
+                if (cleanData.length === 0) {
+                    showToast("Couldn't find an Employee ID column in that file.", 'error');
+                    return;
+                }
+
+                await saveMaster(cleanData);
+                await checkMasterData();
+                showToast(`Master data loaded: ${cleanData.length} employees`, 'info');
+            },
+            error: (err) => showToast('Failed to parse CSV: ' + err.message, 'error')
+        });
+
+        e.target.value = '';
+    });
+
+    async function checkMasterData() {
+        const master = await loadMaster();
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('masterStatus');
+
+        if (master.length > 0) {
+            dot.classList.remove('text-danger');
+            dot.classList.add('text-success');
+            text.innerText = `Active (${master.length} records)`;
+            text.classList.remove('text-muted');
+            text.classList.add('text-dark');
+        } else {
+            dot.classList.remove('text-success');
+            dot.classList.add('text-danger');
+            text.innerText = 'Awaiting Upload';
+        }
+    }
+
+    document.getElementById('empId').addEventListener('blur', (e) => {
+        const empId = e.target.value.trim();
+        if (!empId) { clearAutoFill(); return; }
+        performVerification(empId, false);
+    });
+
+    async function performVerification(empId, isSilent = false) {
+        const master = await loadMaster();
+        const target = empId.trim().toLowerCase();
+        const emp = master.find(x =>
+            String(x['Employee Id'] ?? '').trim().toLowerCase() === target ||
+            String(x['ID'] ?? '').trim().toLowerCase() === target ||
+            String(x['id'] ?? '').trim().toLowerCase() === target
+        );
+
+        if (emp) {
+            document.getElementById('empName').value = emp['Full Name'] || emp['Name'] || 'N/A';
+            let deptString = (emp['Position'] || '') + (emp['Position'] && emp['Department'] ? ' - ' : '') + (emp['Department'] || emp['Location'] || '');
+            document.getElementById('empDept').value = deptString || 'N/A';
+            if (!isSilent) document.getElementById('units').focus();
+            return true;
+        } else {
+            clearAutoFill();
+            if (!isSilent) showToast('Employee ID not found in Master Data database.', 'error');
+            return false;
+        }
+    }
+
+    function clearAutoFill() {
+        document.getElementById('empName').value = '';
+        document.getElementById('empDept').value = '';
+    }
+
+    document.getElementById('saveRecordBtn').addEventListener('click', async () => {
+        const id = document.getElementById('empId').value.trim();
+        const name = document.getElementById('empName').value.trim();
+        const dept = document.getElementById('empDept').value.trim();
+        const type = document.getElementById('recordType').value;
+        const units = parseFloat(document.getElementById('units').value) || 0;
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const remarks = document.getElementById('remarks').value.trim();
+        const recordDates = document.getElementById('recordDates').value.trim();
+        const editUidStr = document.getElementById('editingUid').value;
+
+        if (!id || !name) {
+            showToast('Requires a verified Employee ID.', 'error');
+            document.getElementById('empId').focus();
+            return;
+        }
+        if (units <= 0) {
+            showToast('Enter units greater than zero.', 'error');
+            document.getElementById('units').focus();
+            return;
+        }
+
+        let logs = await loadLogs();
+
+        if (editUidStr !== "") {
+            const idx = logs.findIndex(l => String(l.uid) === editUidStr);
+            if (idx !== -1) {
+                logs[idx] = { ...logs[idx], id, name, dept, type, units, amount, remarks, date: recordDates || new Date().toLocaleDateString('en-GB') };
+            }
+            resetEntryForm();
+            showToast('Log entry updated.');
+        } else {
+            const newRecord = {
+                uid: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                date: recordDates || new Date().toLocaleDateString('en-GB'),
+                id, name, dept, type, units, amount, remarks, status: 'Pending'
+            };
+            logs.unshift(newRecord);
+            showToast('Log entry saved.');
+        }
+
+        await saveLogs(logs);
+
+        document.getElementById('empId').value = '';
+        clearAutoFill();
+        document.getElementById('units').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('remarks').value = '';
+        document.getElementById('empId').focus();
+
+        document.getElementById('recordDates')._flatpickr.setDate(new Date());
+
+        currentPage = 1;
+        await renderTable();
+    });
+
+    document.getElementById('cancelEditBtn').addEventListener('click', () => {
+        resetEntryForm();
+        document.getElementById('empId').value = '';
+        clearAutoFill();
+        document.getElementById('units').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('remarks').value = '';
+        document.getElementById('recordDates')._flatpickr.setDate(new Date());
+    });
+
+    function resetEntryForm() {
+        document.getElementById('editingUid').value = "";
+        document.getElementById('submitText').innerText = "Log Entry";
+        document.getElementById('submitIcon').className = "bi bi-plus-lg fs-5";
+        document.getElementById('terminalHeader').innerHTML = `<i class="bi bi-lightning-charge-fill text-warning me-2"></i>Fast Entry Terminal`;
+        document.getElementById('cancelEditBtn').classList.add('d-none');
+    }
+
+    document.getElementById('remarks').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') document.getElementById('saveRecordBtn').click();
+    });
+
+    async function cycleStatus(uid) {
+        let logs = await loadLogs();
+        const idx = logs.findIndex(l => String(l.uid) === String(uid));
+        if (idx !== -1) {
+            const current = logs[idx].status || 'Pending';
+            let next = current === 'Pending' ? 'Paid' : current === 'Paid' ? 'Void' : 'Pending';
+            logs[idx].status = next;
+            await saveLogs(logs);
+            await renderTable();
+        }
+    }
+
+    function getFilteredLogs(logs) {
+        const search = document.getElementById('searchInput').value.trim().toLowerCase();
+        const statusF = document.getElementById('statusFilter').value;
+        const typeF = document.getElementById('typeFilter').value;
+        return logs.filter(l => {
+            if (search && !(String(l.id).toLowerCase().includes(search) || String(l.name).toLowerCase().includes(search))) return false;
+            if (statusF !== 'All' && (l.status || 'Pending') !== statusF) return false;
+            if (typeF !== 'All' && l.type !== typeF) return false;
+            return true;
+        });
+    }
+
+    async function renderTable() {
+        const logs = await loadLogs();
+        const tbody = document.getElementById('tableBody');
+
+        let totalOT = 0, totalTD = 0;
+        logs.forEach(log => {
+            if ((log.status || 'Pending') === 'Pending') {
+                if (log.type === 'Overtime') totalOT += log.amount;
+                if (log.type === 'Tardiness') totalTD += log.amount;
+            }
+        });
+
+        const filtered = getFilteredLogs(logs);
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+        const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+        if (filtered.length === 0) {
+            const msg = logs.length === 0
+                ? 'Ledger is empty. Start typing an Employee ID above.'
+                : 'No entries match your search or filters.';
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2" style="opacity: 0.5;"></i>${msg}</td></tr>`;
+        } else {
+            tbody.innerHTML = pageItems.map((log) => {
+                if (!log.status) log.status = 'Pending';
+
+                const badgeClass = log.type === 'Overtime' ? 'bg-ot' : 'bg-td';
+                const unitLabel = log.type === 'Overtime' ? 'hrs' : 'days';
+                const dateTags = log.date.split(',').map(d => `<span class="date-tag">${d.trim()}</span>`).join('');
+
+                let statusIcon = "bi-hourglass-split", statusClass = "state-pending";
+                if (log.status === 'Paid') { statusIcon = "bi-check-circle-fill"; statusClass = "state-paid"; }
+                if (log.status === 'Void') { statusIcon = "bi-x-circle-fill"; statusClass = "state-void"; }
+
+                return `
+                <tr>
+                    <td class="text-start">
+                        <div class="fw-bold text-primary" style="color: var(--primary) !important;">#${log.id}</div>
+                        <div class="fw-bold mt-1">${log.name}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${log.dept || '-'}</div>
+                    </td>
+                    <td class="text-start">
+                        <div class="d-flex flex-wrap gap-1" style="max-width: 200px;">${dateTags}</div>
+                    </td>
+                    <td><span class="status-badge ${badgeClass}">${log.type}</span></td>
+                    <td class="fw-semibold">${log.units} <span class="text-muted fw-normal" style="font-size: 0.8rem;">${unitLabel}</span></td>
+                    <td class="fw-bold">Rs. ${log.amount.toLocaleString('en-PK')}</td>
+                    <td>
+                        <button class="status-cycler ${statusClass}" onclick="cycleStatus('${log.uid}')" title="Click to cycle status">
+                            <i class="bi ${statusIcon}"></i> ${log.status}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="modern-actions">
+                            <div class="action-icon edit" onclick="editRecord('${log.uid}')" title="Edit Log"><i class="bi bi-pencil"></i></div>
+                            <div class="action-icon delete" onclick="deleteRecord('${log.uid}')" title="Delete Log"><i class="bi bi-trash3"></i></div>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        document.getElementById('kpiCount').innerText = logs.filter(l => (l.status || 'Pending') === 'Pending').length;
+        document.getElementById('kpiOT').innerText = totalOT.toLocaleString('en-PK', { minimumFractionDigits: 0 });
+        document.getElementById('kpiTD').innerText = totalTD.toLocaleString('en-PK', { minimumFractionDigits: 0 });
+
+        document.getElementById('pageSummary').innerText = `${filtered.length} record${filtered.length === 1 ? '' : 's'}${filtered.length !== logs.length ? ` (of ${logs.length} total)` : ''}`;
+        document.getElementById('pageIndicator').innerText = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+        document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+    }
+
+    async function editRecord(uid) {
+        let logs = await loadLogs();
+        const record = logs.find(l => String(l.uid) === String(uid));
+        if (!record) return;
+
+        document.getElementById('empId').value = record.id;
+        document.getElementById('recordType').value = record.type;
+        document.getElementById('units').value = record.units;
+        document.getElementById('amount').value = record.amount;
+        document.getElementById('remarks').value = record.remarks || '';
+
+        document.getElementById('recordDates')._flatpickr.setDate(record.date.split(', '));
+
+        document.getElementById('editingUid').value = record.uid;
+
+        await performVerification(record.id, true);
+
+        document.getElementById('unitLabel').innerText = record.type === 'Overtime' ? 'Total Hours' : 'Total Days';
+        document.getElementById('submitText').innerText = "Update Log";
+        document.getElementById('submitIcon').className = "bi bi-check-all fs-5";
+        document.getElementById('terminalHeader').innerHTML = `<i class="bi bi-pencil-square text-primary me-2"></i>Modifying Record #${record.id}`;
+        document.getElementById('cancelEditBtn').classList.remove('d-none');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteRecord(uid) {
+        if (confirm("Are you sure you want to delete this specific log entry permanently?")) {
+            let logs = await loadLogs();
+            logs = logs.filter(l => String(l.uid) !== String(uid));
+            await saveLogs(logs);
+
+            if (document.getElementById('editingUid').value === String(uid)) resetEntryForm();
+
+            await renderTable();
+            showToast('Log entry deleted.', 'warn');
+        }
+    }
+
+    async function clearData() {
+        if (confirm("Are you sure you want to permanently clear all session records?")) {
+            await storageRemove('timeOfficeLogs');
+            document.getElementById('editingUid').value = "";
+            resetEntryForm();
+            currentPage = 1;
+            await renderTable();
+            showToast('Session ledger cleared.', 'warn');
+        }
+    }
+
+    async function clearMasterData() {
+        if (confirm("This removes the loaded Employee Master list. Continue?")) {
+            await storageRemove('employeeMaster');
+            await checkMasterData();
+            showToast('Master data cleared.', 'warn');
+        }
+    }
+
+    async function exportData() {
+        const logs = await loadLogs();
+        if (logs.length === 0) {
+            showToast('Export canceled: Session Ledger contains no data logs.', 'error');
+            return;
+        }
+
+        let csv = "Date,Employee ID,Name,Department,Type,Units,Amount (Rs),Status,Remarks\n";
+        logs.forEach(row => {
+            const safeRemarks = (row.remarks || '').replace(/"/g, '""');
+            csv += `"${row.date}","${row.id}","${row.name}","${row.dept}","${row.type}","${row.units}","${row.amount}","${row.status || 'Pending'}","${safeRemarks}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Payroll_Export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast(`Exported ${logs.length} records.`);
+    }
+</script>
+</body>
+</html>

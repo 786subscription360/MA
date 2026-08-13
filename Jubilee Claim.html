@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Claim Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --accent-green: #10b981;
+            --accent-danger: #f43f5e;
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            font-size: 0.95rem; 
+        }
+
+        .main-content {
+            padding: 20px 35px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Sleek Modern Header with Glass Effect */
+        .top-bar {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            padding: 18px 28px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        .top-bar h2 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.03em;
+        }
+        .top-bar .badge-status {
+            background: rgba(255,255,255,0.25);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Pill Navigation */
+        .nav-pills {
+            background-color: #f1f5f9;
+            padding: 5px;
+            border-radius: 10px;
+            display: inline-flex;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 22px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .nav-pills .nav-link:hover {
+            color: var(--text-main);
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--bg-surface);
+            color: #4f46e5;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        /* Compact Cards with Premium Shadows */
+        .card {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            background-color: var(--bg-surface);
+            margin-bottom: 25px;
+            transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.2s ease; 
+        }
+        .card-header {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 24px;
+            border-radius: 16px 16px 0 0 !important;
+        }
+        .card-header h5 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+            letter-spacing: -0.01em;
+            transition: color 0.3s ease;
+        }
+        .card-body {
+            padding: 24px;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .highlight-form {
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2), 0 15px 30px -5px rgba(79, 70, 229, 0.15) !important;
+            border-color: #4f46e5 !important;
+            transform: translateY(-2px);
+        }
+
+        /* Compact Forms with Soft Focus */
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+        .form-control-sm, .form-select {
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            height: 42px; 
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+        .form-control-sm:hover, .form-select:hover {
+            background-color: #ffffff;
+        }
+        .form-control-sm:focus, .form-select:focus {
+            background-color: #ffffff;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+        }
+        .form-control-sm.is-valid, .form-select.is-valid {
+            border-color: var(--accent-green);
+            background-image: none;
+        }
+        input::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        input::-webkit-calendar-picker-indicator:hover {
+            opacity: 0.8;
+        }
+
+        /* Modern Enterprise Tables & Sticky Header */
+        .table-container {
+            border: none;
+            border-radius: 16px;
+            max-height: 65vh; 
+            overflow: auto;
+            background: var(--bg-surface);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding-bottom: 0px;
+        }
+        .table {
+            margin-bottom: 0;
+            font-size: 0.95rem; 
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 16px 18px;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0 !important;
+            border-top: none;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); 
+        }
+        .table tbody td {
+            padding: 10px 18px; 
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            height: 54px; 
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table-hover tbody tr {
+            transition: background-color 0.2s;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .table strong {
+            color: #4f46e5;
+            font-weight: 700;
+        }
+
+        /* Pagination custom color */
+        .pagination .page-item.active .page-link {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+        }
+        .pagination .page-link {
+            color: #4f46e5;
+            border-radius: 6px;
+            margin: 0 2px;
+            font-weight: 500;
+            border: none;
+        }
+
+        /* Buttons */
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            border-color: #4338ca;
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        .btn-success:hover {
+            background-color: #059669;
+            border-color: #059669;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background-color: #fee2e2;
+            color: var(--accent-danger);
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #fecdd3;
+            color: #e11d48;
+        }
+        .btn-outline-primary {
+            color: #4f46e5;
+            border-color: #c7d2fe;
+            background-color: #e0e7ff;
+        }
+        .btn-outline-primary:hover {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .btn-outline-success {
+            color: #059669;
+            border-color: #a7f3d0;
+            background-color: #d1fae5;
+        }
+        .btn-outline-success:hover {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Document Group & Icon Buttons */
+        .doc-btn-group {
+            background-color: #f1f5f9;
+            border-radius: 20px;
+            padding: 3px;
+            display: inline-flex;
+            border: 1px solid #e2e8f0;
+        }
+        .doc-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            padding: 4px 10px;
+            border-radius: 16px;
+            transition: all 0.2s;
+        }
+        .doc-btn:hover {
+            background-color: #ffffff;
+            color: #4f46e5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .doc-btn-dl:hover {
+            color: var(--accent-green);
+        }
+
+        /* Admin Login Specific Modern Input */
+        .admin-login-input {
+            border-radius: 14px !important;
+            border: 2px solid #e2e8f0 !important;
+            background-color: #f8fafc !important;
+            transition: all 0.3s ease !important;
+            padding: 14px !important;
+            box-shadow: none !important;
+        }
+        .admin-login-input:focus {
+            background-color: #ffffff !important;
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important;
+        }
+        @keyframes floatLock {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .admin-lock-icon {
+            font-size: 3.5rem;
+            color: #4f46e5;
+            margin-bottom: 20px;
+            text-shadow: 0 10px 15px rgba(79, 70, 229, 0.2);
+            animation: floatLock 3s infinite ease-in-out;
+        }
+        
+        /* Modern Filter Bar Styling */
+        .filter-bar {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    
+    <ul class="nav nav-pills" id="systemTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="claims-tab" data-bs-toggle="pill" data-bs-target="#claims" type="button" role="tab" aria-selected="true">
+                Claims Management
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin" type="button" role="tab" aria-selected="false">
+                Admin Panel (Employees)
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="systemTabsContent">
+        
+        <div class="tab-pane fade show active" id="claims" role="tabpanel" aria-labelledby="claims-tab">
+            
+            <div class="card" id="mainFormCard">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 id="formTitle" class="mb-0 d-flex align-items-center">Claim Database</h5>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <small class="text-muted me-2 d-none d-md-inline" style="font-size: 0.8rem;">Type Emp # to auto-fetch details</small>
+                        <button type="button" class="btn btn-outline-success btn-sm fw-bold shadow-sm d-flex align-items-center gap-1" onclick="downloadExcel()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Export Excel
+                        </button>
+                        <button type="button" id="toggleFormBtn" class="btn btn-primary btn-sm fw-bold shadow-sm" onclick="toggleForm()">
+                            + Add Record
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="formContainer" style="display: none; animation: slideDown 0.3s ease-out;">
+                    <div class="card-body border-top">
+                        <form id="claimForm" class="row g-3 align-items-end">
+                            <div class="col-md-1">
+                                <label class="form-label">Emp #</label>
+                                <input type="number" class="form-control form-control-sm" id="empNum" required placeholder="e.g. 755">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Emp Name</label>
+                                <input type="text" class="form-control form-control-sm" id="empName" required placeholder="Auto-fills or type...">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Claim Nature</label>
+                                <input class="form-control form-control-sm" list="claimNatureOptions" id="claimNature" required placeholder="Select or type...">
+                                <datalist id="claimNatureOptions">
+                                    <option value="Pre Post">
+                                    <option value="Maternity">
+                                    <option value="OPD (Outpatient)">
+                                    <option value="Hospitalization">
+                                    <option value="Dental">
+                                    <option value="Vision">
+                                    <option value="Emergency">
+                                    <option value="General Claim">
+                                </datalist>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label">Amount (Rs)</label>
+                                <input type="number" class="form-control form-control-sm" id="claimAmount" required>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control form-control-sm" id="claimDate" required>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label">Time</label>
+                                <input type="time" class="form-control form-control-sm" id="claimTime" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Remarks</label>
+                                <input type="text" class="form-control form-control-sm" id="remarks" required>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label">PDF File(s)</label>
+                                <input type="file" id="docLink" accept=".pdf" multiple class="d-none">
+                                <label for="docLink" class="btn btn-outline-primary btn-sm w-100 m-0 text-truncate d-flex align-items-center justify-content-center" id="uploadLabel" style="height: 42px;">Upload</label>
+                            </div>
+                            <div class="col-md-1 d-flex gap-1">
+                                <button type="button" id="deleteBtn" class="btn btn-danger btn-sm d-none d-flex align-items-center justify-content-center px-2" onclick="deleteFromForm()" title="Delete Record" style="height: 42px;">🗑️</button>
+                                <button type="submit" id="submitBtn" class="btn btn-success btn-sm flex-grow-1 text-nowrap d-flex align-items-center justify-content-center" style="height: 42px;">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-bar d-flex flex-wrap gap-2 mb-3 align-items-center">
+                <div class="position-relative flex-grow-1" style="min-width: 250px; max-width: 350px;">
+                    <input type="text" id="searchInput" class="form-control form-control-sm pe-4" placeholder="Search name, ID, amount, remarks..." oninput="applyFilters()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="position-absolute" style="right: 12px; top: 13px; color: #64748b;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                
+                <select id="filterNature" class="form-select form-select-sm" style="width: 170px;" onchange="applyFilters()">
+                    <option value="All">All Natures</option>
+                    <option value="Pre Post">Pre Post</option>
+                    <option value="Maternity">Maternity</option>
+                    <option value="OPD (Outpatient)">OPD (Outpatient)</option>
+                    <option value="Hospitalization">Hospitalization</option>
+                    <option value="Dental">Dental</option>
+                    <option value="Vision">Vision</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="General Claim">General Claim</option>
+                </select>
+
+                <div class="input-group" style="width: 250px;">
+                    <span class="input-group-text bg-light text-muted border-end-0 px-2" style="font-size:0.8rem; font-weight:600;">Date</span>
+                    <input type="date" id="filterDateFrom" class="form-control form-control-sm border-start-0" title="From Date" onchange="applyFilters()">
+                    <input type="date" id="filterDateTo" class="form-control form-control-sm" title="To Date" onchange="applyFilters()">
+                </div>
+
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()" title="Reset Filters" style="height: 42px; padding: 0 14px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                </button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="table-container shadow-sm">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>SR #</th>
+                                    <th>Emp #</th>
+                                    <th>Emp Name</th>
+                                    <th>Nature</th>
+                                    <th>Amount (Rs)</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Remarks</th>
+                                    <th class="text-center">Documents</th>
+                                    <th class="text-center" style="min-width: 140px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div id="paginationContainer" class="d-flex justify-content-between align-items-center px-2 mt-3 mb-2">
+                        <small class="text-muted fw-bold" id="pageInfo">Showing 0 records</small>
+                        <ul class="pagination pagination-sm mb-0" id="paginationControls"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+            
+            <div id="adminLoginArea" class="mx-auto mt-5" style="max-width: 420px; animation: slideDown 0.4s ease-out;">
+                <div class="card border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #ffffff;">
+                    <div class="card-body text-center p-5 position-relative">
+                        <div style="position: absolute; top: -60px; left: -60px; width: 180px; height: 180px; background: rgba(79, 70, 229, 0.08); filter: blur(40px); border-radius: 50%; pointer-events: none;"></div>
+                        <div style="position: absolute; bottom: -60px; right: -60px; width: 180px; height: 180px; background: rgba(16, 185, 129, 0.08); filter: blur(40px); border-radius: 50%; pointer-events: none;"></div>
+                        
+                        <div class="admin-lock-icon">🔐</div>
+                        <h4 class="fw-bold mb-2" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Admin Portal</h4>
+                        <p class="text-muted small mb-4">Authentication required for directory management.</p>
+                        
+                        <div class="position-relative mb-4">
+                            <input type="password" id="adminPassword" class="form-control form-control-lg text-center admin-login-input" placeholder="Enter Secure Key" autocomplete="off">
+                        </div>
+                        
+                        <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onclick="unlockAdmin()" style="border-radius: 14px; padding: 14px; background: var(--primary-gradient); border: none; transition: transform 0.2s;">
+                            Authenticate
+                        </button>
+                        
+                        <div id="loginError" class="text-danger small mt-3 d-none fw-bold bg-danger-subtle py-2 rounded-3 border border-danger border-opacity-25">Access Denied: Invalid Key</div>
+                        </div>
+                </div>
+            </div>
+
+            <div id="adminContentArea" class="d-none">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>Upload Employee Directory</h5>
+                        <div>
+                            <button class="btn btn-light btn-sm text-dark border me-2 shadow-sm" onclick="lockAdminSilently()">Lock Panel</button>
+                            <button class="btn btn-danger btn-sm shadow-sm" onclick="clearEmployeeData()">Clear Stored Data</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-5">
+                                <label for="csvFile" class="form-label">Select CSV File (EmpNum, Name, Desig, Dept)</label>
+                                <input class="form-control form-control-sm" type="file" id="csvFile" accept=".csv">
+                            </div>
+                            <div class="col-md-7">
+                                <div class="alert alert-info py-2 mb-0" style="font-size: 0.9rem; border-radius: 8px; border-color: #bae6fd; background-color: #f0f9ff; color: #0369a1;">
+                                    <strong>Permanent Storage:</strong> Once uploaded, employee data is saved directly in your browser. Auto-fetch will work even if you refresh or close the page.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>System Data Backup & Restore (JSON including Attached Files)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Export All Data Backup (Claims, Directory, Files)</label>
+                                <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1" onclick="downloadJSONBackup()" style="height: 42px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Download JSON Backup
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="restoreFile" class="form-label">Restore Data from JSON Backup</label>
+                                <input class="form-control form-control-sm d-none" type="file" id="restoreFile" accept=".json" onchange="restoreJSONBackup(event)">
+                                <label for="restoreFile" class="btn btn-outline-success btn-sm w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1 m-0" style="height: 42px; cursor: pointer;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                    Restore JSON Backup
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ==========================================
+    // PREMIUM NOTIFICATION ENGINE
+    // ==========================================
+    const PremiumToast = Swal.mixin({
+        toast: true,
+        position: 'bottom-end', 
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true,
+        background: '#1e293b', 
+        color: '#f8fafc',
+        customClass: { popup: 'shadow-lg rounded-4 border border-secondary' },
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+
+    const PremiumModal = Swal.mixin({
+        background: '#ffffff',
+        color: '#1e293b',
+        borderRadius: '16px',
+        backdrop: `rgba(15, 23, 42, 0.4)`,
+        customClass: { popup: 'shadow-lg rounded-4 border border-secondary' }
+    });
+
+    // ==========================================
+    // DATA INITIALIZATION & STORAGE
+    // ==========================================
+    const defaultClaims = [
+        { sr: 1, empNum: "575", empName: "Mirza Ishfaq Ahmed", nature: "Pre Post", amount: "95844", date: "21-12-2024", time: "17:00", remarks: "Return to IPAK due to Incompelte document", files: [] },
+        { sr: 2, empNum: "117", empName: "Wasif Ahmed Khan", nature: "Pre Post", amount: "20830", date: "11-12-2024", time: "17:00", remarks: "Dispatch to Jubliee For Claimed", files: [] },
+        { sr: 3, empNum: "755", empName: "Muhammad Ahmed Hussain", nature: "Maternity", amount: "34035", date: "10-12-2024", time: "17:00", remarks: "Dispatch to Jubliee For Claimed", files: [] }
+    ];
+
+    const defaultEmployees = [
+        { empNum: "575", empName: "Mirza Ishfaq Ahmed" },
+        { empNum: "117", empName: "Wasif Ahmed Khan" },
+        { empNum: "755", empName: "Muhammad Ahmed Hussain" }
+    ];
+
+    let claimsData = [];
+    let filteredClaims = []; 
+    let employeeData = [];
+    
+    let currentFiles = []; 
+    let editingIndex = -1;
+
+    let currentPage = 1;
+    const recordsPerPage = 20;
+
+    localforage.config({ name: 'ClaimManagerDB' });
+
+    Promise.all([
+        localforage.getItem("savedClaims"),
+        localforage.getItem("savedEmployees")
+    ]).then(([savedC, savedE]) => {
+        claimsData = savedC || defaultClaims;
+        employeeData = savedE && savedE.length > 0 ? savedE : defaultEmployees;
+        applyFilters(); 
+        setCurrentDateTime();
+        checkAdminState();
+    });
+
+    function saveData() {
+        localforage.setItem("savedClaims", claimsData);
+        localforage.setItem("savedEmployees", employeeData);
+    }
+
+    // ==========================================
+    // ADVANCED FILTER & SEARCH LOGIC
+    // ==========================================
+    window.applyFilters = function() {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const filterNature = document.getElementById("filterNature").value;
+        const dateFrom = document.getElementById("filterDateFrom").value; 
+        const dateTo = document.getElementById("filterDateTo").value; 
+
+        filteredClaims = claimsData.filter(claim => {
+            const searchableText = `${claim.empName} ${claim.empNum} ${claim.amount} ${claim.date} ${claim.remarks}`.toLowerCase();
+            const matchesSearch = searchableText.includes(searchTerm);
+            
+            const matchesNature = filterNature === "All" || claim.nature === filterNature;
+
+            let matchesDateFrom = true;
+            let matchesDateTo = true;
+            
+            if (dateFrom || dateTo) {
+                const [d, m, y] = claim.date.split("-");
+                const claimDateObj = new Date(`${y}-${m}-${d}`);
+                
+                if (dateFrom) {
+                    const fromObj = new Date(dateFrom);
+                    matchesDateFrom = claimDateObj >= fromObj;
+                }
+                if (dateTo) {
+                    const toObj = new Date(dateTo);
+                    matchesDateTo = claimDateObj <= toObj;
+                }
+            }
+
+            return matchesSearch && matchesNature && matchesDateFrom && matchesDateTo;
+        });
+
+        currentPage = 1; 
+        renderClaimsTable();
+    }
+
+    window.clearFilters = function() {
+        document.getElementById("searchInput").value = "";
+        document.getElementById("filterNature").value = "All";
+        document.getElementById("filterDateFrom").value = "";
+        document.getElementById("filterDateTo").value = "";
+        applyFilters();
+    }
+
+    // ==========================================
+    // FORM TOGGLE LOGIC
+    // ==========================================
+    function toggleForm(forceOpen = false) {
+        const container = document.getElementById("formContainer");
+        const btn = document.getElementById("toggleFormBtn");
+        
+        if (container.style.display === "none" || forceOpen) {
+            container.style.display = "block";
+            btn.innerHTML = "✕ Close Form";
+            btn.classList.replace("btn-primary", "btn-secondary");
+        } else {
+            container.style.display = "none";
+            btn.innerHTML = "+ Add Record";
+            btn.classList.replace("btn-secondary", "btn-primary");
+            resetFormUI(); 
+        }
+    }
+
+    // ==========================================
+    // EXCEL EXPORT LOGIC WITH QUICK PRESETS
+    // ==========================================
+    window.setExportPreset = function(preset) {
+        const today = new Date();
+        const formatDate = (d) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        let fromStr = '';
+        let toStr = '';
+
+        if (preset === 'today') {
+            fromStr = formatDate(today);
+            toStr = formatDate(today);
+        } else if (preset === 'week') {
+            const firstDayOfWeek = new Date(today);
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            firstDayOfWeek.setDate(diff);
+            fromStr = formatDate(firstDayOfWeek);
+            toStr = formatDate(today);
+        } else if (preset === 'month') {
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            fromStr = formatDate(firstDayOfMonth);
+            toStr = formatDate(today);
+        } else if (preset === 'all') {
+            fromStr = '';
+            toStr = '';
+        }
+
+        const fromInput = document.getElementById('exportDateFrom');
+        const toInput = document.getElementById('exportDateTo');
+        if (fromInput) fromInput.value = fromStr;
+        if (toInput) toInput.value = toStr;
+    };
+
+    window.downloadExcel = function() {
+        if (!claimsData || claimsData.length === 0) {
+            PremiumToast.fire({ icon: 'info', title: 'No Data Available' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Export Excel Report',
+            html: `
+                <div class="mb-3 d-flex flex-wrap gap-1 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setExportPreset('today')">Today</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setExportPreset('week')">This Week</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setExportPreset('month')">This Month</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setExportPreset('all')">All Time</button>
+                </div>
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold text-muted small">FROM DATE</label>
+                    <input type="date" id="exportDateFrom" class="form-control form-control-sm">
+                </div>
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold text-muted small">TO DATE</label>
+                    <input type="date" id="exportDateTo" class="form-control form-control-sm">
+                </div>
+                <div class="text-muted small">Select a range or use quick presets above.</div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Download Excel',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            preConfirm: () => {
+                return {
+                    from: document.getElementById('exportDateFrom').value,
+                    to: document.getElementById('exportDateTo').value
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const { from, to } = result.value;
+                let dataToExport = claimsData;
+
+                if (from || to) {
+                    dataToExport = claimsData.filter(claim => {
+                        const [d, m, y] = claim.date.split("-");
+                        const claimDateObj = new Date(`${y}-${m}-${d}`);
+                        
+                        let matchesFrom = true;
+                        let matchesTo = true;
+
+                        if (from) {
+                            matchesFrom = claimDateObj >= new Date(from);
+                        }
+                        if (to) {
+                            matchesTo = claimDateObj <= new Date(to);
+                        }
+                        return matchesFrom && matchesTo;
+                    });
+                }
+
+                if (dataToExport.length === 0) {
+                    PremiumToast.fire({ icon: 'warning', title: 'No records found for the selected date range!' });
+                    return;
+                }
+
+                const exportData = dataToExport.map((claim) => {
+                    return {
+                        "SR #": claim.sr,
+                        "Emp #": claim.empNum,
+                        "Emp Name": claim.empName,
+                        "Claim Nature": claim.nature,
+                        "Amount (Rs)": claim.amount,
+                        "Date": claim.date,
+                        "Time": claim.time,
+                        "Remarks": claim.remarks,
+                        "Attached Files": claim.files ? claim.files.length : 0
+                    };
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Claims Summary");
+                
+                let filename = "Employee_Claims_Summary";
+                if (from && to) filename += `_${from}_to_${to}`;
+                else if (from) filename += `_from_${from}`;
+                else if (to) filename += `_to_${to}`;
+                filename += ".xlsx";
+
+                XLSX.writeFile(workbook, filename);
+                PremiumToast.fire({ icon: 'success', title: 'Excel Downloaded Successfully!' });
+            }
+        });
+    };
+
+    // ==========================================
+    // ADMIN AUTHENTICATION
+    // ==========================================
+    let isAdminUnlocked = false;
+
+    function checkAdminState() {
+        if (isAdminUnlocked) {
+            document.getElementById("adminLoginArea").classList.add("d-none");
+            document.getElementById("adminContentArea").classList.remove("d-none");
+        } else {
+            document.getElementById("adminLoginArea").classList.remove("d-none");
+            document.getElementById("adminContentArea").classList.add("d-none");
+        }
+    }
+
+    window.unlockAdmin = function() {
+        const pwd = document.getElementById("adminPassword").value;
+        if (pwd === "admin123") {
+            isAdminUnlocked = true;
+            document.getElementById("adminPassword").value = "";
+            checkAdminState();
+            PremiumToast.fire({ icon: 'success', title: 'Admin Unlocked' });
+        } else {
+            document.getElementById("loginError").classList.remove("d-none");
+            setTimeout(() => document.getElementById("loginError").classList.add("d-none"), 3000);
+            PremiumToast.fire({ icon: 'error', title: 'Access Denied', text: 'Incorrect password.' });
+        }
+    }
+
+    window.lockAdminSilently = function() {
+        isAdminUnlocked = false;
+        checkAdminState();
+    }
+
+    document.getElementById('claims-tab').addEventListener('click', function() {
+        lockAdminSilently();
+    });
+
+    document.getElementById("adminPassword").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") unlockAdmin();
+    });
+
+    // ==========================================
+    // UTILITY & UI RESET
+    // ==========================================
+    function setCurrentDateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        document.getElementById('claimDate').value = `${year}-${month}-${day}`;
+        
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('claimTime').value = `${hours}:${minutes}`;
+    }
+
+    function formatAmount(amount) {
+        let cleanAmount = amount.toString().replace(/,/g, '');
+        return cleanAmount.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function resetFormUI() {
+        document.getElementById("claimForm").reset();
+        currentFiles = [];
+        document.getElementById("empName").classList.remove("is-valid"); 
+        setCurrentDateTime(); 
+        
+        const label = document.getElementById("uploadLabel");
+        label.textContent = "Upload";
+        label.classList.replace("btn-primary", "btn-outline-primary");
+
+        document.getElementById("deleteBtn").classList.add("d-none");
+        
+        editingIndex = -1; 
+        document.getElementById("submitBtn").textContent = "Save";
+        document.getElementById("submitBtn").classList.replace("btn-primary", "btn-success");
+        document.getElementById("formTitle").textContent = "Claim Database";
+    }
+
+    // ==========================================
+    // NATIVE FILE HANDLING
+    // ==========================================
+    document.getElementById("docLink").addEventListener("change", function(event) {
+        const selectedFiles = event.target.files;
+        currentFiles = []; 
+        const label = document.getElementById("uploadLabel");
+
+        if (selectedFiles.length > 0) {
+            let validFiles = 0;
+            Array.from(selectedFiles).forEach(file => {
+                if (file.size > 100 * 1024 * 1024) {
+                    PremiumToast.fire({ icon: 'error', title: 'File Exceeds 100MB Limit' });
+                } else {
+                    currentFiles.push(file); 
+                    validFiles++;
+                }
+            });
+            label.textContent = validFiles > 0 ? validFiles + " File(s)" : "Upload";
+            label.classList.replace("btn-outline-primary", "btn-primary");
+        } else {
+            label.textContent = "Upload";
+            label.classList.replace("btn-primary", "btn-outline-primary");
+        }
+    });
+
+    window.viewPdf = function(originalIndex, fileIndex) {
+        const claim = claimsData[originalIndex];
+        const fileObj = claim.files && claim.files[fileIndex];
+        if (!fileObj) return;
+        const fileURL = URL.createObjectURL(fileObj);
+        window.open(fileURL, "_blank");
+    };
+
+    window.downloadPdf = function(originalIndex, fileIndex) {
+        const claim = claimsData[originalIndex];
+        const fileObj = claim.files && claim.files[fileIndex];
+        if (!fileObj) return;
+
+        const fileURL = URL.createObjectURL(fileObj);
+        const a = document.createElement('a');
+        a.href = fileURL;
+        a.download = fileObj.name || `document_${fileIndex + 1}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        setTimeout(() => URL.revokeObjectURL(fileURL), 100);
+    };
+
+    // ==========================================
+    // ADVANCED WEB SHARE API
+    // ==========================================
+    window.shareClaim = async function(originalIndex) {
+        const claim = claimsData[originalIndex];
+        const shareText = `Employee Claim Details:\n\nEmp #: ${claim.empNum}\nName: ${claim.empName}\nNature: ${claim.nature}\nAmount: Rs ${formatAmount(claim.amount)}\nDate: ${claim.date}\nTime: ${claim.time}\nRemarks: ${claim.remarks}`;
+
+        let filesToShare = [];
+        if (claim.files && claim.files.length > 0) {
+            claim.files.forEach(f => {
+                filesToShare.push(new File([f], f.name, { type: f.type }));
+            });
+        }
+
+        if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
+            try {
+                await navigator.share({
+                    title: 'Claim Details',
+                    text: shareText,
+                    files: filesToShare
+                });
+                return;
+            } catch (err) {
+                console.log("Share cancelled or failed", err);
+            }
+        } else if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Claim Details',
+                    text: shareText,
+                });
+                return;
+            } catch (err) {
+                console.log("Text share cancelled", err);
+            }
+        }
+
+        const waMobile = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        const waWeb = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+        const emailLink = `mailto:?subject=Claim Details - ${claim.empName}&body=${encodeURIComponent(shareText)}`;
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const finalWaLink = isMobile ? waMobile : waWeb;
+
+        Swal.fire({
+            title: 'Share Claim',
+            text: 'Select your preferred sharing method:',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#25D366', 
+            denyButtonColor: '#3b82f6', 
+            confirmButtonText: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp',
+            denyButtonText: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open(finalWaLink, '_blank');
+                if(filesToShare.length > 0) PremiumToast.fire({ icon: 'info', title: 'File sync unavailable on Web WhatsApp' });
+            } else if (result.isDenied) {
+                window.location.href = emailLink;
+                if(filesToShare.length > 0) PremiumToast.fire({ icon: 'info', title: 'File sync unavailable on default Mail' });
+            }
+        });
+    }
+
+    // ==========================================
+    // PAGINATION LOGIC
+    // ==========================================
+    function renderPagination() {
+        const container = document.getElementById("paginationControls");
+        const info = document.getElementById("pageInfo");
+        
+        if (filteredClaims.length === 0) {
+            container.innerHTML = "";
+            info.textContent = "Showing 0 records";
+            return;
+        }
+
+        const totalPages = Math.ceil(filteredClaims.length / recordsPerPage);
+        const startIndex = (currentPage - 1) * recordsPerPage + 1;
+        const endIndex = Math.min(startIndex + recordsPerPage - 1, filteredClaims.length);
+        
+        info.textContent = `Showing ${startIndex} to ${endIndex} of ${filteredClaims.length} records`;
+
+        let html = '';
+        html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>
+                   </li>`;
+                 
+        for (let i = 1; i <= totalPages; i++) {
+            html += `<li class="page-item ${currentPage === i ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
+                     </li>`;
+        }
+        
+        html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>
+                   </li>`;
+
+        container.innerHTML = html;
+    }
+
+    window.changePage = function(page) {
+        currentPage = page;
+        renderClaimsTable();
+    }
+
+    // ==========================================
+    // CLAIMS MANAGEMENT 
+    // ==========================================
+    function renderClaimsTable() {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = ""; 
+
+        if(filteredClaims.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-5">No claims match your search.</td></tr>`;
+            renderPagination();
+            return;
+        }
+
+        const totalPages = Math.ceil(filteredClaims.length / recordsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * recordsPerPage;
+        const endIndex = startIndex + recordsPerPage;
+        const currentData = filteredClaims.slice(startIndex, endIndex);
+
+        currentData.forEach((claim, idx) => {
+            const originalIndex = claimsData.indexOf(claim);
+            claim.sr = filteredClaims.length - (startIndex + idx); 
+            
+            let docBtns = `<span class="text-muted">-</span>`;
+            if (claim.files && claim.files.length > 0) {
+                docBtns = claim.files.map((file, fIdx) => 
+                    `<div class="doc-btn-group shadow-sm me-1">
+                        <button type="button" class="doc-btn" title="View: ${file.name}" onclick="viewPdf(${originalIndex}, ${fIdx})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                        <button type="button" class="doc-btn doc-btn-dl border-start border-light" title="Download: ${file.name}" onclick="downloadPdf(${originalIndex}, ${fIdx})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
+                    </div>`
+                ).join('');
+            }
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${claim.sr}</td>
+                <td><strong>${claim.empNum}</strong></td>
+                <td>${claim.empName}</td>
+                <td>${claim.nature}</td>
+                <td class="fw-bold">${formatAmount(claim.amount)}</td>
+                <td class="text-muted">${claim.date}</td>
+                <td class="text-muted">${claim.time}</td>
+                <td><span class="text-truncate d-inline-block" style="max-width: 220px;" title="${claim.remarks}">${claim.remarks}</span></td>
+                <td class="text-center">${docBtns}</td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-1">
+                        <button class="btn btn-sm btn-light text-info border-0 shadow-sm py-1 px-2" onclick="shareClaim(${originalIndex})" title="Share Details">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        </button>
+                        <button class="btn btn-sm btn-light text-primary border-0 shadow-sm py-1 px-2" onclick="editClaim(${originalIndex})" title="Edit Record">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+    });
+
+        renderPagination();
+    }
+
+    document.getElementById("claimForm").addEventListener("submit", function(e) {
+        e.preventDefault(); 
+
+        const rawDate = document.getElementById("claimDate").value;
+        const [year, month, day] = rawDate.split("-");
+        const formattedDate = `${day}-${month}-${year}`;
+
+        let filesToSave = [...currentFiles];
+        if (editingIndex >= 0 && currentFiles.length === 0) {
+            filesToSave = claimsData[editingIndex].files || [];
+        }
+
+        const newClaim = {
+            empNum: document.getElementById("empNum").value,
+            empName: document.getElementById("empName").value,
+            nature: document.getElementById("claimNature").value,
+            amount: document.getElementById("claimAmount").value.replace(/,/g, ''),
+            date: formattedDate,
+            time: document.getElementById("claimTime").value,
+            remarks: document.getElementById("remarks").value,
+            files: filesToSave 
+        };
+
+        const isUpdating = (editingIndex >= 0);
+
+        PremiumToast.fire({
+            title: isUpdating ? 'Updating Record...' : 'Saving Data...',
+            timer: 800,
+            didOpen: () => { Swal.showLoading(); }
+        }).then(() => {
+            if (isUpdating) {
+                claimsData[editingIndex] = newClaim; 
+            } else {
+                claimsData.unshift(newClaim); 
+            }
+
+            saveData();
+            applyFilters(); 
+            
+            document.getElementById("formContainer").style.display = "none";
+            document.getElementById("toggleFormBtn").innerHTML = "+ Add Record";
+            document.getElementById("toggleFormBtn").classList.replace("btn-secondary", "btn-primary");
+            resetFormUI();
+
+            PremiumToast.fire({
+                icon: 'success',
+                title: isUpdating ? 'Update Successful!' : 'Claim Added!'
+          });
+      }); 
+    });
+
+    window.editClaim = function(index) {
+        editingIndex = index;
+        const claim = claimsData[index];
+
+        toggleForm(true); 
+
+        document.getElementById("empNum").value = claim.empNum;
+        document.getElementById("empName").value = claim.empName;
+        document.getElementById("claimNature").value = claim.nature;
+        document.getElementById("claimAmount").value = claim.amount.replace(/,/g, '');
+        
+        const [day, month, year] = claim.date.split("-");
+        document.getElementById("claimDate").value = `${year}-${month}-${day}`;
+        
+        document.getElementById("claimTime").value = claim.time;
+        document.getElementById("remarks").value = claim.remarks;
+        
+        document.getElementById("docLink").value = ""; 
+        currentFiles = [];
+        const label = document.getElementById("uploadLabel");
+        if(claim.files && claim.files.length > 0) {
+            label.textContent = claim.files.length + " File(s)";
+            label.classList.replace("btn-outline-primary", "btn-primary");
+        } else {
+            label.textContent = "Upload";
+            label.classList.replace("btn-primary", "btn-outline-primary");
+        }
+
+        document.getElementById("deleteBtn").classList.remove("d-none");
+        const btn = document.getElementById("submitBtn");
+        btn.classList.replace("w-100", "w-50");
+        btn.textContent = "Update";
+        btn.classList.replace("btn-success", "btn-primary");
+        
+        document.getElementById("formTitle").textContent = "Update Claim Entry";
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const formCard = document.getElementById('mainFormCard');
+        formCard.classList.add('highlight-form');
+        setTimeout(() => formCard.classList.remove('highlight-form'), 1500);
+    }
+
+    window.deleteFromForm = function() {
+        if(editingIndex >= 0) {
+            PremiumModal.fire({
+                title: 'Delete this record?',
+                text: "This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                claimsData.splice(editingIndex, 1);
+                saveData(); 
+                applyFilters(); 
+                
+                document.getElementById("formContainer").style.display = "none";
+                document.getElementById("toggleFormBtn").innerHTML = "+ Add Record";
+                document.getElementById("toggleFormBtn").classList.replace("btn-secondary", "btn-primary");
+                resetFormUI();
+
+                PremiumToast.fire({ icon: 'success', title: 'Record Deleted' });
+            }
+      });
+    }
+    }
+
+    // ==========================================
+    // ADMIN PANEL & AUTO-FETCH LOGIC
+    // ==========================================
+    document.getElementById("empNum").addEventListener("input", function() {
+        const searchId = this.value.trim();
+        const nameInput = document.getElementById("empName");
+        const foundEmployee = employeeData.find(emp => emp.empNum === searchId);
+        if (foundEmployee) {
+            nameInput.value = foundEmployee.empName;
+            nameInput.classList.add("is-valid"); 
+        } else {
+            nameInput.classList.remove("is-valid");
+        }
+    });
+
+    document.getElementById("csvFile").addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { parseCSV(e.target.result); };
+        reader.readAsText(file);
+    });
+
+    function parseCSV(text) {
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        employeeData = []; 
+        for(let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(',').map(col => col.trim());
+            if(cols.length >= 2) {
+                employeeData.push({
+                    empNum: cols[0],
+                    empName: cols[1]
+                });
+            }
+        }
+        saveData(); 
+        document.getElementById("csvFile").value = ""; 
+        PremiumToast.fire({ icon: 'success', title: 'CSV Directory Loaded' });
+    }
+
+    window.clearEmployeeData = function() {
+        PremiumModal.fire({
+            title: 'Clear Directory?',
+            text: "This wipes all CSV data. Claims are unaffected.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, clear it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                employeeData = [];
+                saveData();
+                PremiumToast.fire({ icon: 'success', title: 'Directory Cleared' });
+          }
+    });
+    }
+
+    // ==========================================
+    // JSON BACKUP & RESTORE LOGIC (WITH FILES)
+    // ==========================================
+    window.downloadJSONBackup = async function() {
+        PremiumToast.fire({
+            title: 'Preparing Backup with Files...',
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        try {
+            const claimsWithSerializedFiles = await Promise.all(claimsData.map(async (claim) => {
+                let serializedFiles = [];
+                if (claim.files && claim.files.length > 0) {
+                    serializedFiles = await Promise.all(claim.files.map(async (file) => {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                resolve({
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size,
+                                    data: e.target.result // Base64 data URL
+                                });
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }));
+                }
+                return {
+                    ...claim,
+                    files: serializedFiles
+                };
+            }));
+
+            const backupData = {
+                version: "1.1",
+                exportDate: new Date().toISOString(),
+                claimsData: claimsWithSerializedFiles,
+                employeeData: employeeData
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10);
+            downloadAnchor.setAttribute("download", `Employee_Claim_Manager_Backup_${dateStr}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+
+            PremiumToast.fire({ icon: 'success', title: 'JSON Backup with Attached Files Downloaded!' });
+        } catch (err) {
+            console.error(err);
+            PremiumToast.fire({ icon: 'error', title: 'Backup Failed' });
+        }
+    };
+
+    window.restoreJSONBackup = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        PremiumModal.fire({
+            title: 'Restore System Data & Files?',
+            text: "This will overwrite your current claims, employee directory, and attached files with the backup file.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, Restore!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                PremiumToast.fire({
+                    title: 'Restoring System & Files...',
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if (parsed && (parsed.claimsData || parsed.employeeData)) {
+                            const restoredClaims = await Promise.all((parsed.claimsData || []).map(async (claim) => {
+                                let restoredFiles = [];
+                                if (claim.files && claim.files.length > 0) {
+                                    restoredFiles = await Promise.all(claim.files.map(async (fileObj) => {
+                                        if (fileObj.data) {
+                                            const res = await fetch(fileObj.data);
+                                            const blob = await res.blob();
+                                            return new File([blob], fileObj.name, { type: fileObj.type });
+                                        }
+                                        return null;
+                                    }));
+                                    restoredFiles = restoredFiles.filter(f => f !== null);
+                                }
+                                return {
+                                    ...claim,
+                                    files: restoredFiles
+                                };
+                            }));
+
+                            claimsData = restoredClaims;
+                            employeeData = parsed.employeeData || [];
+                            saveData();
+                            applyFilters();
+                            document.getElementById("restoreFile").value = "";
+                            PremiumToast.fire({ icon: 'success', title: 'System & Files Restored Successfully!' });
+                        } else {
+                            PremiumToast.fire({ icon: 'error', title: 'Invalid Backup File Format' });
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        PremiumToast.fire({ icon: 'error', title: 'Failed to Parse JSON File' });
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                document.getElementById("restoreFile").value = "";
+            }
+        });
+    };
+</script>
+
+</body>
+</html>

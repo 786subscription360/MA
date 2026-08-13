@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Office Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary-bg: #f8fafc;
+            --header-grade: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --accent: #3b82f6;
+            --card-bg: #ffffff;
+            --danger: #ef4444;
+            --success: #10b981;
+            /* Ultra-smooth Professional Bezier Curve */
+            --smooth: cubic-bezier(0.16, 1, 0.3, 1);
+            --transition: all 0.6s var(--smooth);
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1e293b;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* --- NEW TOP LINKS SECTION --- */
+        .top-nav-links {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 110;
+        }
+
+        .external-link {
+            text-decoration: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.3s;
+            cursor: pointer;
+        }
+
+        .external-link:hover {
+            opacity: 0.8;
+            color: white;
+        }
+
+        .link-dot {
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #4fd1c5 0%, #319795 100%);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px rgba(79, 209, 197, 0.4);
+        }
+
+        /* --- TIGHTER HEADER --- */
+        .header {
+            background: var(--header-grade);
+            color: white;
+            padding: 40px 20px 60px; /* Adjusted for top links */
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            clip-path: ellipse(150% 100% at 50% 0%);
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 4px;
+            font-size: 2rem; 
+            margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            animation: fadeInDown 0.8s var(--smooth);
+        }
+
+        /* --- MODERNIZED ADMIN CONTROLS --- */
+        .admin-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 50px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .admin-btn-tool {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: white;
+            transition: var(--transition);
+            font-size: 0.85rem;
+        }
+
+        .admin-btn-tool:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            color: var(--accent);
+        }
+
+        /* --- SEARCH CONTAINER --- */
+        .search-container {
+            max-width: 550px;
+            margin: -40px auto 20px;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.8s var(--smooth) both;
+        }
+
+        .search-box {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 25px;
+            padding: 12px 45px 12px 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .search-box:focus {
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        #clearSearch {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            display: none;
+            transition: color 0.3s;
+        }
+        #clearSearch:hover { color: var(--danger); }
+
+        .category-filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s var(--smooth) 0.2s both;
+        }
+
+        .cat-btn {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            user-select: none;
+        }
+
+        .cat-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .cat-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transform: scale(1.05);
+        }
+
+        .admin-mode-active .cat-btn {
+            cursor: grab;
+        }
+        .admin-mode-active .cat-btn:active {
+            cursor: grabbing;
+        }
+
+        .card-item {
+            opacity: 0;
+            animation: slideUpFade 0.8s var(--smooth) forwards;
+        }
+
+        .card-box {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px 10px;
+            text-align: center;
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            transition: var(--transition);
+            cursor: pointer;
+            height: 195px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .file-name-container {
+            margin-top: 8px;
+            padding: 4px 10px;
+            background: rgba(59, 130, 246, 0.03);
+            border: 1px dotted rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            font-size: 10px;
+            color: #64748b;
+            max-width: 90%;
+            word-break: break-all;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .card-box.no-link {
+            background: #fffafa !important;
+            border: 1px dashed var(--danger) !important;
+        }
+        
+        .card-box.no-link i {
+            color: var(--danger) !important;
+        }
+
+        .missing-badge {
+            position: absolute;
+            bottom: 10px;
+            font-size: 0.6rem;
+            background: var(--danger);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-box:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: var(--accent);
+        }
+
+        .card-box > i {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            transition: var(--transition);
+        }
+
+        .card-box:hover > i { 
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .path-display { display: none; }
+
+        /* --- MODERNIZED ACTION BUTTONS & INDICATORS --- */
+        .card-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .btn-action-sm {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: #64748b;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+        .btn-action-sm:hover {
+            background: var(--accent);
+            color: white !important;
+            border-color: var(--accent);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25);
+        }
+        
+        .btn-action-sm.btn-move:hover {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            box-shadow: 0 6px 15px rgba(139, 92, 246, 0.25);
+        }
+
+        .btn-submod-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(248, 250, 252, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            transition: var(--transition);
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+        .btn-submod-indicator:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25);
+            border-color: var(--accent);
+        }
+
+        .btn-submod-indicator.empty {
+            color: #94a3b8;
+            border: 1px dashed #cbd5e1;
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: none;
+        }
+
+        .btn-submod-indicator.empty:hover {
+            color: var(--accent);
+            border-style: solid;
+            background: rgba(248, 250, 252, 0.95);
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-content {
+            border-radius: 28px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .modal-header-custom {
+            background: #1e293b;
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .path-input-group {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+        
+        .path-input-group:focus-within {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        #editPathInput {
+            word-break: break-all;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            background: transparent;
+            border: none;
+            width: 100%;
+            outline: none;
+            margin-top: 8px;
+        }
+
+        .tag-selection-area {
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #e2e8f0 !important;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .footer { text-align: center; padding: 30px; color: #94a3b8; font-size: 0.8rem; }
+
+        .swal2-popup {
+            border-radius: 30px !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1) !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .swal2-title {
+            font-family: 'Orbitron', sans-serif !important;
+            letter-spacing: 1px;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+        }
+        .swal2-styled.swal2-confirm {
+            background-color: var(--accent) !important;
+            border-radius: 15px !important;
+            padding: 12px 35px !important;
+        }
+        .swal2-styled.swal2-cancel {
+            border-radius: 15px !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<script>
+    // --- DATA INITIALIZATION PRE-LOADER ---
+    (function initPreloadData() {
+        if (!localStorage.getItem('v11_base64_applied_v1')) {
+            const preloadedData = {
+                modules: [
+                    {"id":"img_1","title":"Mobile Token","icon":"fa-ticket","category":["General"]},
+                    {"id":"img_2","title":"Mass Attendance","icon":"fa-users-rectangle","category":["Attendance"]},
+                    {"id":"mod_1775058196858","title":"Format","icon":"fa-book","category":["Daily"]},
+                    {"id":"img_4","title":"Jubilee Claims","icon":"fa-file-invoice-dollar","category":["Medical"]},
+                    {"id":"img_8","title":"Payroll calculator","icon":"fa-calculator","category":["Payroll"]},
+                    {"id":"mod_1775066691707","title":"OPD","icon":"fa-medkit","category":["Daily","Medical","Closing"]},
+                    {"id":"img_3","title":"Tardiness","icon":"fa-hand-holding-usd","category":["Monthly","Closing"]},
+                    {"id":"img_12","title":"Overtime & CPL","icon":"fa-money-bill-trend-up","category":["Monthly","Closing"]},
+                    {"id":"mod_1775994309020","title":"Ramzan OT","icon":"fa-money-bill-trend-up","category":["Daily"]},
+                    {"id":"mod_1775234022936","title":"Tardiness Reimbursment","icon":"fa-refresh","category":["Monthly","Daily","Closing"]},
+                    {"id":"img_5","title":"Continous Absent Reports","icon":"fa-calendar-xmark","category":["Weekly"]},
+                    {"id":"img_7","title":"Daily Dispatch Record","icon":"fa-truck-ramp-box","category":["Daily","Transport"]},
+                    {"id":"img_13","title":"Feul efficiency report","icon":"fa-gas-pump","category":["Transport","Daily"]},
+                    {"id":"img_9","title":"Pending Overtime CPL","icon":"fa-clock","category":["Monthly"]},
+                    {"id":"img_10","title":"Roster Compliance","icon":"fa-check-double","category":["Weekly","Closing"]},
+                    {"id":"img_11","title":"Tardiness Reimbursments","icon":"fa-hand-holding-dollar","category":["Monthly"]},
+                    {"id":"img_14","title":"Rooster Receiveing","icon":"fa-box-open","category":["General","Closing"]},
+                    {"id":"mod_1775214058378","title":"PDF Extractor","icon":"fa-file-export","category":["Daily"]},
+                    {"id":"mod_1775943055748","title":"Jds","icon":"fa-book","category":["Daily"]},
+                    {"id":"mod_1776014072867","title":"Employee Details","icon":"fa-cube","category":["Daily"]},
+                    {"id":"mod_1776205713646","title":"Returnable GatePass","icon":"fa-clock-rotate-left","category":["Weekly"]},
+                    {"id":"mod_1780707431229","title":"Manual Attendance Sheet","icon":"fa-user-check","category":["Daily"]}
+                ],
+                categories: ["Daily","Weekly","Monthly","Medical","Transport","Attendance","Payroll","General","Closing"],
+                paths: {
+                    "img_1": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Mobile Token Format.htm",
+                    "img_2": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Mass Attendance.html",
+                    "mod_1775058196858": "D:\\Formats",
+                    "img_4": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Jubilee Claim.html",
+                    "img_8": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Payroll Calculator.html",
+                    "mod_1775066691707": "D:\\Personal\\Muhammad Rizwan ( Working Folder )\\OPD\\OPD - Jun 26 - Jul 27.xlsx",
+                    "img_3": "D:\\Time Office Working\\Tardiness Reports\\2026\\Tardiness Report June-2026\\GPAK & PPAK Tardiness Absentisem Report June-2026.xlsx",
+                    "img_12": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing July-2026\\Overtime & CPL July-2026 .xlsx",
+                    "mod_1775994309020": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing Mar-2026\\Ramadan Standard Hours Mar-2026\\Ramadan Standard Hours O.T and CPL .xlsx",
+                    "mod_1775234022936": "D:\\Time Office Working\\Tardiness Reimbursments\\Tardiness Reimbusement July-2026\\Tardiness Reimbursment July-2026.xlsx",
+                    "img_13": "C:\\Users\\time.office\\Desktop\\Fuel Efficiency Report\\(25-Dec-2025 to onward) Fuel Efficiancy Report - .xlsx",
+                    "img_10": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Rooster.html",
+                    "mod_1775214058378": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\PDF Editer.html",
+                    "mod_1775943055748": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Time Office JDs.html",
+                    "mod_1776014072867": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Employee\\employee details.html",
+                    "mod_1776205713646": "C:\\Users\\time.office\\Desktop\\Gate Passes\\Returnable Gate Pass Detail.xlsx",
+                    "mod_1780707431229": "D:\\Personal\\Muhammad Rana Akram\\Formates.html\\Manual Attendnace.html"
+                },
+                extras: {
+                    "img_3": [
+                        {"name": "GPAK", "path": "D:\\Time Office Working\\Tardiness Reports\\2026\\Tardiness Report June-2026\\GPAK Tardiness Highlighted Sheet.pdf"},
+                        {"name": "PPAK", "path": "D:\\Time Office Working\\Tardiness Reports\\2026\\Tardiness Report June-2026\\PPAK Tardiness Highlighted Sheet.pdf"}
+                    ],
+                    "img_12": [
+                        {"name": "GPAK & PPAK", "path": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing July-2026\\All Unit Attendnace Sheet 16-Jun to 15-July-26.pdf"}
+                    ],
+                    "mod_1775994309020": [
+                        {"name": "GPAK pdf", "path": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing Mar-2026\\Ramadan Standard Hours Mar-2026\\GPAK"},
+                        {"name": "PPAK pdf", "path": "D:\\Time Office Working\\Payroll Data\\2026 Payroll Data\\OT Closing Mar-2026\\Ramadan Standard Hours Mar-2026\\PPAK"}
+                    ],
+                    "mod_1775234022936": [
+                        {"name": "May-Reimbursed", "path": "D:\\Time Office Working\\Tardiness Reimbursments\\Tardiness Reimbusement May-2026\\Tardiness Reimbursment May-2026.xlsx"}
+                    ]
+                }
+            };
+
+            localStorage.setItem('v11_modules', JSON.stringify(preloadedData.modules));
+            localStorage.setItem('v11_cats', JSON.stringify(preloadedData.categories));
+            
+            for(let id in preloadedData.paths) {
+                if(preloadedData.paths[id] && preloadedData.paths[id] !== "null") {
+                    localStorage.setItem(`v11_path_${id}`, preloadedData.paths[id]);
+                } else {
+                    localStorage.setItem(`v11_path_${id}`, "");
+                }
+            }
+            
+            for(let id in preloadedData.extras) {
+                if(preloadedData.extras[id] && preloadedData.extras[id].length > 0) {
+                    localStorage.setItem(`v11_extras_${id}`, JSON.stringify(preloadedData.extras[id]));
+                }
+            }
+
+            localStorage.setItem('v11_base64_applied_v1', 'true');
+        }
+    })();
+</script>
+
+<script>
+    const windows = {};
+    function smartOpen(url, winName) {
+        if (windows[winName] && !windows[winName].closed) {
+            windows[winName].focus();
+        } else {
+            windows[winName] = window.open(url, winName);
+        }
+    }
+</script>
+
+<input type="file" id="autoFilePicker" style="display: none;" onchange="handleAutoPath(this)">
+
+<div class="header">
+    <div class="top-nav-links">
+        <a onclick="smartOpen('https://ipak.smarthcm.com/hcm/Account/Login/?ReturnUrl=%2fhcm', 'SmartHCMWin')" class="external-link">
+            <span class="link-dot"></span> SmartHCM
+        </a>
+        <a onclick="smartOpen('https://ipak.smarthcm.com/ess/Account/Login.aspx?returnUrl=https://ipak.smarthcm.com/ess/default.aspx', 'SmartESSWin')" class="external-link">
+            <span class="link-dot"></span> SmartESS
+        </a>
+    </div>
+
+    <div class="container">
+       <h1 id="dashboardTitle">
+            <a href="file:///D:/Personal/Muhammad Rana Akram" class="secret-link" style="color:white;text-decoration: none;">T</a>IME OFFICE WORKING
+        </h1>
+    </div>
+    
+    <div class="admin-controls">
+        <div class="form-check form-switch m-0 me-2 border-end pe-2 border-white-50">
+            <input class="form-check-input" type="checkbox" id="adminToggle" onchange="toggleAdmin()">
+            <label class="form-check-label fw-bold text-white ms-1" style="font-size:0.7rem" for="adminToggle">ADMIN</label>
+        </div>
+        <button class="admin-btn-tool" id="editCatsBtn" style="display:none;" title="Categories" onclick="openCatManager()">
+            <i class="fa fa-tags"></i>
+        </button>
+        <button class="admin-btn-tool" id="exportBtn" style="display:none;" title="Export" onclick="exportData()">
+            <i class="fa fa-file-export"></i>
+        </button>
+        <button class="admin-btn-tool" id="importBtn" style="display:none;" title="Import" onclick="importData()">
+            <i class="fa fa-file-import"></i>
+        </button>
+        <button class="admin-btn-tool text-danger" id="globalResetBtn" style="display:none;" title="Reset" onclick="globalReset()">
+            <i class="fa fa-power-off"></i>
+        </button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="search-container">
+        <i class="fa fa-search position-absolute" style="left: 18px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 1rem;"></i>
+        <input type="text" id="searchInput" class="form-control search-box" placeholder="Search system modules...">
+        <i class="fa fa-times-circle" id="clearSearch" onclick="clearSearchField()"></i>
+    </div>
+
+    <div class="category-filter-bar" id="categoryBar"></div>
+
+    <div class="row g-3 row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6" id="cardContainer"></div>
+</div>
+
+<div class="modal fade" id="adminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header-custom">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                        <i id="previewIcon" class="fa fa-file-alt text-white small"></i>
+                    </div>
+                    <h6 class="mb-0 fw-bold">Module Settings</h6>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size: 12px;"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold text-secondary small">Module Title</label>
+                        <input type="text" id="editNameInput" class="form-control border-0 bg-light py-2" placeholder="e.g. Monthly Reports" oninput="autoSuggestIcon(this.value)">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-secondary small">Icon Class</label>
+                        <input type="text" id="editIconInput" class="form-control border-0 bg-light py-2" onkeyup="updateIconPreview(this.value)">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary small">Assign Categories</label>
+                        <div id="tagPicker" class="tag-selection-area d-flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary small">Resource Link (Full Path)</label>
+                        <div class="path-input-group">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-white text-dark border small fw-normal">Current Location</span>
+                                <button class="btn btn-primary btn-sm px-3 py-1 rounded-pill" style="font-size: 11px;" onclick="triggerAutoPicker()">
+                                    <i class="fa fa-folder-open me-1"></i> Browse File
+                                </button>
+                            </div>
+                            <textarea id="editPathInput" rows="2" placeholder="C:\Users\Desktop\file.xlsx" oninput="this.value = this.value.replace(/[&quot;]/g, '')"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-primary flex-grow-1 py-2 fw-bold" onclick="saveModuleChanges()">Apply Changes</button>
+                    <button id="deleteBtn" class="btn btn-outline-danger px-3" onclick="deleteCard()">
+                        <i class="fa fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="catModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">Manage Tags</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="catEditList" class="mb-3" style="max-height: 200px; overflow-y: auto;"></div>
+                <div class="input-group">
+                    <input type="text" id="newCatInput" class="form-control border-0 bg-light" placeholder="Tag Name..." style="font-size: 0.85rem;">
+                    <button class="btn btn-primary" onclick="addNewCategory()"><i class="fa fa-plus"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <span onclick="showSecretHistory()" style="cursor: pointer;">©</span> 2026 Time Office Management
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+    let currentEditingId = null;
+    let isAddingNew = false;
+    let activeCategories = ["All"]; 
+    let selectedModalTags = [];
+
+    // Sub-Modules State Management
+    let currentParentModule = null; 
+    let mainModulesCache = []; 
+
+    let categories = JSON.parse(localStorage.getItem('v11_cats')) || ["General"];
+    let modules = JSON.parse(localStorage.getItem('v11_modules')) || [];
+
+    const premiumAlert = (options) => {
+        return Swal.fire({
+            ...options,
+            showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+            hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#94a3b8',
+        });
+    }
+
+    function getFileName(path) {
+        if (!path || path === "#") return "";
+        return path.split(/[\\/]/).pop();
+    }
+
+    window.openSubView = function(event, parentId, parentTitle) {
+        if(event) event.stopPropagation();
+        if (!currentParentModule) {
+            mainModulesCache = [...modules]; 
+        }
+        currentParentModule = { id: parentId, title: parentTitle };
+
+        modules = JSON.parse(localStorage.getItem(`v11_submods_${parentId}`)) || [];
+
+        document.getElementById('dashboardTitle').innerHTML = 
+            `<a href="#" onclick="goBackToMain(event)" style="color:white; text-decoration:none;" title="Back to Main Dashboard"><i class="fa fa-arrow-left me-2"></i></a> ${parentTitle.toUpperCase()} <span style="font-size: 0.5em; opacity: 0.8;">SUB-MODULES</span>`;
+
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearch').style.display = "none";
+        activeCategories = ["All"];
+        
+        renderCards();
+    };
+
+    window.goBackToMain = function(event) {
+        if(event) event.preventDefault();
+        modules = [...mainModulesCache]; 
+        currentParentModule = null;
+        
+        document.getElementById('dashboardTitle').innerHTML = 
+            `<a href="file:///D:/Personal/Muhammad Rana Akram" class="secret-link" style="color:white;text-decoration: none;">T</a>IME OFFICE WORKING`;
+        
+        activeCategories = ["All"];
+        renderCards();
+    };
+
+    // THE FIXED MOVE & CLONE LOGIC
+    window.promptMoveModule = function(event, id) {
+        if(event) event.stopPropagation();
+        const modToMove = modules.find(m => m.id === id);
+
+        let dests = [];
+        let storedRoots = JSON.parse(localStorage.getItem('v11_modules')) || mainModulesCache;
+        if (!storedRoots || storedRoots.length === 0) storedRoots = modules;
+
+        // Recursively gather all folders across the system
+        function traverseModules(modList, currentPath) {
+            modList.forEach(m => {
+                dests.push({ id: m.id, title: m.title, path: currentPath });
+                let subs = JSON.parse(localStorage.getItem('v11_submods_' + m.id)) || [];
+                if (subs.length > 0) {
+                    traverseModules(subs, currentPath + ' / ' + m.title);
+                }
+            });
+        }
+        traverseModules(storedRoots, 'Main Dashboard');
+
+        if(dests.length === 0 && !currentParentModule) {
+            premiumAlert({ icon: 'info', title: 'No Folders Available', text: 'Create another module first to use it as a folder.', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
+            return;
+        }
+
+        let html = `
+            <div class="text-start mb-3" style="font-size: 14px; color: #64748b;">
+                Select destination for <strong>${modToMove.title}</strong>
+            </div>
+            <div class="position-relative mb-3">
+                <i class="fa fa-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                <input type="text" id="moveDestSearch" class="form-control" placeholder="Search for folder..." style="padding-left: 40px; border-radius: 12px; font-size: 14px;">
+            </div>
+            <div id="moveDestList" class="list-group text-start shadow-sm" style="max-height: 250px; overflow-y: auto; border-radius: 12px; border: 1px solid #e2e8f0;">
+        `;
+
+        if (currentParentModule) {
+            html += `
+                <button type="button" class="list-group-item list-group-item-action move-dest-item border-0 border-bottom" data-id="MAIN_DASHBOARD" style="padding: 12px 15px;">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                            <i class="fa fa-home text-primary" style="width:16px;text-align:center;"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 14px;">Main Dashboard</strong><br>
+                            <small class="text-muted" style="font-size: 11px;">Root Directory</small>
+                        </div>
+                    </div>
+                </button>
+            `;
+        }
+
+        dests.forEach(d => {
+            html += `
+                <button type="button" class="list-group-item list-group-item-action move-dest-item border-0 border-bottom" data-id="${d.id}" style="padding: 12px 15px;">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                            <i class="fa fa-folder text-warning" style="width:16px;text-align:center;"></i>
+                        </div>
+                        <div style="width: 100%; overflow: hidden; text-overflow: ellipsis;">
+                            <strong style="font-size: 14px; white-space: nowrap;">${d.title}</strong><br>
+                            <small class="text-muted" style="font-size: 11px; white-space: nowrap;">In: ${d.path}</small>
+                        </div>
+                    </div>
+                </button>
+            `;
+        });
+
+        html += `</div>`;
+
+        let selectedId = null;
+
+        Swal.fire({
+            title: 'Move Module',
+            html: html,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa fa-share-from-square me-2"></i> Move Here',
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#94a3b8',
+            customClass: {
+                popup: 'rounded-4',
+                confirmButton: 'fw-bold px-4 rounded-pill',
+                cancelButton: 'fw-bold px-4 rounded-pill'
+            },
+            didOpen: () => {
+                const searchInput = document.getElementById('moveDestSearch');
+                const items = document.querySelectorAll('.move-dest-item');
+
+                searchInput.addEventListener('input', function() {
+                    const filter = this.value.toLowerCase();
+                    items.forEach(item => {
+                        const title = item.querySelector('strong').innerText.toLowerCase();
+                        const pathText = item.querySelector('small') ? item.querySelector('small').innerText.toLowerCase() : '';
+                        if (title.includes(filter) || pathText.includes(filter)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+
+                items.forEach(item => {
+                    item.addEventListener('click', function() {
+                        items.forEach(i => {
+                            i.classList.remove('bg-primary', 'bg-opacity-10', 'border-primary', 'border-opacity-50');
+                        });
+                        this.classList.add('bg-primary', 'bg-opacity-10', 'border-primary', 'border-opacity-50');
+                        selectedId = this.getAttribute('data-id');
+                    });
+                });
+            },
+            preConfirm: () => {
+                if (!selectedId) {
+                    Swal.showValidationMessage('Please select a destination folder from the list.');
+                    return false;
+                }
+                return selectedId;
+            }
+        }).then(result => {
+            if (result.isConfirmed && result.value) {
+                const targetId = result.value;
+                const modIndex = modules.findIndex(m => m.id === id);
+                
+                if (modIndex !== -1) {
+                    let movedMod;
+                    
+                    if (targetId === id) {
+                        // CLONE LOGIC: If moving into itself, clone to prevent deletion of parent folder
+                        movedMod = JSON.parse(JSON.stringify(modules[modIndex]));
+                        movedMod.id = 'mod_' + Date.now() + Math.floor(Math.random() * 1000);
+                        
+                        const oldPath = localStorage.getItem(`v11_path_${id}`);
+                        if (oldPath) localStorage.setItem(`v11_path_${movedMod.id}`, oldPath);
+                        
+                        const oldExtras = localStorage.getItem(`v11_extras_${id}`);
+                        if (oldExtras) localStorage.setItem(`v11_extras_${movedMod.id}`, oldExtras);
+                    } else {
+                        // Normal move: remove from current view
+                        movedMod = modules.splice(modIndex, 1)[0];
+                    }
+
+                    // Insert to destination
+                    if (targetId === "MAIN_DASHBOARD") {
+                        if (!mainModulesCache || mainModulesCache.length === 0) {
+                            mainModulesCache = JSON.parse(localStorage.getItem('v11_modules')) || [];
+                        }
+                        mainModulesCache.unshift(movedMod);
+                        localStorage.setItem('v11_modules', JSON.stringify(mainModulesCache));
+                    } else {
+                        let targetSubMods = JSON.parse(localStorage.getItem('v11_submods_' + targetId)) || [];
+                        targetSubMods.unshift(movedMod);
+                        localStorage.setItem('v11_submods_' + targetId, JSON.stringify(targetSubMods));
+                    }
+
+                    // Save current view state
+                    if (currentParentModule) {
+                        localStorage.setItem('v11_submods_' + currentParentModule.id, JSON.stringify(modules));
+                    } else {
+                        localStorage.setItem('v11_modules', JSON.stringify(modules));
+                    }
+
+                    renderCards();
+                    premiumAlert({ icon: 'success', title: targetId === id ? 'Added to Sub-Menu' : 'Moved Successfully', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+                }
+            }
+        });
+    };
+
+    function renderCards() {
+        const container = document.getElementById('cardContainer');
+        container.innerHTML = '';
+        const isAdmin = document.getElementById('adminToggle').checked;
+        
+        const filteredModules = modules.filter(m => {
+            if (activeCategories.includes("All")) return true;
+            const modCats = Array.isArray(m.category) ? m.category : [m.category];
+            return modCats.some(cat => activeCategories.includes(cat));
+        });
+
+        filteredModules.forEach((mod, index) => {
+            const delay = index * 0.05;
+            const savedPath = localStorage.getItem(`v11_path_${mod.id}`);
+            const hasNoLink = (!savedPath || savedPath === "#" || savedPath.trim() === "");
+            const fileName = getFileName(savedPath);
+
+            const savedSubMods = JSON.parse(localStorage.getItem(`v11_submods_${mod.id}`)) || [];
+            const hasSubMods = savedSubMods.length > 0;
+            const showDrillDown = (!currentParentModule && (hasSubMods || isAdmin));
+
+            container.innerHTML += `
+                <div class="col card-item" data-id="${mod.id}" style="animation-delay: ${delay}s">
+                    <div class="card-box ${hasNoLink ? 'no-link' : ''}" onclick="openFile('${mod.id}')">
+                        
+                        ${showDrillDown ? `
+                        <div class="btn-submod-indicator ${hasSubMods ? '' : 'empty'}" onclick="openSubView(event, '${mod.id}', '${mod.title.replace(/'/g, "\\'")}')" title="${hasSubMods ? 'View Sub-Modules' : 'Folder is Empty (Click to Add)'}">
+                            <i class="fa ${hasSubMods ? 'fa-folder-tree' : 'fa-folder-open'}"></i>
+                            ${hasSubMods ? `<span>${savedSubMods.length}</span>` : ''}
+                        </div>
+                        ` : ''}
+                        
+                        <div class="card-actions" style="display: ${isAdmin ? 'flex' : 'none'}">
+                            <div class="btn-action-sm btn-move text-primary" onclick="promptMoveModule(event, '${mod.id}')" title="Move Module">
+                                <i class="fa fa-share-from-square" style="font-size:12px;"></i>
+                            </div>
+                            <div class="btn-action-sm text-success" onclick="openAdminMenu(event, '${mod.id}')" title="Edit Settings">
+                                <i class="fa fa-pen" style="font-size:11px;"></i>
+                            </div>
+                        </div>
+
+                        <i class="fa ${mod.icon}"></i>
+                        <p class="card-title">${mod.title}</p>
+                        ${!hasNoLink ? `<div class="file-name-container">${fileName}</div>` : ''}
+                        ${hasNoLink ? '<span class="missing-badge">Link Missing</span>' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        if (isAdmin) {
+            container.innerHTML += `
+                <div class="col card-item disabled-drag" style="animation-delay: ${filteredModules.length * 0.05}s">
+                    <div class="card-box" style="border: 2px dashed #3b82f6; background: rgba(59, 130, 246, 0.02);" onclick="openAdminMenu(event, null)">
+                        <i class="fa fa-plus-circle" style="color:#3b82f6"></i>
+                        <p class="card-title" style="color:#3b82f6">Add Module</p>
+                    </div>
+                </div>
+            `;
+        }
+        renderCategoryBar();
+        initSortable(); 
+        
+        if (currentParentModule) {
+            localStorage.setItem(`v11_submods_${currentParentModule.id}`, JSON.stringify(modules));
+        } else {
+            localStorage.setItem('v11_modules', JSON.stringify(modules));
+        }
+    }
+
+    function initSortable() {
+        const el = document.getElementById('cardContainer');
+        const catBar = document.getElementById('categoryBar');
+        const isAdmin = document.getElementById('adminToggle').checked;
+        
+        if (window.sortableInstance) window.sortableInstance.destroy();
+        if (window.catSortableInstance) window.catSortableInstance.destroy();
+
+        if (isAdmin) {
+            if (activeCategories.includes("All") && !document.getElementById('searchInput').value) {
+                window.sortableInstance = new Sortable(el, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    filter: '.disabled-drag', 
+                    onEnd: function () {
+                        const newModules = [];
+                        const items = el.querySelectorAll('.card-item:not(.disabled-drag)');
+                        items.forEach(item => {
+                            const id = item.getAttribute('data-id');
+                            const mod = modules.find(m => m.id === id);
+                            if (mod) newModules.push(mod);
+                        });
+                        modules = newModules;
+                        
+                        if (currentParentModule) {
+                            localStorage.setItem(`v11_submods_${currentParentModule.id}`, JSON.stringify(modules));
+                        } else {
+                            localStorage.setItem('v11_modules', JSON.stringify(modules));
+                        }
+                    }
+                });
+            }
+
+            document.getElementById('categoryBar').classList.add('admin-mode-active');
+            window.catSortableInstance = new Sortable(catBar, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                filter: '.static-cat', 
+                onEnd: function () {
+                    const newCats = [];
+                    const items = catBar.querySelectorAll('.cat-btn:not(.static-cat)');
+                    items.forEach(item => {
+                        newCats.push(item.getAttribute('data-name'));
+                    });
+                    categories = newCats;
+                    localStorage.setItem('v11_cats', JSON.stringify(categories));
+                }
+            });
+        } else {
+            document.getElementById('categoryBar').classList.remove('admin-mode-active');
+        }
+    }
+
+    function renderCategoryBar() {
+        const bar = document.getElementById('categoryBar');
+        bar.innerHTML = `<div class="cat-btn static-cat ${activeCategories.includes('All') ? 'active' : ''}" onclick="toggleCategory('All')">All</div>`;
+        categories.forEach(cat => {
+            const isActive = activeCategories.includes(cat);
+            bar.innerHTML += `<div class="cat-btn ${isActive ? 'active' : ''}" data-name="${cat}" onclick="toggleCategory('${cat}')">${cat}</div>`;
+        });
+    }
+
+    function toggleCategory(cat) {
+        if (document.getElementById('adminToggle').checked && event.type === 'mouseup') return;
+
+        if (cat === "All") activeCategories = ["All"];
+        else {
+            activeCategories = activeCategories.filter(c => c !== "All");
+            if (activeCategories.includes(cat)) {
+                activeCategories = activeCategories.filter(c => c !== cat);
+            } else activeCategories.push(cat);
+            if (activeCategories.length === 0) activeCategories = ["All"];
+        }
+        renderCards();
+    }
+
+    function toggleAdmin() {
+        const isAdmin = document.getElementById('adminToggle').checked;
+        document.getElementById('globalResetBtn').style.display = isAdmin ? 'flex' : 'none';
+        document.getElementById('editCatsBtn').style.display = isAdmin ? 'flex' : 'none';
+        document.getElementById('exportBtn').style.display = isAdmin ? 'flex' : 'none';
+        document.getElementById('importBtn').style.display = isAdmin ? 'flex' : 'none';
+        renderCards();
+    }
+
+    function openAdminMenu(event, id) {
+        if(event) event.stopPropagation();
+        currentEditingId = id;
+        isAddingNew = (id === null);
+        selectedModalTags = [];
+
+        if (isAddingNew) {
+            document.getElementById('editNameInput').value = "";
+            document.getElementById('editIconInput').value = "fa-cube";
+            document.getElementById('editPathInput').value = "";
+            document.getElementById('deleteBtn').style.display = "none";
+            selectedModalTags = [categories[0]];
+        } else {
+            const mod = modules.find(m => m.id === id);
+            const savedPath = localStorage.getItem(`v11_path_${id}`) || "";
+            document.getElementById('editNameInput').value = mod.title;
+            document.getElementById('editIconInput').value = mod.icon;
+            document.getElementById('editPathInput').value = (savedPath === "#") ? "" : savedPath;
+            document.getElementById('deleteBtn').style.display = "block";
+            selectedModalTags = Array.isArray(mod.category) ? [...mod.category] : [mod.category];
+        }
+        renderModalTags();
+        new bootstrap.Modal(document.getElementById('adminModal')).show();
+    }
+
+    function renderModalTags() {
+        const picker = document.getElementById('tagPicker');
+        picker.innerHTML = '';
+        categories.forEach(cat => {
+            const isSelected = selectedModalTags.includes(cat);
+            picker.innerHTML += `<div class="cat-btn ${isSelected ? 'active' : ''} py-1 px-2" style="font-size:11px" onclick="toggleModalTag('${cat}')">${cat}</div>`;
+        });
+    }
+
+    function toggleModalTag(cat) {
+        if (selectedModalTags.includes(cat)) {
+            if (selectedModalTags.length > 1) selectedModalTags = selectedModalTags.filter(t => t !== cat);
+        } else selectedModalTags.push(cat);
+        renderModalTags();
+    }
+
+    function saveModuleChanges() {
+        const name = document.getElementById('editNameInput').value.trim();
+        const icon = document.getElementById('editIconInput').value.trim() || "fa-cube";
+        let rawPath = document.getElementById('editPathInput').value.trim();
+
+        if (!name || !rawPath) {
+            premiumAlert({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Module Title and Resource Link are required fields.',
+                toast: true,
+                position: 'top-end',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        if (isAddingNew) {
+            const targetId = 'mod_' + Date.now();
+            const newMod = { id: targetId, title: name, icon: icon, category: [...selectedModalTags] };
+            
+            if (currentParentModule) {
+                modules.unshift(newMod); 
+            } else {
+                modules.push(newMod); 
+            }
+            localStorage.setItem(`v11_path_${targetId}`, rawPath || "#");
+        } else {
+            const modIndex = modules.findIndex(m => m.id === currentEditingId);
+            if (modIndex !== -1) {
+                modules[modIndex].title = name;
+                modules[modIndex].icon = icon;
+                modules[modIndex].category = [...selectedModalTags];
+                localStorage.setItem(`v11_path_${currentEditingId}`, rawPath || "#");
+            }
+        }
+        bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
+        
+        premiumAlert({
+            icon: 'success',
+            title: 'Module Updated',
+            text: 'System preferences synchronized successfully.',
+            timer: 1800,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+        
+        renderCards();
+    }
+
+    const iconMap = {
+        'excel': 'fa-file-excel', 'payroll': 'fa-calculator', 'money': 'fa-hand-holding-dollar',
+        'salary': 'fa-money-bill-wave', 'attendance': 'fa-user-check', 'absent': 'fa-calendar-xmark',
+        'roster': 'fa-calendar-days', 'shift': 'fa-clock', 'report': 'fa-file-lines',
+        'document': 'fa-file-pdf', 'transport': 'fa-truck-fast', 'car': 'fa-car-side',
+        'fuel': 'fa-gas-pump', 'medical': 'fa-briefcase-medical', 'claim': 'fa-file-invoice-dollar',
+        'hospital': 'fa-hospital', 'token': 'fa-key', 'user': 'fa-circle-user',
+        'team': 'fa-users', 'mass': 'fa-users-rectangle', 'tardiness': 'fa-user-slash',
+        'late': 'fa-person-walking-arrow-right', 'dispatch': 'fa-truck-ramp-box',
+        'receive': 'fa-box-open', 'box': 'fa-cube', 'mobile': 'fa-mobile-screen'
+    };
+
+    function autoSuggestIcon(val) {
+        if (!isAddingNew) return; 
+        const lowerVal = val.toLowerCase();
+        for (let key in iconMap) {
+            if (lowerVal.includes(key)) {
+                document.getElementById('editIconInput').value = iconMap[key];
+                updateIconPreview(iconMap[key]);
+                break;
+            }
+        }
+    }
+
+    function logHistory(title) {
+        let history = JSON.parse(localStorage.getItem('v11_secret_logs')) || [];
+        history.unshift({ title: title, time: new Date().toLocaleString() });
+        if(history.length > 500) history.pop(); 
+        localStorage.setItem('v11_secret_logs', JSON.stringify(history));
+    }
+
+    function showSecretHistory() {
+        premiumAlert({
+            title: 'Security Required',
+            input: 'password',
+            inputPlaceholder: 'Enter Password',
+            showCancelButton: true,
+            confirmButtonText: 'Access History'
+        }).then((result) => {
+            if (result.value === "123") {
+                const renderHistoryContent = (searchQuery = "") => {
+                    let logs = JSON.parse(localStorage.getItem('v11_secret_logs')) || [];
+                    if (searchQuery) {
+                        logs = logs.filter(l => l.title.toLowerCase().includes(searchQuery.toLowerCase()));
+                    }
+
+                    let htmlContent = logs.length > 0 ? logs.map(l => `
+                        <div class="history-row" style="text-align:left; font-size:11px; margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:3px;">
+                            <strong>${l.title}</strong><br><span style="color:#888">${l.time}</span>
+                        </div>`).join('') : "No matching activity.";
+
+                    return `
+                        <div class="p-1">
+                            <input type="text" id="histSearch" class="form-control form-control-sm mb-3" placeholder="Search logs..." value="${searchQuery}">
+                            <div id="histContent" style="max-height:300px; overflow-y:auto; overflow-x:hidden;">${htmlContent}</div>
+                            <button class="btn btn-sm btn-outline-danger mt-3 w-100" onclick="resetSecretHistory()">Clear All Logs</button>
+                        </div>`;
+                };
+
+                premiumAlert({
+                    title: 'System Access History',
+                    html: renderHistoryContent(),
+                    width: '380px',
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        const searchInput = Swal.getHtmlContainer().querySelector('#histSearch');
+                        searchInput.addEventListener('input', (e) => {
+                            const contentDiv = Swal.getHtmlContainer().querySelector('#histContent');
+                            const filteredLogs = renderHistoryContent(e.target.value);
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(filteredLogs, 'text/html');
+                            contentDiv.innerHTML = doc.querySelector('#histContent').innerHTML;
+                        });
+                    }
+                });
+            } else if (result.value !== undefined) {
+                premiumAlert({ icon: 'error', title: 'Wrong Password' });
+            }
+        });
+    }
+
+    window.resetSecretHistory = function() {
+        premiumAlert({
+            title: 'Delete History?',
+            text: "This cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444'
+        }).then((r) => {
+            if (r.isConfirmed) {
+                localStorage.removeItem('v11_secret_logs');
+                Swal.close();
+                premiumAlert({ icon: 'success', title: 'History Cleared', timer: 1000, showConfirmButton: false });
+            }
+        });
+    }
+
+    function openFile(id) {
+        const mod = modules.find(m => m.id === id);
+        if(mod) logHistory(mod.title);
+
+        let path = localStorage.getItem(`v11_path_${id}`);
+        if (!path || path === "#" || path === "") {
+            return premiumAlert({
+                icon: 'error',
+                title: 'Access Denied',
+                text: 'The requested resource path is currently undefined.',
+            });
+        }
+        
+        let finalUrl = path.startsWith("http") ? path : "file:///" + path.replace(/\\/g, "/");
+        const link = document.createElement('a');
+        link.href = finalUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function updateIconPreview(val) { document.getElementById('previewIcon').className = `fa ${val} text-white small`; }
+    function triggerAutoPicker() { document.getElementById('autoFilePicker').click(); }
+    function handleAutoPath(input) { if (input.files[0]) document.getElementById('editPathInput').value = input.files[0].name; }
+    
+    function deleteCard() {
+        premiumAlert({
+            title: 'Confirm Deletion',
+            text: "This module will be permanently removed from the dashboard.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete Module',
+            confirmButtonColor: '#ef4444'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                modules = modules.filter(m => m.id !== currentEditingId);
+                renderCards();
+                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
+                premiumAlert({ icon: 'success', title: 'Removed', timer: 1000, showConfirmButton: false });
+            }
+        });
+    }
+
+    function globalReset() {
+        premiumAlert({
+            title: 'System Reset',
+            text: 'Enter Admin credentials to factory reset the dashboard.',
+            input: 'password',
+            inputPlaceholder: 'Enter Admin Password',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444'
+        }).then((result) => {
+            if (result.value === "Admin123") {
+                localStorage.clear();
+                location.reload();
+            } else if (result.value) {
+                premiumAlert({ icon: 'error', title: 'Invalid Credentials' });
+            }
+        });
+    }
+
+    function exportData() {
+        const rootModules = currentParentModule ? mainModulesCache : modules;
+        const data = { 
+            modules: rootModules, 
+            categories: categories, 
+            paths: {},
+            extras: {},
+            submods: {} 
+        };
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k.startsWith('v11_submods_')) data.submods[k] = JSON.parse(localStorage.getItem(k));
+            if (k.startsWith('v11_path_')) data.paths[k.replace('v11_path_', '')] = localStorage.getItem(k);
+            if (k.startsWith('v11_extras_')) data.extras[k.replace('v11_extras_', '')] = JSON.parse(localStorage.getItem(k));
+        }
+        
+        const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(data)))); 
+        navigator.clipboard.writeText(dataStr).then(() => {
+            premiumAlert({
+                icon: 'success',
+                title: 'Data Exported',
+                text: 'All settings, sub-modules, and links copied to clipboard.',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    }
+
+    function importData() {
+        premiumAlert({
+            title: 'Import System Config',
+            text: 'Paste your encrypted data string below:',
+            input: 'textarea',
+            showCancelButton: true
+        }).then((result) => {
+            if (result.value) {
+                try {
+                    const decoded = decodeURIComponent(escape(atob(result.value)));
+                    const data = JSON.parse(decoded);
+                    localStorage.setItem('v11_modules', JSON.stringify(data.modules));
+                    localStorage.setItem('v11_cats', JSON.stringify(data.categories));
+                    for (const id in data.paths) { 
+                        localStorage.setItem(`v11_path_${id}`, data.paths[id]); 
+                    }
+                    if (data.extras) {
+                        for (const id in data.extras) {
+                            localStorage.setItem(`v11_extras_${id}`, JSON.stringify(data.extras[id]));
+                        }
+                    }
+                    if (data.submods) {
+                        for (const key in data.submods) {
+                            localStorage.setItem(key, JSON.stringify(data.submods[key]));
+                        }
+                    }
+                    premiumAlert({ icon: 'success', title: 'System Restored' }).then(() => location.reload());
+                } catch (e) {
+                    premiumAlert({ icon: 'error', title: 'Data Corrupted', text: 'The provided code is invalid.' });
+                }
+            }
+        });
+    }
+
+    function clearSearchField() {
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        input.dispatchEvent(new Event('keyup'));
+        input.focus();
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        document.getElementById('clearSearch').style.display = filter ? "block" : "none";
+        document.querySelectorAll('.card-item').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(filter) ? "" : "none";
+        });
+        initSortable(); 
+    });
+
+    function openCatManager() {
+        const list = document.getElementById('catEditList');
+        list.innerHTML = '';
+        categories.forEach((cat, idx) => {
+            list.innerHTML += `
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded-3 border">
+                    <span class="small fw-bold" style="font-size:0.75rem">${cat}</span>
+                    <button class="btn btn-sm text-danger p-0" onclick="removeCategory(${idx})"><i class="fa fa-times"></i></button>
+                </div>`;
+        });
+        new bootstrap.Modal(document.getElementById('catModal')).show();
+    }
+
+    function addNewCategory() {
+        const val = document.getElementById('newCatInput').value.trim();
+        if(!val) return;
+        if(categories.includes(val)) return;
+        categories.push(val);
+        localStorage.setItem('v11_cats', JSON.stringify(categories));
+        document.getElementById('newCatInput').value = '';
+        openCatManager();
+        renderCategoryBar();
+        initSortable();
+    }
+
+    function removeCategory(idx) {
+        premiumAlert({
+            title: 'Remove Tag?',
+            text: `Are you sure you want to delete "${categories[idx]}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm Removal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                categories.splice(idx, 1);
+                localStorage.setItem('v11_cats', JSON.stringify(categories));
+                openCatManager();
+                renderCategoryBar();
+                initSortable();
+            }
+        });
+    }
+
+    renderCards();
+</script>
+
+<script>
+(function() {
+    const originalOpenAdminMenu = window.openAdminMenu;
+    window.openAdminMenu = function(event, id) {
+        originalOpenAdminMenu(event, id);
+        const modalRow = document.querySelector('#adminModal .modal-body .row');
+        if (!document.getElementById('multiLinkContainer')) {
+            const container = document.createElement('div');
+            container.id = 'multiLinkContainer';
+            container.className = 'col-12 mt-3 pt-3 border-top';
+            container.innerHTML = `
+                <label class="form-label fw-bold text-secondary small">Additional Links & Names</label>
+                <div id="extraLinksList" class="d-flex flex-column gap-2"></div>
+                <button class="btn btn-outline-primary btn-sm mt-2 rounded-pill" onclick="addExtraLinkRow()" style="font-size:10px">
+                    <i class="fa fa-plus me-1"></i> Add More Links
+                </button>
+            `;
+            modalRow.appendChild(container);
+        }
+        const list = document.getElementById('extraLinksList');
+        list.innerHTML = '';
+        const extras = JSON.parse(localStorage.getItem(`v11_extras_${id}`)) || [];
+        extras.forEach(item => addExtraLinkRow(item.name, item.path));
+    };
+
+    window.addExtraLinkRow = function(name = '', path = '') {
+        const div = document.createElement('div');
+        div.className = 'd-flex gap-2 align-items-center mb-1';
+        div.innerHTML = `
+            <input type="text" class="form-control form-control-sm extra-name" placeholder="Link Name" value="${name}" style="width:120px; font-size:11px;">
+            <input type="text" class="form-control form-control-sm extra-path" placeholder="Path/URL" value="${path}" style="flex:1; font-size:11px;" oninput="this.value = this.value.replace(/[&quot;]/g, '')">
+            <button class="btn btn-sm text-danger border-0 p-1" onclick="this.parentElement.remove()"><i class="fa fa-trash-alt"></i></button>
+        `;
+        document.getElementById('extraLinksList').appendChild(div);
+    };
+
+    const originalSave = window.saveModuleChanges;
+    window.saveModuleChanges = function() {
+        const nameInput = document.getElementById('editNameInput').value.trim();
+        const pathInput = document.getElementById('editPathInput').value.trim();
+        if(!nameInput || !pathInput) return originalSave();
+        const id = isAddingNew ? 'mod_' + Date.now() : currentEditingId;
+        const rows = document.querySelectorAll('#extraLinksList > div');
+        const extras = Array.from(rows).map(row => ({
+            name: row.querySelector('.extra-name').value.trim(),
+            path: row.querySelector('.extra-path').value.trim()
+        })).filter(e => e.name && e.path);
+        localStorage.setItem(`v11_extras_${id}`, JSON.stringify(extras));
+        originalSave(); 
+    };
+
+    const originalRender = window.renderCards;
+    window.renderCards = function() {
+        originalRender();
+        const isAdmin = document.getElementById('adminToggle').checked;
+        if (isAdmin) return; 
+        const items = document.querySelectorAll('.card-item[data-id]');
+        items.forEach(item => {
+            const id = item.getAttribute('data-id');
+            const extras = JSON.parse(localStorage.getItem(`v11_extras_${id}`)) || [];
+            if(extras.length === 0) return;
+            const card = item.querySelector('.card-box');
+            const btnBox = document.createElement('div');
+            btnBox.className = 'extra-links-overlay';
+            btnBox.style = "position:absolute; top:10px; right:10px; display:flex; flex-direction:column; gap:6px; z-index:10; align-items:flex-end;";
+            extras.forEach(extra => {
+                const badge = document.createElement('div');
+                badge.innerText = extra.name;
+                badge.style = "font-size:8px; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,0.95); color:var(--accent); border:1px solid rgba(226,232,240,0.8); cursor:pointer; font-weight:bold; text-transform:uppercase; box-shadow:0 2px 4px rgba(0,0,0,0.05); transition:all 0.3s ease;";
+                badge.onclick = (e) => {
+                    e.stopPropagation();
+                    logHistory(`${item.querySelector('.card-title').innerText} (${extra.name})`);
+                    let finalUrl = extra.path.startsWith("http") ? extra.path : "file:///" + extra.path.replace(/\\/g, "/");
+                    window.open(finalUrl, '_blank');
+                };
+                badge.onmouseover = () => { badge.style.background = "var(--accent)"; badge.style.color = "white"; badge.style.transform = "translateY(-2px)"; };
+                badge.onmouseout = () => { badge.style.background = "rgba(255,255,255,0.95)"; badge.style.color = "var(--accent)"; badge.style.transform = "none"; };
+                btnBox.appendChild(badge);
+            });
+            card.appendChild(btnBox);
+        });
+    };
+    window.renderCards();
+})();
+</script>
+</body>
+</html>

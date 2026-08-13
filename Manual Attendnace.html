@@ -1,0 +1,2668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Attendance Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        /* =========================================================
+            ULTRA-MODERN UI OVERHAUL - PREMIUM RESKIN
+            ========================================================= */
+        
+        body {
+            background-color: #f8fafc !important; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            font-size: 13px !important; 
+            color: #0f172a !important;
+            letter-spacing: -0.1px;
+        }
+
+        /* Top Right Navigation Pills */
+        .tab-nav {
+            background-color: transparent !important;
+            padding: 24px 32px 0 !important;
+            margin-bottom: -32px !important;
+            display: flex !important;
+            justify-content: flex-end !important;
+            gap: 8px !important;
+            border: none !important;
+            box-shadow: none !important;
+            position: relative;
+            z-index: 100;
+        }
+        .tab-btn {
+            background: #ffffff !important;
+            color: #64748b !important;
+            border: 1px solid #e2e8f0 !important;
+            padding: 8px 20px !important;
+            cursor: pointer !important;
+            border-radius: 100px !important; 
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+        }
+        .tab-btn:hover {
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+            transform: translateY(-1px);
+        }
+        .tab-btn.active {
+            color: #4f46e5 !important; 
+            background-color: #f5f3ff !important;
+            border-color: #ddd6fe !important;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.06) !important;
+        }
+
+        /* Modernized Dashboard Header */
+        .main-header {
+            text-align: left !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            font-size: 24px !important;
+            letter-spacing: -0.75px !important;
+            margin: 0 !important;
+            padding: 32px 32px 16px !important;
+            text-transform: none !important;
+        }
+        .main-header::after {
+            content: "STRATEGIC ATTENDANCE TRACKING";
+            display: block !important;
+            font-size: 10px !important;
+            color: #94a3b8 !important;
+            font-weight: 700 !important;
+            letter-spacing: 1.5px !important;
+            margin-top: 6px !important;
+            text-transform: uppercase !important;
+        }
+
+        /* Floating Controls Container Bar */
+        .top-controls {
+            background-color: transparent !important;
+            border-radius: 0 !important;
+            padding: 8px 32px 24px !important;
+            box-shadow: none !important;
+            border: none !important;
+            margin-bottom: 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            justify-content: flex-start !important;
+        }
+
+        /* Modern Premium Pill Containers for Controls */
+        .control-block {
+            border: 1px solid #e2e8f0 !important;
+            padding: 6px 18px !important;
+            background: #ffffff !important;
+            border-radius: 100px !important;
+            display: flex !important;
+            align-items: center !important;
+            font-weight: 600 !important;
+            color: #334155 !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .control-block:hover, .control-block:focus-within {
+            border-color: #6366f1 !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12) !important;
+        }
+        .control-label {
+            font-size: 11px; 
+            font-weight: 800; 
+            color: #94a3b8; 
+            margin-right: 12px; 
+            letter-spacing: 0.75px;
+        }
+
+        .top-controls input[type="date"],
+        .top-controls select {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            font-family: 'Inter', sans-serif !important;
+            cursor: pointer !important;
+            font-size: 13px !important;
+        }
+        
+        /* Premium Shift Dropdown Menu */
+        .custom-select-pill {
+            background: transparent !important;
+            border: none !important;
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+            cursor: pointer !important;
+            padding: 2px 24px 2px 0 !important;
+            font-size: 13px !important;
+            outline: none !important;
+        }
+
+        /* Ultra Modern Smooth IN/OUT Switch Component */
+        .btn-group {
+            background: #f1f5f9 !important;
+            padding: 3px !important;
+            border-radius: 100px !important;
+            border: none !important;
+        }
+        .btn-group .btn {
+            padding: 5px 18px !important; 
+            font-size: 12px !important; 
+            font-weight: 700 !important;
+            border-radius: 100px !important;
+            border: none !important;
+            margin: 0 !important;
+            transition: all 0.2s ease !important;
+        }
+        .btn-check:checked + .btn-outline-success {
+            background-color: #10b981 !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+        }
+        .btn-outline-success {
+            color: #64748b !important;
+            background: transparent !important;
+        }
+        .btn-outline-success:hover {
+            color: #0f172a !important;
+        }
+        .btn-check:checked + .btn-outline-danger {
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25) !important;
+        }
+        .btn-outline-danger {
+            color: #64748b !important;
+            background: transparent !important;
+        }
+        .btn-outline-danger:hover {
+            color: #0f172a !important;
+        }
+
+        /* Sleek Digital Smart Scan Input Field Bar */
+        .top-controls .quick-entry-box {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            padding: 4px 6px 4px 18px !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+            border-radius: 100px !important;
+        }
+        .quick-entry-box input {
+            border: none !important;
+            background: transparent !important;
+            outline: none !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #0f172a !important;
+            text-align: left !important;
+            width: 150px !important;
+        }
+        .quick-entry-box input::placeholder {
+            color: #cbd5e1 !important;
+            font-weight: 500 !important;
+        }
+        .quick-entry-box button {
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            background-color: #4f46e5 !important; 
+            border: none !important;
+            padding: 6px 18px !important;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2) !important;
+            color: #ffffff !important;
+            transition: all 0.2s ease !important;
+        }
+        .quick-entry-box button:hover {
+            background-color: #4338ca !important;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
+        }
+
+        /* Modernized Interactive Search & Clear Layout Blocks */
+        #searchFront, #searchBack {
+            background-color: #ffffff !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 16px center !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+            padding: 8px 16px 8px 42px !important; 
+            font-size: 13px !important;
+            color: #0f172a !important;
+            font-weight: 600 !important;
+            width: 220px !important;
+            border-radius: 100px !important;
+            outline: none !important;
+            transition: all 0.25s ease !important;
+        }
+        #searchFront:focus, #searchBack:focus {
+            border-color: #4f46e5 !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+        }
+        .clear-screen-btn {
+            background-color: #ffffff !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            padding: 8px 16px !important;
+            font-size: 12px !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+        }
+        .clear-screen-btn:hover {
+            background-color: #fff5f5 !important;
+            color: #e11d48 !important;
+            border-color: #fecdd3 !important;
+        }
+
+        /* Action-Oriented Print Trigger Button Layout */
+        .print-screen-btn {
+            background-color: #ffffff !important;
+            color: #0284c7 !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            padding: 8px 18px !important;
+            font-size: 12px !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+        }
+        .print-screen-btn:hover {
+            background-color: #f0f9ff !important;
+            color: #0369a1 !important;
+            border-color: #bae6fd !important;
+            transform: translateY(-1px);
+        }
+
+        /* EXPORT EXCEL BUTTON STYLE */
+        .export-btn {
+            background-color: #dcfce7 !important;
+            color: #059669 !important;
+            border: 1px solid #a7f3d0 !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            padding: 8px 18px !important;
+            font-size: 12px !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+        }
+        .export-btn:hover {
+            background-color: #d1fae5 !important;
+            color: #047857 !important;
+            border-color: #6ee7b7 !important;
+            transform: translateY(-1px);
+        }
+
+        /* Premium Visual Dashboard Grid Tables Display */
+        .table-responsive {
+            background: #ffffff !important;
+            border-radius: 20px !important;
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.02) !important;
+            border: 1px solid #f1f5f9 !important;
+            overflow: hidden !important;
+            margin-bottom: 24px !important;
+            transition: transform 0.2s ease;
+        }
+        .table {
+            margin-bottom: 0 !important;
+            background-color: transparent !important;
+            border-collapse: collapse !important;
+        }
+        .table th, .table td {
+            border: none !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            vertical-align: middle !important;
+            padding: 12px 8px !important;
+        }
+
+        /* Modern Hover Animation for Frontend Tables */
+        .table tbody tr {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            border-bottom: 1px solid #f8fafc !important;
+        }
+        .table tbody tr:hover {
+            background-color: #ffffff !important;
+            transform: scale(1.01);
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+            z-index: 2;
+            position: relative;
+            border-radius: 12px;
+        }
+        .table tbody tr:hover td {
+            border-bottom-color: transparent !important;
+        }
+        
+        .table input {
+            width: 100% !important;
+            border: none !important;
+            padding: 6px 4px !important;
+            text-align: center !important;
+            outline: none !important;
+            background-color: transparent !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+        }
+        .table input.time-in, .table input.time-out {
+            color: #64748b !important;
+            font-weight: 500 !important;
+        }
+        .table input:focus:not([readonly]) { 
+            background-color: #f8fafc !important; 
+        }
+        .table input[readonly]:not(.copyable-field) { cursor: default !important; }
+
+        /* Click-To-Copy Fields Styling & 1-HOUR PERSISTENT COPIED HIGHLIGHT */
+        .copyable-field {
+            cursor: pointer !important;
+            transition: all 0.25s ease !important;
+            border-radius: 8px !important;
+        }
+        .copyable-field:hover {
+            background-color: #f1f5f9 !important;
+            transform: translateY(-1px);
+        }
+        .copied-success {
+            background-color: #10b981 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;
+            transform: scale(1.05) !important;
+        }
+        /* 1-Hour Persistent Soft Light-Green Tint for Copied Entry */
+        .copied-recent-1h {
+            background-color: #dcfce7 !important;
+            color: #15803d !important;
+            border: 1px solid #86efac !important;
+            box-shadow: 0 2px 6px rgba(34, 197, 94, 0.15) !important;
+        }
+
+        /* Timings Timeline Pill Component (IN & OUT stacked in same row) */
+        .timing-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            padding-left: 12px;
+            text-align: left;
+        }
+        .timing-container::before {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background-color: #cbd5e1;
+            border-radius: 2px;
+        }
+        .timing-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            width: fit-content;
+        }
+        .timing-row .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-left: -14px;
+            z-index: 1;
+        }
+        .dot-in { background-color: #10b981; box-shadow: 0 0 0 2px #dcfce7; }
+        .dot-out { background-color: #ef4444; box-shadow: 0 0 0 2px #fee2e2; }
+        .time-text-in { color: #059669; font-weight: 700; font-size: 13px; }
+        .time-text-out { color: #dc2626; font-weight: 700; font-size: 13px; }
+        .time-empty { color: #94a3b8; font-weight: 600; font-style: italic; font-size: 12px; }
+
+        /* Premium Grid Headers Styling */
+        .shift-header-row th {
+            text-align: center !important;
+            font-weight: 800 !important;
+            background-color: #ffffff !important; 
+            color: #4f46e5 !important; 
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding: 18px 12px !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 10 !important;
+            font-size: 14px !important;
+            letter-spacing: -0.3px;
+        }
+        .table thead th.sub-header {
+            text-align: center !important;
+            background-color: #f8fafc !important;
+            color: #64748b !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.75px !important;
+            position: sticky !important;
+            top: 56px !important; 
+            z-index: 9 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 12px 6px !important;
+        }
+
+        .col-sr { width: 15% !important; color: #94a3b8 !important; font-weight: 600 !important; background: transparent !important; }
+        .col-emp { width: 36% !important; }
+        .col-time { width: 49% !important; }
+
+        /* Master Backend Management Layout Panels */
+        #backend-view { display: none; }
+        .backend-table th { 
+            background-color: #f8fafc !important; 
+            color: #475569 !important; 
+            border-bottom: 2px solid #e2e8f0 !important; 
+            padding: 16px 20px !important; 
+            text-transform: uppercase !important; 
+            font-size: 11px !important; 
+            font-weight: 800 !important;
+            letter-spacing: 0.75px;
+        }
+        .backend-table { 
+            background: #ffffff !important; 
+            border-radius: 16px !important; 
+            overflow: hidden !important; 
+            border: 1px solid #e2e8f0 !important; 
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03) !important;
+        }
+        .backend-table td {
+            padding: 16px 20px !important; 
+            font-size: 14px !important;     
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f5f9 !important;
+        }
+        .backend-table tbody tr:hover {
+            background-color: #f8fafc !important; 
+        }
+        
+        /* Modern Structured Badges Mapping System */
+        .shift-badge {
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.25px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .shift-morning { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .shift-morning-gen { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .shift-evening { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+        .shift-night { background-color: #1e293b; color: #f8fafc; border: 1px solid #0f172a; }
+
+        /* High-End Glassmorphism Modal Popups */
+        .custom-modal-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); 
+            backdrop-filter: blur(10px);
+            z-index: 9999; 
+            justify-content: center; 
+            align-items: center;
+        }
+        .custom-modal {
+            background: #ffffff; 
+            padding: 32px; 
+            border-radius: 24px; 
+            width: 460px; 
+            max-width: 92%;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2);
+            border: 1px solid #e2e8f0;
+        }
+        .custom-modal input:focus, .custom-modal select:focus, .custom-modal textarea:focus {
+            border-color: #4f46e5 !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+            outline: none;
+        }
+
+        .frontend-edit-btn {
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-left: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+        .frontend-edit-btn:hover { color: #4f46e5; opacity: 1; transform: scale(1.1); display: inline-block; }
+        
+        .badge.bg-success { background-color: #10b981 !important; color: #fff !important; font-weight: 600 !important; border-radius: 8px !important; }
+        .badge.bg-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600 !important; border-radius: 8px !important; }
+        .btn-warning { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; color: #475569 !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important; border-radius: 8px !important; font-weight: 600 !important; }
+        .btn-warning:hover { background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+
+        /* Engineered Dynamic Dashboard Notifications */
+        #toast-container {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .modern-toast {
+            color: #ffffff;
+            padding: 16px 28px;
+            border-radius: 14px;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+        }
+        .toast-error { background-color: #1e293b; border-left: 5px solid #ef4444; }
+        .toast-success { background-color: #1e293b; border-left: 5px solid #10b981; }
+
+        /* Remarks Hover Animation & Modern UI styling */
+        .modern-remark-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            color: #4f46e5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
+        }
+        .modern-remark-icon:hover {
+            background: #4f46e5;
+            color: #ffffff;
+            transform: translateY(-50%) scale(1.15);
+        }
+        .backend-remark-icon {
+            position: relative;
+            transform: none !important;
+            top: auto;
+            right: auto;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .backend-remark-icon:hover {
+            transform: scale(1.15) !important;
+        }
+
+        /* Employee Autocomplete Suggestions Dropdown */
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 280px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            margin-top: 8px;
+            padding: 4px 0;
+        }
+        .suggestion-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background: #f8fafc; }
+        .suggestion-code { font-weight: 800; color: #4f46e5; font-size: 12px; }
+        .suggestion-name { font-weight: 700; color: #0f172a; font-size: 11px; margin-top: 2px; line-height: 1.2; }
+        .suggestion-desig { font-weight: 500; color: #64748b; font-size: 10px; margin-top: 1px; }
+
+        /* ULTRA-MODERN EDIT BUTTONS & PASSWORD MODAL */
+        .modern-edit-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: #f8fafc;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: 4px;
+            border: 1px solid transparent;
+        }
+        .modern-edit-action:hover {
+            background: #e0e7ff;
+            color: #4f46e5;
+            border-color: #c7d2fe;
+            transform: scale(1.1);
+        }
+
+        /* Modern Backend Edit Button */
+        .btn-modern-edit {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 100px !important;
+            padding: 6px 16px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .btn-modern-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3) !important;
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+        }
+        .btn-modern-edit svg { width: 12px; height: 12px; }
+
+        /* Modern Password Prompt Modal */
+        #passwordModalOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(12px);
+            z-index: 100000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #passwordModalOverlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .password-modal-box {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 24px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #passwordModalOverlay.show .password-modal-box {
+            transform: translateY(0);
+        }
+        .password-modal-icon {
+            width: 56px; height: 56px;
+            background: #fef2f2;
+            color: #ef4444;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
+        }
+        .password-modal-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .password-modal-desc { font-size: 13px; color: #64748b; margin-bottom: 24px; line-height: 1.5; font-weight: 500; }
+        .password-input-group { position: relative; margin-bottom: 24px; text-align: left; }
+        .password-input-group input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+        .password-input-group input:focus { 
+            border-color: #ef4444; 
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); 
+        }
+        .password-input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .password-actions { display: flex; gap: 12px; justify-content: center; }
+        .password-actions .btn { flex: 1; border-radius: 100px; font-weight: 700; padding: 12px; font-size: 13px; transition: all 0.2s; }
+        .btn-modern-cancel { background: #f1f5f9; color: #475569; border: none; }
+        .btn-modern-cancel:hover { background: #e2e8f0; color: #0f172a; }
+        .btn-modern-confirm { background: #ef4444; color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .btn-modern-confirm:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3); }
+
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="tab-nav">
+    <button class="tab-btn active" id="btn-front" onclick="switchTab('front')">Front-End (Data Entry)</button>
+    <button class="tab-btn" id="btn-back" onclick="switchTab('back')">Backend (Database Records)</button>
+    <button class="tab-btn" id="btn-admin" onclick="switchTab('admin')">Admin (Data Sync)</button>
+</div>
+
+<div id="frontend-view">
+    <div class="container-fluid">
+        <h2 class="main-header">MANUAL ATTENDANCE</h2>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="top-controls">
+                    
+                    <div class="control-block" id="dateControlBlock" title="Hover to view dates with entries">
+                        <span class="control-label">DATE:</span>
+                        <input type="date" id="currentDate" onchange="renderAll()">
+                        <div id="dateDropdownList" class="suggestions-dropdown" style="width: 180px; left: 10px;"></div>
+                    </div>
+                    
+                    <div class="control-block">
+                        <span class="control-label">SHIFT:</span>
+                        <select id="shiftSelect" class="form-select custom-select-pill d-inline-block w-auto">
+                            <option value="MORNING">Morning</option>
+                            <option value="MORNING-GEN">Morning + General</option>
+                            <option value="EVENING">Evening</option>
+                            <option value="NIGHT">Night</option>
+                        </select>
+                    </div>
+
+                    <div class="control-block">
+                        <span class="control-label">MODE:</span>
+                        <div class="btn-group shadow-sm" role="group">
+                          <input type="radio" class="btn-check" name="entryMode" id="modeIn" value="in" checked>
+                          <label class="btn btn-outline-success" for="modeIn">IN</label>
+
+                          <input type="radio" class="btn-check" name="entryMode" id="modeOut" value="out">
+                          <label class="btn btn-outline-danger" for="modeOut">OUT</label>
+                        </div>
+                    </div>
+
+                    <div class="control-block quick-entry-box">
+                        <span class="control-label text-primary">EMP:</span>
+                        <div style="position: relative; display: flex; align-items: center; height: 100%;">
+                            <input type="text" id="quickEmpInput" placeholder="Enter / Scan..." autocomplete="off">
+                            <div id="empSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                        <span class="control-label text-secondary ms-2 border-start ps-3 mb-0" style="height:100%; display:flex; align-items:center;">REMARKS:</span>
+                        <input type="text" id="quickRemarksInput" placeholder="Optional..." autocomplete="off" style="width: 110px !important; color: #64748b !important; font-weight: 500 !important;">
+                        <button class="btn btn-primary btn-sm ms-2" onclick="processQuickEntry()">Save</button>
+                    </div>
+
+                    <button class="btn print-screen-btn fw-bold" onclick="printAttendance()">🖨️ Print Report</button>
+                    <button class="btn export-btn fw-bold" onclick="exportToExcel('front')">📊 Export Excel</button>
+
+                    <div class="d-flex align-items-center gap-2" style="margin-left: auto;">
+                        <input type="text" id="searchFront" onkeyup="filterFrontEnd()" placeholder="Search exact match..." autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="table-morning">
+                        <thead>
+                            <tr class="shift-header-row">
+                                <th colspan="3">Shift: Morning</th>
+                            </tr>
+                            <tr>
+                                <th class="col-sr sub-header">Sr#</th>
+                                <th class="col-emp sub-header">Emp Code & Name</th>
+                                <th class="col-time sub-header">Timings (IN / OUT)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="table-morning-gen">
+                        <thead>
+                            <tr class="shift-header-row">
+                                <th colspan="3">Shift: Morning+General</th>
+                            </tr>
+                            <tr>
+                                <th class="col-sr sub-header">Sr#</th>
+                                <th class="col-emp sub-header">Emp Code & Name</th>
+                                <th class="col-time sub-header">Timings (IN / OUT)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="table-evening">
+                        <thead>
+                            <tr class="shift-header-row">
+                                <th colspan="3">Shift: Evening</th>
+                            </tr>
+                            <tr>
+                                <th class="col-sr sub-header">Sr#</th>
+                                <th class="col-emp sub-header">Emp Code & Name</th>
+                                <th class="col-time sub-header">Timings (IN / OUT)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="table-night">
+                        <thead>
+                            <tr class="shift-header-row">
+                                <th colspan="3">Shift: Night</th>
+                            </tr>
+                            <tr>
+                                <th class="col-sr sub-header">Sr#</th>
+                                <th class="col-emp sub-header">Emp Code & Name</th>
+                                <th class="col-time sub-header">Timings (IN / OUT)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="backend-view" class="container-fluid">
+    <h2 class="main-header" style="color: #4f46e5;">DATABASE RECORDS (BACKEND)</h2>
+    <div class="row">
+        <div class="col-12">
+            <div class="top-controls justify-content-between">
+                <span class="control-label">ALL SAVED ENTRIES</span>
+                <input type="text" id="searchBack" class="form-control form-control-sm d-inline-block w-auto" onkeyup="filterBackend()" placeholder="Search exact match...">
+                <div>
+                    <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 ms-2" onclick="deleteSelectedRecords()" id="bulkDeleteBtn" style="display:none;">🗑️ Delete Selected</button>
+                    <button class="btn print-screen-btn fw-bold rounded-pill px-3 ms-2" onclick="printAttendance()">🖨️ Print Report</button>
+                    <button class="btn export-btn fw-bold rounded-pill px-3 ms-2" onclick="exportToExcel('back')">📊 Export Excel</button>
+                    <button class="btn btn-danger btn-sm fw-bold rounded-pill px-3 ms-2" onclick="clearDatabase()">Clear All Records</button>
+                </div>
+            </div>
+
+            <div class="card mb-3 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0; background-color: #f8fafc;">
+                <div class="card-body py-2 px-3 d-flex flex-wrap gap-3 align-items-end">
+                    <div>
+                        <label class="fw-bold text-secondary mb-1" style="font-size:10px; letter-spacing:0.5px;">START DATE</label>
+                        <input type="date" id="filterStartDate" class="form-control form-control-sm border-0 shadow-sm" style="font-size:12px; font-weight:600;">
+                    </div>
+                    <div>
+                        <label class="fw-bold text-secondary mb-1" style="font-size:10px; letter-spacing:0.5px;">END DATE</label>
+                        <input type="date" id="filterEndDate" class="form-control form-control-sm border-0 shadow-sm" style="font-size:12px; font-weight:600;">
+                    </div>
+                    <div>
+                        <label class="fw-bold text-secondary mb-1" style="font-size:10px; letter-spacing:0.5px;">SHIFT</label>
+                        <select id="filterShift" class="form-select form-select-sm border-0 shadow-sm" style="font-size:12px; font-weight:600;">
+                            <option value="">All Shifts</option>
+                            <option value="MORNING">Morning</option>
+                            <option value="MORNING-GEN">Morning+General</option>
+                            <option value="EVENING">Evening</option>
+                            <option value="NIGHT">Night</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="fw-bold text-secondary mb-1" style="font-size:10px; letter-spacing:0.5px;">EMP CODE</label>
+                        <input type="text" id="filterEmpCode" class="form-control form-control-sm border-0 shadow-sm" placeholder="Any Employee" style="font-size:12px; font-weight:600;">
+                    </div>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button class="btn btn-primary btn-sm fw-bold rounded-pill px-3" onclick="applyBackendFilters()">Apply Filters</button>
+                        <button class="btn btn-secondary btn-sm fw-bold rounded-pill px-3" onclick="resetBackendFilters()">Reset</button>
+                        <button class="btn print-screen-btn btn-sm fw-bold px-3" style="border-radius: 100px;" onclick="printFilteredBackend()">🖨️ PDF/Print Filtered</button>
+                        <button class="btn export-btn btn-sm fw-bold px-3" style="border-radius: 100px;" onclick="exportFilteredExcel()">📊 Excel Filtered</button>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-bordered backend-table mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 40px;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
+                        <th>Date</th>
+                        <th>Shift</th>
+                        <th>Employee Code</th>
+                        <th>Time In</th>
+                        <th>Time Out</th>
+                        <th class="text-center" style="width: 80px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="database-body">
+                </tbody>
+            </table>
+            
+            <div id="pagination-controls" class="d-flex justify-content-between align-items-center mt-3 mb-4" style="background: #ffffff; padding: 12px 24px; border-radius: 100px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);">
+                <button class="btn btn-light border btn-sm fw-bold rounded-pill px-4 shadow-sm" id="prevPageBtn" onclick="prevPage()">← Previous</button>
+                <span id="pageInfo" class="fw-bold text-primary" style="font-size: 13px; letter-spacing: 0.5px;">Page 1</span>
+                <button class="btn btn-light border btn-sm fw-bold rounded-pill px-4 shadow-sm" id="nextPageBtn" onclick="nextPage()">Next →</button>
+            </div>
+            </div>
+    </div>
+</div>
+
+<div id="admin-view" class="container-fluid" style="display: none;">
+    <h2 class="main-header" style="color: #e11d48;">SYSTEM ADMINISTRATION & SYNC</h2>
+    <div class="row">
+                <div class="col-md-12 mb-4">
+            <div class="card shadow-sm" style="border-radius: 16px; border: 1px solid #e2e8f0;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3" style="color: #10b981;">👥 Upload Employee Master Data (CSV)</h5>
+                    <p class="text-secondary" style="font-size: 12px;">Upload the latest Employee List (CSV format) to map Employee Codes to Names and Designations dynamically across the dashboard.</p>
+                    <div class="d-flex gap-3 align-items-center">
+                        <input type="file" id="csvFileInput" class="form-control w-auto" accept=".csv" style="font-size: 13px; border-radius: 12px;">
+                        <button class="btn btn-success fw-bold px-4" style="border-radius: 100px; background-color: #10b981; border: none;" onclick="uploadEmployeeData()">📥 Load Employee Data</button>
+                        <span id="empDataStatus" class="fw-bold text-primary" style="font-size: 12px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm" style="border-radius: 16px; border: 1px solid #e2e8f0;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3">📤 Export / Generate Sync Token</h5>
+                    <p class="text-secondary" style="font-size: 12px;">Generate a secure token containing all attendance records. Copy this token to send or backup your entire database.</p>
+                    <textarea id="exportTokenField" class="form-control mb-3" rows="4" style="font-size: 11px; font-family: monospace; border-radius: 12px;" readonly placeholder="Your sync token will appear here..."></textarea>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary fw-bold px-4" style="border-radius: 100px;" onclick="generateSyncToken()">Generate Token</button>
+                        <button class="btn btn-outline-primary fw-bold px-4" style="border-radius: 100px;" onclick="copySyncToken()">📋 Copy to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm" style="border-radius: 16px; border: 1px solid #e2e8f0;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-danger mb-3">📥 Import / Restore Data</h5>
+                    <p class="text-secondary" style="font-size: 12px;">Paste a previously generated sync token here to restore or import data. <b>Warning: This replaces all current data!</b></p>
+                    <textarea id="importTokenField" class="form-control mb-3" rows="4" style="font-size: 11px; font-family: monospace; border-radius: 12px;" placeholder="Paste sync token here..."></textarea>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-danger fw-bold px-4" style="border-radius: 100px;" onclick="importSyncToken()">⚠️ Restore / Import Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="editModal">
+    <div class="custom-modal">
+        <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <div style="width: 36px; height: 36px; background: #e0e7ff; color: #4f46e5; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </div>
+                <div>
+                    <h4 class="m-0" style="font-size: 16px; font-weight: 800; color: #0f172a; border: none; padding: 0;">Edit Attendance Record</h4>
+                    <span style="font-size: 11px; color: #64748b; font-weight: 600;">Modify timing entries or shift assignment</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close shadow-none" onclick="closeEditModal()" style="font-size: 12px;"></button>
+        </div>
+        
+        <input type="hidden" id="editIndex"> 
+        
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Date</label>
+                <input type="date" class="form-control" id="editDate" style="border-radius: 10px; padding: 10px 14px; font-weight: 600;">
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Shift</label>
+                <select class="form-select" id="editShift" style="border-radius: 10px; padding: 10px 14px; font-weight: 600;">
+                    <option value="MORNING">Morning</option>
+                    <option value="MORNING-GEN">Morning+General</option>
+                    <option value="EVENING">Evening</option>
+                    <option value="NIGHT">Night</option>
+                </select>
+            </div>
+            
+            <div class="col-12">
+                <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Employee Code</label>
+                <input type="text" class="form-control" id="editCode" style="border-radius: 10px; padding: 10px 14px; font-weight: 600;" placeholder="e.g. EMP001">
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; color: #10b981; letter-spacing: 0.5px;">Time In</label>
+                <input type="time" class="form-control" id="editTimeIn" style="border-radius: 10px; padding: 10px 14px; font-weight: 600;">
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; color: #ef4444; letter-spacing: 0.5px;">Time Out</label>
+                <input type="time" class="form-control" id="editTimeOut" style="border-radius: 10px; padding: 10px 14px; font-weight: 600;">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; color: #4f46e5; letter-spacing: 0.5px;">Remarks</label>
+                <input type="text" class="form-control" id="editRemarks" placeholder="Optional notes or reasons..." style="border-radius: 10px; padding: 10px 14px; font-weight: 600;">
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3" onclick="deleteRecord()" style="font-size: 12px;">🗑️ Delete Entry</button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm fw-bold rounded-pill px-3 text-secondary" onclick="closeEditModal()" style="font-size: 12px; border: 1px solid #e2e8f0;">Cancel</button>
+                <button class="btn btn-primary btn-sm fw-bold rounded-pill px-4" onclick="saveEdit()" style="font-size: 12px; background: #4f46e5; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="quickRemarksModal">
+    <div class="custom-modal">
+        <h4 class="mb-3 text-primary border-bottom pb-2">Manage Remarks</h4>
+        
+        <input type="hidden" id="quickRemarksIndex"> 
+        
+        <div class="mb-2">
+            <label class="fw-bold">Employee Code:</label>
+            <input type="text" class="form-control form-control-sm" id="quickRemarksCode" readonly style="background: #e2e8f0; color: #475569;">
+        </div>
+        
+        <div class="mb-4">
+            <label class="fw-bold text-info">Remarks:</label>
+            <textarea class="form-control form-control-sm border-info" id="quickRemarksText" rows="3" style="border-radius: 12px; resize: none;" placeholder="Enter remarks here..."></textarea>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-danger btn-sm fw-bold" onclick="deleteQuickRemarks()">Delete Remarks</button>
+            <div>
+                <button class="btn btn-secondary btn-sm fw-bold" onclick="closeQuickRemarksModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm fw-bold ms-1" onclick="saveQuickRemarks()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="employeeProfileModal">
+    <div class="custom-modal" style="width: 500px;">
+        <h4 class="mb-3 text-primary border-bottom pb-2">Employee Profile</h4>
+        <div id="employeeProfileContent" class="row">
+            </div>
+        <div class="d-flex justify-content-end mt-4">
+            <button class="btn btn-secondary btn-sm fw-bold" onclick="closeEmployeeProfileModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="passwordModalOverlay">
+    <div class="password-modal-box">
+        <div class="password-modal-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h4 class="password-modal-title">Authentication Required</h4>
+        <p class="password-modal-desc" id="passwordModalDesc">Action requires authorization.<br>Enter Admin Password.</p>
+        <div class="password-input-group">
+            <svg class="password-input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            <input type="password" id="customPasswordInput" placeholder="Enter Admin Password">
+        </div>
+        <div class="password-actions">
+            <button class="btn btn-modern-cancel" id="btnPasswordCancel">Cancel</button>
+            <button class="btn btn-modern-confirm" id="btnPasswordConfirm">Verify & Proceed</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1-HOUR PERSISTENT COPY TO CLIPBOARD SYSTEM ---
+    function getCopiedEntriesHistory() {
+        return JSON.parse(localStorage.getItem('CopiedEntriesHistory')) || {};
+    }
+
+    function isRecentlyCopied(key) {
+        if (!key) return false;
+        let history = getCopiedEntriesHistory();
+        if (!history[key]) return false;
+        
+        let now = Date.now();
+        let ONE_HOUR = 60 * 60 * 1000;
+        if (now - history[key] < ONE_HOUR) {
+            return true;
+        } else {
+            delete history[key];
+            localStorage.setItem('CopiedEntriesHistory', JSON.stringify(history));
+            return false;
+        }
+    }
+
+    function copyToClipboardAction(element, keyIdentifier) {
+        let textToCopy = "";
+        if (element.dataset && element.dataset.copyVal) {
+            textToCopy = element.dataset.copyVal;
+        } else if (element.value !== undefined) {
+            textToCopy = element.value;
+        } else {
+            textToCopy = element.innerText;
+        }
+
+        if (!textToCopy || textToCopy.trim() === '' || textToCopy.trim() === '-- : --') return;
+
+        navigator.clipboard.writeText(textToCopy.trim()).then(() => {
+            element.classList.add('copied-success');
+            
+            if (keyIdentifier) {
+                let history = getCopiedEntriesHistory();
+                history[keyIdentifier] = Date.now();
+                localStorage.setItem('CopiedEntriesHistory', JSON.stringify(history));
+                element.classList.add('copied-recent-1h');
+            }
+
+            setTimeout(() => {
+                element.classList.remove('copied-success');
+            }, 600);
+            
+            showToast(`Copied: "${textToCopy.trim()}"`, 'success');
+        }).catch(err => {
+            console.error('Copy failed', err);
+        });
+    }
+
+    // --- TIME FORMATTING & WORK HOURS CALCULATOR ---
+    function formatTimeAMPM(time24) {
+        if (!time24 || time24.trim() === "") return "-- : --";
+        let [h, m] = time24.split(':').map(Number);
+        let ampm = h >= 12 ? 'pm' : 'am';
+        h = h % 12;
+        h = h ? h : 12;
+        let strH = String(h).padStart(2, '0');
+        let strM = String(m).padStart(2, '0');
+        return `${strH}:${strM} ${ampm}`;
+    }
+
+    function calculateWorkHours(timeIn, timeOut) {
+        if (!timeIn || !timeOut || timeIn === "" || timeOut === "") return "--";
+        let [inH, inM] = timeIn.split(':').map(Number);
+        let [outH, outM] = timeOut.split(':').map(Number);
+        let inMins = inH * 60 + inM;
+        let outMins = outH * 60 + outM;
+        if (outMins < inMins) outMins += 24 * 60; // Handle overnight shifts
+        let diff = outMins - inMins;
+        let hrs = Math.floor(diff / 60);
+        let mins = diff % 60;
+        return `${hrs}h ${mins}m`;
+    }
+
+    // --- CUSTOM PASSWORD MODAL PROMISE WRAPPER ---
+    function requireAdminPassword(message = "Action requires authorization.<br>Enter Admin Password:") {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('passwordModalOverlay');
+            const input = document.getElementById('customPasswordInput');
+            const desc = document.getElementById('passwordModalDesc');
+            const btnConfirm = document.getElementById('btnPasswordConfirm');
+            const btnCancel = document.getElementById('btnPasswordCancel');
+
+            desc.innerHTML = message;
+            input.value = '';
+            overlay.classList.add('show');
+            input.focus();
+
+            // Clear previous listeners by replacing elements
+            btnConfirm.replaceWith(btnConfirm.cloneNode(true));
+            btnCancel.replaceWith(btnCancel.cloneNode(true));
+            input.replaceWith(input.cloneNode(true));
+
+            const newConfirm = document.getElementById('btnPasswordConfirm');
+            const newCancel = document.getElementById('btnPasswordCancel');
+            const newInput = document.getElementById('customPasswordInput');
+
+            const cleanup = () => {
+                overlay.classList.remove('show');
+            };
+
+            newConfirm.addEventListener('click', () => {
+                cleanup();
+                resolve(newInput.value);
+            });
+
+            newCancel.addEventListener('click', () => {
+                cleanup();
+                resolve(null);
+            });
+
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    cleanup();
+                    resolve(newInput.value);
+                } else if (e.key === 'Escape') {
+                    cleanup();
+                    resolve(null);
+                }
+            });
+        });
+    }
+
+    // --- UTILITIES & INITIAL SETUP ---
+    function getCurrentTime() {
+        let now = new Date();
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+
+    // --- MODERN TOAST NOTIFICATION SYSTEM ---
+    function showToast(message, type = 'error') {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `modern-toast ${type === 'error' ? 'toast-error' : 'toast-success'}`;
+        toast.innerHTML = type === 'error' ? `⚠️ ${message}` : `✅ ${message}`;
+        
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        }, 10);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    let lastAutoShift = ""; 
+    
+    function runAutoManager() {
+        let now = new Date();
+        let y = now.getFullYear();
+        let mo = String(now.getMonth() + 1).padStart(2, '0');
+        let d = String(now.getDate()).padStart(2, '0');
+        let todayStr = `${y}-${mo}-${d}`;
+
+        let dateInput = document.getElementById('currentDate');
+        if(dateInput.value !== todayStr) {
+            dateInput.value = todayStr;
+            renderAll();
+        }
+
+        let h = now.getHours();
+        let m = now.getMinutes();
+        let timeFloat = h + (m / 60.0);
+        let targetShift = "";
+
+        if (timeFloat >= 6.5 && timeFloat <= 7.5) { targetShift = "MORNING"; }
+        else if (timeFloat >= 8.5 && timeFloat <= 9.5) { targetShift = "MORNING-GEN"; }
+        else if (timeFloat >= 14.5 && timeFloat <= 15.5) { targetShift = "EVENING"; }
+        else if (timeFloat >= 22.5 && timeFloat <= 23.5) { targetShift = "NIGHT"; }
+
+        if (targetShift !== "" && targetShift !== lastAutoShift) {
+            lastAutoShift = targetShift;
+            document.getElementById('shiftSelect').value = targetShift;
+            document.getElementById('modeIn').checked = true; 
+            showToast(`Auto-Selected: ${targetShift} Shift (IN)`, 'success');
+        }
+        
+        if (targetShift === "") {
+            lastAutoShift = "";
+        }
+    }
+
+    function updateEmpStatus() {
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+        let count = Object.keys(empMaster).length;
+        let statusEl = document.getElementById('empDataStatus');
+        if(statusEl) statusEl.innerText = count > 0 ? `Active Employees Loaded: ${count}` : "No employee data loaded.";
+    }
+
+    window.onload = () => {
+        document.getElementById('quickEmpInput').focus();
+        updateEmpStatus();
+        runAutoManager(); 
+        renderAll();
+        setInterval(runAutoManager, 300000); 
+    };
+
+    // Employee Input Dropdown Suggestion Event Listener & Date Hover List
+    document.addEventListener('DOMContentLoaded', function() {
+        const empInput = document.getElementById('quickEmpInput');
+        const suggBox = document.getElementById('empSuggestions');
+
+        empInput.addEventListener('input', function() {
+            let val = this.value.toUpperCase().trim();
+            
+            if (val.length === 0) {
+                suggBox.style.display = 'none';
+                return;
+            }
+
+            let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+            let matches = [];
+            
+            for (let code in empMaster) {
+                let name = empMaster[code].name.toUpperCase();
+                if (code.includes(val) || name.includes(val)) {
+                    matches.push({ code: code, name: empMaster[code].name, designation: empMaster[code].designation });
+                }
+                if (matches.length >= 10) break; // Limit suggestions for performance/UI
+            }
+
+            if (matches.length > 0) {
+                suggBox.innerHTML = matches.map(m => `
+                    <div class="suggestion-item" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%;">
+                        <div onclick="selectSuggestion('${m.code}')" style="flex-grow: 1;">
+                            <div class="suggestion-code">${m.code}</div>
+                            <div class="suggestion-name">${m.name}</div>
+                            <div class="suggestion-desig">${m.designation}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-info rounded-pill ms-2" onclick="viewEmployeeProfile('${m.code}', event)" style="font-size: 10px; font-weight: 700; padding: 2px 10px; height: fit-content;">View</button>
+                    </div>
+                `).join('');
+                suggBox.style.display = 'flex';
+            } else {
+                suggBox.style.display = 'none';
+            }
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#empSuggestions') && e.target.id !== 'quickEmpInput') {
+                suggBox.style.display = 'none';
+            }
+            if (!e.target.closest('#dateControlBlock')) {
+                let dList = document.getElementById('dateDropdownList');
+                if(dList) dList.style.display = 'none';
+            }
+        });
+
+        // Date block hover logic for max 5 dates with entries
+        const dateBlock = document.getElementById('dateControlBlock');
+        const dateList = document.getElementById('dateDropdownList');
+
+        if (dateBlock && dateList) {
+            dateBlock.addEventListener('mouseenter', function() {
+                let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+                let uniqueDates = [...new Set(database.map(r => r.date))].filter(Boolean).sort().reverse().slice(0, 5);
+                
+                if (uniqueDates.length > 0) {
+                    dateList.innerHTML = `
+                        <div class="suggestion-item" style="padding: 6px 12px; font-size: 10px; font-weight: 800; color: #94a3b8; background: #f8fafc; cursor: default;">DATES WITH ENTRIES (MAX 5):</div>
+                    ` + uniqueDates.map(d => `
+                        <div class="suggestion-item" onclick="selectDateFromDropdown('${d}')" style="padding: 8px 12px; flex-direction: row; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; color: #0f172a; font-size: 12px;">${d}</span>
+                            <span class="badge bg-primary rounded-pill" style="font-size: 9px;">${database.filter(r => r.date === d).length}</span>
+                        </div>
+                    `).join('');
+                    dateList.style.display = 'flex';
+                } else {
+                    dateList.innerHTML = `<div class="suggestion-item" style="padding: 10px; font-size: 11px; color: #94a3b8; text-align: center;">No attendance entries yet</div>`;
+                    dateList.style.display = 'flex';
+                }
+            });
+
+            dateBlock.addEventListener('mouseleave', function() {
+                dateList.style.display = 'none';
+            });
+        }
+    });
+
+    function selectDateFromDropdown(dateStr) {
+        document.getElementById('currentDate').value = dateStr;
+        document.getElementById('dateDropdownList').style.display = 'none';
+        renderAll();
+        showToast(`Selected Date: ${dateStr}`, 'success');
+    }
+
+    function selectSuggestion(code) {
+        document.getElementById('quickEmpInput').value = code;
+        document.getElementById('empSuggestions').style.display = 'none';
+        document.getElementById('quickEmpInput').focus();
+    }
+
+    function viewEmployeeProfile(code, event) {
+        if(event) event.stopPropagation();
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+        let emp = empMaster[code];
+        if(!emp) return;
+
+        let content = `
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">EMPLOYEE CODE</span><br><span class="fw-bold text-primary fs-6">${code}</span></div>
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">FULL NAME</span><br><span class="fw-bold fs-6">${emp.name}</span></div>
+            
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">DESIGNATION / POSITION</span><br><span class="fw-bold">${emp.designation || '-'}</span></div>
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">GRADE</span><br><span class="fw-bold">${emp.grade || '-'}</span></div>
+            
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">DATE OF JOINING</span><br><span class="fw-bold">${emp.doj || '-'}</span></div>
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">MOBILE NUMBER</span><br><span class="fw-bold">${emp.mobile || '-'}</span></div>
+            
+            <div class="col-12 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">EMAIL ADDRESS</span><br><span class="fw-bold" style="word-break: break-all;">${emp.email || '-'}</span></div>
+            
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">NIC NUMBER</span><br><span class="fw-bold">${emp.nic || '-'}</span></div>
+            <div class="col-6 mb-3"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">STATUS & TYPE</span><br><span class="fw-bold">${emp.empStatus || '-'} / ${emp.empType || '-'}</span></div>
+            
+            <div class="col-12"><span class="text-secondary fw-bold" style="font-size:10px; letter-spacing:0.5px;">LOCATION / GEO / ORG</span><br><span class="fw-bold">${emp.location || '-'} — ${emp.geo || '-'} — ${emp.orgLoc || '-'}</span></div>
+        `;
+        document.getElementById('employeeProfileContent').innerHTML = content;
+        document.getElementById('employeeProfileModal').style.display = 'flex';
+    }
+
+    function closeEmployeeProfileModal() {
+        document.getElementById('employeeProfileModal').style.display = 'none';
+        document.getElementById('quickEmpInput').focus();
+    }
+
+    function parseCSVLine(text) {
+        let result = [];
+        let curVal = '';
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+            let char = text[i];
+            if (inQuotes) {
+                if (char === '"') {
+                    if (i + 1 < text.length && text[i + 1] === '"') {
+                        curVal += '"'; i++;
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    curVal += char;
+                }
+            } else {
+                if (char === '"') {
+                    inQuotes = true;
+                } else if (char === ',') {
+                    result.push(curVal.trim());
+                    curVal = '';
+                } else {
+                    curVal += char;
+                }
+            }
+        }
+        result.push(curVal.trim());
+        return result;
+    }
+
+    function uploadEmployeeData() {
+        const fileInput = document.getElementById('csvFileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            showToast("Please select the latest Employee List CSV file first.", "error");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split(/\r?\n/);
+            let empData = {};
+
+            for (let i = 1; i < lines.length; i++) {
+                if(lines[i].trim() === '') continue;
+                let row = parseCSVLine(lines[i]);
+                if (row.length >= 7) {
+                    let id = row[0];
+                    let name = row[1];
+                    let grade = row[2] || '';
+                    let doj = row[3] || '';
+                    let location = row[4] || '';
+                    let geo = row[5] || '';
+                    let designation = row[6] || '';
+                    let orgLoc = row[7] || '';
+                    let empStatus = row[8] || '';
+                    let empType = row[9] || '';
+                    let mobile = row[10] || '';
+                    let nic = row[11] || '';
+                    let email = row[12] || '';
+
+                    if (id) {
+                        empData[id.toUpperCase()] = { 
+                            name: name, 
+                            designation: designation,
+                            grade: grade,
+                            doj: doj,
+                            location: location,
+                            geo: geo,
+                            orgLoc: orgLoc,
+                            empStatus: empStatus,
+                            empType: empType,
+                            mobile: mobile,
+                            nic: nic,
+                            email: email
+                        };
+                    }
+                }
+            }
+            localStorage.setItem('EmployeeMasterData', JSON.stringify(empData));
+            showToast(`Successfully mapped ${Object.keys(empData).length} employees!`, "success");
+            updateEmpStatus();
+            renderAll(); 
+        };
+        reader.readAsText(file);
+    }
+
+    function clearFrontendDisplay() {
+        if(confirm("Clear today's Front-End screen? (Records remain safe in the Backend)")) {
+            let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+            let currentDate = document.getElementById('currentDate').value;
+            
+            database.forEach(r => {
+                if (r.date === currentDate) {
+                    r.cleared = true; 
+                }
+            });
+            
+            localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+            renderAll();
+            showToast("Front-End Screen Cleared! (Backend Data is Safe)", "success");
+            document.getElementById('quickEmpInput').focus();
+        }
+    }
+
+    document.getElementById('quickEmpInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('empSuggestions').style.display = 'none';
+            processQuickEntry();
+        }
+    });
+
+    document.getElementById('quickRemarksInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            processQuickEntry();
+        }
+    });
+
+    function getPreviousDateString(dateStr) {
+        let d = new Date(dateStr);
+        d.setDate(d.getDate() - 1);
+        let y = d.getFullYear();
+        let m = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function processQuickEntry() {
+        let inputField = document.getElementById('quickEmpInput');
+        let empCode = inputField.value.trim().toUpperCase();
+        let shift = document.getElementById('shiftSelect').value;
+        let selectedDate = document.getElementById('currentDate').value;
+        let entryMode = document.querySelector('input[name="entryMode"]:checked').value;
+        let remarksField = document.getElementById('quickRemarksInput');
+        let remarks = remarksField.value.trim();
+        let timeNow = getCurrentTime();
+
+        if (empCode === "") return;
+
+        let targetDate = selectedDate;
+        let [h, m] = timeNow.split(':').map(Number);
+        let timeFloat = h + (m / 60.0);
+
+        // If Mode is OUT and time is before 08:00 AM, adjust record to previous day
+        if (entryMode === 'out' && timeFloat < 8.0) {
+            targetDate = getPreviousDateString(selectedDate);
+            let remarkNote = "Prev Day Night Out";
+            remarks = remarks ? remarks + " | " + remarkNote : remarkNote;
+        }
+
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        
+        let existingRecord = database.find(r => r.code === empCode && r.date === targetDate && 
+            (r.shift === shift || ((shift === 'MORNING' || shift === 'MORNING-GEN') && (r.shift === 'MORNING' || r.shift === 'MORNING-GEN')))
+        );
+
+        if (existingRecord) {
+            if (entryMode === 'in' && existingRecord.timeIn !== "") {
+                showToast(`Employee ${empCode} is already punched IN!`, 'error');
+                inputField.value = "";
+                inputField.focus();
+                return;
+            }
+            if (entryMode === 'out' && existingRecord.timeOut !== "") {
+                showToast(`Employee ${empCode} is already punched OUT!`, 'error');
+                inputField.value = "";
+                inputField.focus();
+                return;
+            }
+
+            existingRecord.cleared = false;
+
+            if (entryMode === 'in') {
+                existingRecord.timeIn = timeNow; 
+            } else {
+                existingRecord.timeOut = timeNow;
+            }
+
+            if (remarks !== "") {
+                existingRecord.remarks = existingRecord.remarks ? existingRecord.remarks + " | " + remarks : remarks;
+            }
+
+            showToast(`Employee ${empCode} Punched OUT successfully${targetDate !== selectedDate ? ' (Adjusted to Previous Day)' : ''}.`, 'success');
+        } else {
+
+            let finalShift = shift;
+            if (shift === 'MORNING' || shift === 'MORNING-GEN') {
+                let totalMorning = database.filter(r => r.date === targetDate && (r.shift === 'MORNING' || r.shift === 'MORNING-GEN')).length;
+                if (totalMorning % 80 < 40) {
+                    finalShift = 'MORNING';
+                } else {
+                    finalShift = 'MORNING-GEN';
+                }
+            }
+
+            database.push({
+                date: targetDate,
+                shift: finalShift,
+                code: empCode,
+                timeIn: entryMode === 'in' ? timeNow : "",
+                timeOut: entryMode === 'out' ? timeNow : "",
+                remarks: remarks,
+                cleared: false
+            });
+            
+            if (entryMode === 'in') {
+                showToast(`Employee ${empCode} Punched IN successfully.`, 'success');
+            } else {
+                showToast(`Employee ${empCode} Punched OUT successfully${targetDate !== selectedDate ? ' (Adjusted to Previous Day)' : ''}.`, 'success');
+            }
+        }
+
+        localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+        
+        inputField.value = "";
+        remarksField.value = "";
+        inputField.focus();
+        
+        renderFrontendTables(database);
+        renderBackend(database);
+    }
+
+    let backendCurrentPage = 1;
+    const backendRowsPerPage = 25; 
+
+    function updatePaginationUI(totalRecords) {
+        let totalPages = Math.ceil(totalRecords / backendRowsPerPage) || 1;
+        let pageInfo = document.getElementById('pageInfo');
+        let prevBtn = document.getElementById('prevPageBtn');
+        let nextBtn = document.getElementById('nextPageBtn');
+
+        if(pageInfo) pageInfo.innerText = `PAGE ${backendCurrentPage} OF ${totalPages}  |  TOTAL: ${totalRecords}`;
+        if(prevBtn) prevBtn.disabled = (backendCurrentPage <= 1);
+        if(nextBtn) nextBtn.disabled = (backendCurrentPage >= totalPages);
+        
+        resetBulkDeleteUI();
+    }
+
+    function prevPage() {
+        if (backendCurrentPage > 1) {
+            backendCurrentPage--;
+            if(window.filteredBackendData) { renderFilteredBackend(window.filteredBackendData); } 
+            else { 
+                let db = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+                renderBackend(db); 
+            }
+        }
+    }
+
+    function nextPage() {
+        backendCurrentPage++;
+        if(window.filteredBackendData) { renderFilteredBackend(window.filteredBackendData); } 
+        else { 
+            let db = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+            renderBackend(db); 
+        }
+    }
+
+    function renderAll() {
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        renderFrontendTables(database);
+        renderBackend(database);
+    }
+
+    // OVERHAULED FRONTEND TABLES DISPLAY - WITH BOTH IN & OUT IN SAME ROW
+    function renderFrontendTables(database) {
+        let currentDate = document.getElementById('currentDate').value;
+        let databaseWithIndex = database.map((r, i) => ({ ...r, originalIndex: i }));
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+
+        const shiftsMap = [
+            { id: 'table-morning', val: 'MORNING' },
+            { id: 'table-morning-gen', val: 'MORNING-GEN' },
+            { id: 'table-evening', val: 'EVENING' },
+            { id: 'table-night', val: 'NIGHT' }
+        ];
+
+        shiftsMap.forEach(shiftObj => {
+            let tbody = document.querySelector(`#${shiftObj.id} tbody`);
+            let records = databaseWithIndex.filter(r => r.shift === shiftObj.val && r.date === currentDate && !r.cleared).reverse();
+            let rowCount = Math.max(15, records.length + 1); 
+            
+            let htmlContent = "";
+
+            for (let i = 0; i < rowCount; i++) {
+                let r = records[i];
+                if (r) {
+                    let empDetails = empMaster[r.code] || { name: "", designation: "" };
+                    let displayName = empDetails.name;
+
+                    // Unique Copy Keys for 1-Hour Highlight Persistence
+                    let keyIn = `in_${r.date}_${r.shift}_${r.code}`;
+                    let keyOut = `out_${r.date}_${r.shift}_${r.code}`;
+                    let keyCode = `code_${r.date}_${r.shift}_${r.code}`;
+
+                    let isCopiedCode = isRecentlyCopied(keyCode) ? 'copied-recent-1h' : '';
+                    let isCopiedIn = isRecentlyCopied(keyIn) ? 'copied-recent-1h' : '';
+                    let isCopiedOut = isRecentlyCopied(keyOut) ? 'copied-recent-1h' : '';
+
+                    htmlContent += `
+                        <tr>
+                            <td class="text-center align-middle" style="background: transparent;">
+                                <div style="font-weight:700; color:#0f172a;">${i + 1}</div>
+                                <span class="modern-edit-action mt-1" onclick="openEditModal(${r.originalIndex})" title="Edit Entry">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                </span>
+                            </td>
+                            <td style="position: relative; padding: 8px 4px; text-align: center;">
+                                <div class="copyable-field ${isCopiedCode}" data-copy-val="${r.code}" onclick="copyToClipboardAction(this, '${keyCode}')" title="Click to copy Code" style="padding: 2px 4px; border-radius: 6px;">
+                                    <div class="fw-bold text-primary" style="font-size: 13px; letter-spacing: -0.3px;">${r.code}</div>
+                                </div>
+                                <div style="font-size: 11px; color: #0f172a; font-weight: 800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:2px;" title="${displayName}">${displayName}</div>
+                                ${r.remarks ? `<span class="modern-remark-icon" onclick="openQuickRemarksModal(${r.originalIndex})" title="View/Edit Remarks"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>` : ''}
+                            </td>
+                            <td class="align-middle">
+                                <div class="timing-container">
+                                    <div class="timing-row copyable-field ${isCopiedIn}" data-copy-val="${r.timeIn || ''}" onclick="copyToClipboardAction(this, '${keyIn}')" title="Click to copy Time In">
+                                        <span class="dot dot-in"></span>
+                                        <span class="${r.timeIn ? 'time-text-in' : 'time-empty'}">${formatTimeAMPM(r.timeIn)}</span>
+                                    </div>
+                                    <div class="timing-row copyable-field ${isCopiedOut}" data-copy-val="${r.timeOut || ''}" onclick="copyToClipboardAction(this, '${keyOut}')" title="Click to copy Time Out">
+                                        <span class="dot dot-out"></span>
+                                        <span class="${r.timeOut ? 'time-text-out' : 'time-empty'}">${formatTimeAMPM(r.timeOut)}</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    htmlContent += `
+                        <tr>
+                            <td class="text-center align-middle" style="background: transparent; color: #cbd5e1; font-weight:600;">${i + 1}</td>
+                            <td class="text-center align-middle"><span style="color: #cbd5e1;">-</span></td>
+                            <td class="align-middle">
+                                <div class="timing-container">
+                                    <div class="timing-row"><span class="dot dot-in" style="opacity: 0.3;"></span><span class="time-empty">-- : --</span></div>
+                                    <div class="timing-row"><span class="dot dot-out" style="opacity: 0.3;"></span><span class="time-empty">-- : --</span></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            tbody.innerHTML = htmlContent;
+        });
+
+        filterFrontEnd();
+    }
+
+    function renderBackend(database) {
+        if (!database) database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        const tbody = document.getElementById('database-body');
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+
+        function getShiftClass(shift) {
+            if(shift === 'MORNING') return 'shift-morning';
+            if(shift === 'MORNING-GEN') return 'shift-morning-gen';
+            if(shift === 'EVENING') return 'shift-evening';
+            if(shift === 'NIGHT') return 'shift-night';
+            return 'bg-secondary text-white';
+        }
+
+        let allRecords = [...database].reverse().map((r, i) => ({
+            record: r,
+            originalIndex: database.length - 1 - i
+        }));
+
+        let totalRecords = allRecords.length;
+        let totalPages = Math.ceil(totalRecords / backendRowsPerPage) || 1;
+        if(backendCurrentPage > totalPages) backendCurrentPage = totalPages;
+        if(backendCurrentPage < 1) backendCurrentPage = 1;
+
+        let paginatedRecords = allRecords.slice((backendCurrentPage - 1) * backendRowsPerPage, backendCurrentPage * backendRowsPerPage);
+
+        let htmlContent = "";
+        paginatedRecords.forEach((item) => {
+            let record = item.record;
+            let originalIndex = item.originalIndex;
+            let shiftClass = getShiftClass(record.shift);
+            
+            let empDetails = empMaster[record.code] || { name: "", designation: "" };
+            let displayName = empDetails.name;
+            let displayDesig = empDetails.designation;
+            
+            htmlContent += `
+                <tr>
+                    <td class="text-center align-middle">
+                        <input type="checkbox" class="record-checkbox" value="${originalIndex}" onchange="toggleBulkDeleteBtn()">
+                    </td>
+                    <td class="align-middle fw-bold" style="color: #64748b;">${record.date}</td>
+                    <td class="align-middle"><span class="shift-badge ${shiftClass}">${record.shift}</span></td>
+                    <td class="align-middle text-primary" style="font-size: 15px;">
+                        <div class="fw-bold">${record.code} ${record.remarks ? `<span class="modern-remark-icon backend-remark-icon" onclick="openQuickRemarksModal(${originalIndex})" title="View/Edit Remarks"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>` : ''}</div>
+                        <div style="font-size: 11px; color: #0f172a; font-weight: 700; margin-top: 2px;">${displayName}</div>
+                        <div style="font-size: 10px; color: #64748b;">${displayDesig}</div>
+                    </td>
+                    <td class="align-middle"><span class="badge bg-success shadow-sm px-2 py-1 fs-6">${record.timeIn || "--:--"}</span></td>
+                    <td class="align-middle"><span class="badge bg-secondary shadow-sm px-2 py-1 fs-6">${record.timeOut || "--:--"}</span></td>
+                    <td class="text-center align-middle">
+                        <button class="btn-modern-edit" onclick="openEditModal(${originalIndex})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Edit</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = htmlContent;
+        updatePaginationUI(totalRecords);
+    }
+
+    // --- BULK DELETE LOGIC ---
+    function resetBulkDeleteUI() {
+        let selectAll = document.getElementById('selectAllCheckbox');
+        let bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        if(selectAll) selectAll.checked = false;
+        if(bulkDeleteBtn) bulkDeleteBtn.style.display = 'none';
+    }
+
+    function toggleSelectAll() {
+        let selectAll = document.getElementById('selectAllCheckbox').checked;
+        let checkboxes = document.querySelectorAll('.record-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAll);
+        toggleBulkDeleteBtn();
+    }
+
+    function toggleBulkDeleteBtn() {
+        let checkboxes = document.querySelectorAll('.record-checkbox:checked');
+        let btn = document.getElementById('bulkDeleteBtn');
+        
+        if (checkboxes.length > 0) {
+            btn.style.display = 'inline-block';
+        } else {
+            btn.style.display = 'none';
+        }
+        
+        let allCheckboxes = document.querySelectorAll('.record-checkbox');
+        document.getElementById('selectAllCheckbox').checked = (checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0);
+    }
+
+    function deleteSelectedRecords() {
+        let checkedBoxes = document.querySelectorAll('.record-checkbox:checked');
+        if (checkedBoxes.length === 0) return;
+
+        if (confirm(`Are you sure you want to completely delete ${checkedBoxes.length} selected records?`)) {
+            let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+            
+            let indicesToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
+            
+            indicesToDelete.forEach(index => {
+                database.splice(index, 1);
+            });
+
+            localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+            
+            resetBulkDeleteUI();
+            
+            if(window.filteredBackendData) { applyBackendFilters(); } else { renderAll(); }
+            showToast(`${checkedBoxes.length} Records Deleted Successfully`, "success");
+        }
+    }
+
+    function openEditModal(index) {
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        let record = database[index];
+        
+        if(!record) return;
+
+        document.getElementById('editIndex').value = index;
+        document.getElementById('editDate').value = record.date;
+        document.getElementById('editShift').value = record.shift;
+        document.getElementById('editCode').value = record.code;
+        document.getElementById('editTimeIn').value = record.timeIn;
+        document.getElementById('editTimeOut').value = record.timeOut;
+        document.getElementById('editRemarks').value = record.remarks || "";
+
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        document.getElementById('quickEmpInput').focus(); 
+    }
+
+    function saveEdit() {
+        let index = document.getElementById('editIndex').value;
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+
+        if(!database[index]) return;
+
+        database[index].date = document.getElementById('editDate').value;
+        database[index].shift = document.getElementById('editShift').value;
+        database[index].code = document.getElementById('editCode').value.trim().toUpperCase();
+        database[index].timeIn = document.getElementById('editTimeIn').value;
+        database[index].timeOut = document.getElementById('editTimeOut').value;
+        database[index].remarks = document.getElementById('editRemarks').value.trim();
+
+        localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+        closeEditModal();
+        
+        if(window.filteredBackendData) { applyBackendFilters(); } else { renderAll(); }
+        showToast("Record Updated Successfully", "success");
+    }
+
+    function deleteRecord() {
+        let index = document.getElementById('editIndex').value;
+        if(confirm("Are you sure you want to delete this specific entry?")) {
+            let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+            
+            database.splice(index, 1);
+            
+            localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+            closeEditModal();
+            
+            if(window.filteredBackendData) { applyBackendFilters(); } else { renderAll(); }
+            showToast("Record Deleted", "success");
+        }
+    }
+
+    function openQuickRemarksModal(index) {
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        let record = database[index];
+        if(!record) return;
+
+        document.getElementById('quickRemarksIndex').value = index;
+        document.getElementById('quickRemarksCode').value = record.code;
+        document.getElementById('quickRemarksText').value = record.remarks || "";
+
+        document.getElementById('quickRemarksModal').style.display = 'flex';
+    }
+
+    function closeQuickRemarksModal() {
+        document.getElementById('quickRemarksModal').style.display = 'none';
+        document.getElementById('quickEmpInput').focus(); 
+    }
+
+    function saveQuickRemarks() {
+        let index = document.getElementById('quickRemarksIndex').value;
+        let newRemarks = document.getElementById('quickRemarksText').value.trim();
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        
+        if(!database[index]) return;
+        
+        database[index].remarks = newRemarks;
+        localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+        
+        closeQuickRemarksModal();
+        if(window.filteredBackendData) { applyBackendFilters(); } else { renderAll(); }
+        showToast("Remarks updated successfully!", "success");
+    }
+
+    function deleteQuickRemarks() {
+        let index = document.getElementById('quickRemarksIndex').value;
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        
+        if(!database[index]) return;
+        
+        database[index].remarks = "";
+        localStorage.setItem('AttendanceDatabase', JSON.stringify(database));
+        
+        closeQuickRemarksModal();
+        if(window.filteredBackendData) { applyBackendFilters(); } else { renderAll(); }
+        showToast("Remarks deleted!", "success");
+    }
+
+    async function clearDatabase() {
+        if(confirm("Are you sure you want to permanently delete ALL records? This cannot be undone!")) {
+            let pwd = await requireAdminPassword("Action requires authorization.<br>Enter Admin Password:");
+            if (pwd === "admin123") {
+                localStorage.removeItem('AttendanceDatabase');
+                backendCurrentPage = 1;
+                renderAll();
+                showToast("Database Cleared Successfully", "success");
+            } else if (pwd !== null) {
+                showToast("Incorrect Password! Action Denied.", "error");
+            }
+        }
+    }
+
+    function filterFrontEnd() {
+        let filterValue = document.getElementById('searchFront').value.toLowerCase().trim();
+        let tables = ['table-morning', 'table-morning-gen', 'table-evening', 'table-night'];
+
+        tables.forEach(tableId => {
+            let rows = document.querySelectorAll(`#${tableId} tbody tr`);
+            rows.forEach(row => {
+                let empCodeEl = row.querySelector('[data-copy-val]');
+                let empCode = empCodeEl ? empCodeEl.getAttribute('data-copy-val').toLowerCase().trim() : "";
+
+                if (filterValue === "") {
+                    row.style.display = ""; 
+                } else {
+                    if (empCode === filterValue && empCode !== "") {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                }
+            });
+        });
+    }
+
+    function filterBackend() {
+        let filterValue = document.getElementById('searchBack').value.toLowerCase().trim();
+        
+        if (filterValue === "") {
+            window.filteredBackendData = null;
+            backendCurrentPage = 1;
+            renderBackend();
+            return;
+        }
+
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        let databaseWithIndex = database.map((r, i) => ({ ...r, originalIndex: i }));
+
+        let now = new Date();
+        let y = now.getFullYear();
+        let m = String(now.getMonth() + 1).padStart(2, '0');
+        let firstDay = `${y}-${m}-01`;
+        let lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+        let lastDayStr = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+
+        window.filteredBackendData = databaseWithIndex.filter(r => {
+            let isMatch = r.code.toLowerCase() === filterValue;
+            let inMonth = r.date >= firstDay && r.date <= lastDayStr;
+            return isMatch && inMonth;
+        });
+
+        backendCurrentPage = 1;
+        renderFilteredBackend(window.filteredBackendData);
+    }
+
+    // EXPORT TO EXCEL - UNTOUCHED DATA STRUCTURE PRESERVATION
+    function exportToExcel(source) {
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+        let records = [];
+        let fileName = "Attendance_Export.csv";
+
+        if (source === 'front') {
+            let currentDate = document.getElementById('currentDate').value;
+            records = database.filter(r => r.date === currentDate && !r.cleared).reverse();
+            fileName = `Attendance_${currentDate}.csv`;
+        } else {
+            records = [...database].reverse(); 
+            fileName = `All_Attendance_Records.csv`;
+        }
+
+        if (records.length === 0) {
+            showToast("No records to export.", "error");
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Date,Shift,Employee Code,Name,Designation,Time In,Time Out,Remarks\n";
+
+        records.forEach(r => {
+            let empDetails = empMaster[r.code] || { name: "", designation: "" };
+            let row = `${r.date},${r.shift},${r.code},"${empDetails.name}","${empDetails.designation}",${r.timeIn || '--:--'},${r.timeOut || '--:--'},"${r.remarks || ''}"`;
+            csvContent += row + "\n";
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Exported to Excel successfully!", "success");
+    }
+
+    async function switchTab(tab) {
+        if (tab === 'admin') {
+            let pwd = await requireAdminPassword("Action requires authorization.<br>Enter Admin Password:");
+            if (pwd !== "admin123") {
+                if (pwd !== null) showToast("Incorrect Password! Access Denied.", "error");
+                return;
+            }
+        }
+
+        document.getElementById('frontend-view').style.display = 'none';
+        document.getElementById('backend-view').style.display = 'none';
+        document.getElementById('admin-view').style.display = 'none';
+        document.getElementById('btn-front').classList.remove('active');
+        document.getElementById('btn-back').classList.remove('active');
+        document.getElementById('btn-admin').classList.remove('active');
+
+        if (tab === 'front') {
+            document.getElementById('frontend-view').style.display = 'block';
+            document.getElementById('btn-front').classList.add('active');
+            document.getElementById('quickEmpInput').focus(); 
+        } else if (tab === 'back') {
+            document.getElementById('backend-view').style.display = 'block';
+            document.getElementById('btn-back').classList.add('active');
+        } else if (tab === 'admin') {
+            document.getElementById('admin-view').style.display = 'block';
+            document.getElementById('btn-admin').classList.add('active');
+        }
+    }
+
+    function printAttendance() {
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+        let currentDate = document.getElementById('currentDate').value;
+        let records = database.filter(r => r.date === currentDate && !r.cleared).reverse();
+
+        let morning = records.filter(r => r.shift === 'MORNING');
+        let morningGen = records.filter(r => r.shift === 'MORNING-GEN');
+        let evening = records.filter(r => r.shift === 'EVENING');
+        let night = records.filter(r => r.shift === 'NIGHT');
+
+        const chunkArray = (arr, size) => {
+            let results = [];
+            for (let i = 0; i < arr.length; i += size) {
+                results.push(arr.slice(i, i + size));
+            }
+            return results;
+        };
+
+        let mChunks = chunkArray(morning, 40);
+        let mgChunks = chunkArray(morningGen, 40);
+        let eChunks = chunkArray(evening, 40);
+        let nChunks = chunkArray(night, 40);
+
+        if(mChunks.length === 0) mChunks = [[]];
+        if(mgChunks.length === 0) mgChunks = [[]];
+        if(eChunks.length === 0) eChunks = [[]];
+        if(nChunks.length === 0) nChunks = [[]];
+
+        let maxChunks = Math.max(mChunks.length, mgChunks.length, eChunks.length, nChunks.length);
+
+        let printWindow = window.open('', '_blank');
+        let html = `<html><head><title>Print Attendance - ${currentDate}</title>`;
+        
+        html += `<style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            
+            @page { size: A4 portrait; margin: 8mm 6mm; } 
+            
+            body { 
+                font-family: 'Inter', sans-serif; 
+                font-size: 8.5px; 
+                margin: 0; 
+                padding: 0;
+                color: #1e293b; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                background-color: #fff;
+            }
+            
+            .page { 
+                box-sizing: border-box; 
+                page-break-after: always; 
+                width: 100%; 
+                display: flex; 
+                flex-direction: column; 
+                gap: 10px;
+                padding-bottom: 2mm;
+            }
+            .page:last-child { page-break-after: avoid !important; }
+            
+            .report-header {
+                text-align: center;
+                padding: 8px;
+                background: #f8fafc;
+                border-radius: 8px;
+                border: 1px solid #cbd5e1;
+            }
+            .page-title { 
+                font-size: 14px; 
+                font-weight: 800; 
+                color: #0f172a;
+                margin: 0 0 2px 0;
+                text-transform: uppercase; 
+                letter-spacing: 0.5px;
+            }
+            .page-subtitle {
+                font-size: 9px;
+                font-weight: 700;
+                color: #64748b;
+                margin: 0;
+            }
+
+            .tables-wrapper { 
+                display: flex; 
+                gap: 6px; 
+                width: 100%; 
+                flex-grow: 1;
+            }
+            
+            .table-col { 
+                flex: 1; 
+                min-width: 0; 
+                background: #fff;
+                border-radius: 6px;
+                border: 1px solid #cbd5e1;
+                overflow: hidden; 
+            }
+            
+            table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                table-layout: fixed; 
+            }
+            
+            th, td { 
+                padding: 2px; 
+                text-align: center; 
+                vertical-align: middle; 
+                overflow: hidden; 
+                white-space: nowrap; 
+                text-overflow: ellipsis; 
+                border-right: 1px solid #e2e8f0;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            th:last-child, td:last-child { border-right: none; }
+            tr:last-child td { border-bottom: none; }
+            
+            tbody tr { height: 21px; }
+            tbody tr:nth-child(even) { background-color: #f8fafc; } 
+            
+            .shift-header { 
+                background-color: #4f46e5; 
+                color: #ffffff;
+                font-size: 10px; 
+                font-weight: 700;
+                padding: 5px 2px;
+                letter-spacing: 0.5px;
+                border: none;
+                border-bottom: 1px solid #4338ca;
+            }
+            
+            .col-headers th { 
+                background-color: #f1f5f9; 
+                font-weight: 800; 
+                font-size: 8px; 
+                color: #334155;
+                text-transform: uppercase;
+                border-bottom: 2px solid #cbd5e1;
+                padding: 4px 2px;
+            }
+            
+            .col-sr { width: 12%; color: #94a3b8; font-weight: 600; font-size: 8px;}
+            .col-emp { width: 40%; font-weight: 700; color: #0f172a; font-size: 8.5px;}
+            .col-time { width: 24%; font-weight: 600; color: #475569; font-size: 8.5px;}
+            
+            .empty-row td { color: transparent !important; }
+        </style></head><body>`;
+
+        function generateTable(title, dataChunk, startIndex) {
+            let tableHtml = `<div class="table-col">
+                <table>
+                    <thead>
+                        <tr><th colspan="4" class="shift-header">${title}</th></tr>
+                        <tr class="col-headers"><th class="col-sr">Sr#</th><th class="col-emp">Emp Code & Details</th><th class="col-time">Time In</th><th class="col-time">Time Out</th></tr>
+                    </thead>
+                    <tbody>`;
+            
+            for (let i = 0; i < 40; i++) {
+                if (dataChunk && i < dataChunk.length) {
+                    let r = dataChunk[i];
+                    let empDetails = empMaster[r.code] || { name: "", designation: "" };
+                    tableHtml += `<tr><td class="col-sr">${startIndex + i + 1}</td><td class="col-emp" title="${r.remarks || ''}">${r.code}<br><span style="font-size:7px; color:#64748b;">${empDetails.name}</span> ${r.remarks ? '💬' : ''}</td><td class="col-time">${r.timeIn || '--:--'}</td><td class="col-time">${r.timeOut || '--:--'}</td></tr>`;
+                } else {
+                    tableHtml += `<tr class="empty-row"><td class="col-sr">${startIndex + i + 1}</td><td class="col-emp">-</td><td class="col-time">-</td><td class="col-time">-</td></tr>`;
+                }
+            }
+            tableHtml += `</tbody></table></div>`;
+            return tableHtml;
+        }
+
+        for(let i=0; i<maxChunks; i++) {
+            html += `<div class="page">
+                <div class="report-header">
+                    <h1 class="page-title">Daily Attendance Report</h1>
+                    <p class="page-subtitle">DATE: ${currentDate} &nbsp;|&nbsp; PAGE: ${i+1} OF ${maxChunks}</p>
+                </div>
+                <div class="tables-wrapper">`;
+            
+            html += generateTable('MORNING', mChunks[i], i*40);
+            html += generateTable('M + GEN', mgChunks[i], i*40);
+            html += generateTable('EVENING', eChunks[i], i*40);
+            html += generateTable('NIGHT', nChunks[i], i*40);
+            
+            html += `</div></div>`;
+        }
+
+        html += `</body><script>
+            window.onload = function() { 
+                setTimeout(function() { 
+                    window.print(); 
+                    setTimeout(function() { window.close(); }, 500);
+                }, 500); 
+            }
+        <\/script></html>`;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+    }
+
+    window.filteredBackendData = null; 
+
+    function applyBackendFilters() {
+        backendCurrentPage = 1; 
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        
+        let databaseWithIndex = database.map((r, i) => ({ ...r, originalIndex: i }));
+
+        let sDate = document.getElementById('filterStartDate').value;
+        let eDate = document.getElementById('filterEndDate').value;
+        let shift = document.getElementById('filterShift').value;
+        let empCode = document.getElementById('filterEmpCode').value.trim().toUpperCase();
+
+        if (empCode && !sDate && !eDate) {
+            let now = new Date();
+            let y = now.getFullYear();
+            let m = String(now.getMonth() + 1).padStart(2, '0');
+            let firstDay = `${y}-${m}-01`;
+            let lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+            let lastDayStr = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+
+            sDate = firstDay;
+            eDate = lastDayStr;
+            
+            document.getElementById('filterStartDate').value = sDate;
+            document.getElementById('filterEndDate').value = eDate;
+        }
+
+        window.filteredBackendData = databaseWithIndex.filter(r => {
+            let match = true;
+            if (sDate && r.date < sDate) match = false;
+            if (eDate && r.date > eDate) match = false;
+            if (shift && r.shift !== shift) match = false;
+            if (empCode && r.code !== empCode) match = false;
+            return match;
+        });
+
+        renderFilteredBackend(window.filteredBackendData);
+        showToast("Filters applied successfully", "success");
+    }
+
+    function renderFilteredBackend(dataArray) {
+        const tbody = document.getElementById('database-body');
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+
+        function getShiftClass(shift) {
+            if(shift === 'MORNING') return 'shift-morning';
+            if(shift === 'MORNING-GEN') return 'shift-morning-gen';
+            if(shift === 'EVENING') return 'shift-evening';
+            if(shift === 'NIGHT') return 'shift-night';
+            return 'bg-secondary text-white';
+        }
+
+        let allRecords = [...dataArray].reverse();
+        let totalRecords = allRecords.length;
+        let totalPages = Math.ceil(totalRecords / backendRowsPerPage) || 1;
+        if(backendCurrentPage > totalPages) backendCurrentPage = totalPages;
+        if(backendCurrentPage < 1) backendCurrentPage = 1;
+
+        let paginatedRecords = allRecords.slice((backendCurrentPage - 1) * backendRowsPerPage, backendCurrentPage * backendRowsPerPage);
+        
+        let htmlContent = "";
+        paginatedRecords.forEach((record) => {
+            let shiftClass = getShiftClass(record.shift);
+            let empDetails = empMaster[record.code] || { name: "", designation: "" };
+            let displayName = empDetails.name;
+            let displayDesig = empDetails.designation;
+
+            htmlContent += `
+                <tr>
+                    <td class="text-center align-middle">
+                        <input type="checkbox" class="record-checkbox" value="${record.originalIndex}" onchange="toggleBulkDeleteBtn()">
+                    </td>
+                    <td class="align-middle fw-bold" style="color: #64748b;">${record.date}</td>
+                    <td class="align-middle"><span class="shift-badge ${shiftClass}">${record.shift}</span></td>
+                    <td class="align-middle text-primary" style="font-size: 15px;">
+                        <div class="fw-bold">${record.code} ${record.remarks ? `<span class="modern-remark-icon backend-remark-icon" onclick="openQuickRemarksModal(${record.originalIndex})" title="View/Edit Remarks"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>` : ''}</div>
+                        <div style="font-size: 11px; color: #0f172a; font-weight: 700; margin-top: 2px;">${displayName}</div>
+                        <div style="font-size: 10px; color: #64748b;">${displayDesig}</div>
+                    </td>
+                    <td class="align-middle"><span class="badge bg-success shadow-sm px-2 py-1 fs-6">${record.timeIn || "--:--"}</span></td>
+                    <td class="align-middle"><span class="badge bg-secondary shadow-sm px-2 py-1 fs-6">${record.timeOut || "--:--"}</span></td>
+                    <td class="text-center align-middle">
+                        <button class="btn-modern-edit" onclick="openEditModal(${record.originalIndex})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Edit</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = htmlContent;
+        updatePaginationUI(totalRecords);
+    }
+
+    function resetBackendFilters() {
+        document.getElementById('filterStartDate').value = "";
+        document.getElementById('filterEndDate').value = "";
+        document.getElementById('filterShift').value = "";
+        document.getElementById('filterEmpCode').value = "";
+        window.filteredBackendData = null;
+        backendCurrentPage = 1; 
+        
+        let db = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        renderBackend(db); 
+        showToast("Filters reset to default", "success");
+    }
+
+    function exportFilteredExcel() {
+        let records = window.filteredBackendData;
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+        
+        if (!records) {
+            showToast("Please Apply a Filter first to export filtered data.", "error");
+            return;
+        }
+        
+        let displayRecords = [...records].reverse();
+
+        if (displayRecords.length === 0) {
+            showToast("No records match your filter criteria.", "error");
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Date,Shift,Employee Code,Name,Designation,Time In,Time Out,Remarks\n";
+
+        displayRecords.forEach(r => {
+            let empDetails = empMaster[r.code] || { name: "", designation: "" };
+            let row = `${r.date},${r.shift},${r.code},"${empDetails.name}","${empDetails.designation}",${r.timeIn || '--:--'},${r.timeOut || '--:--'},"${r.remarks || ''}"`;
+            csvContent += row + "\n";
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Filtered_Attendance_Data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Filtered Data Exported to Excel!", "success");
+    }
+
+    function printFilteredBackend() {
+        let records = window.filteredBackendData;
+        let empMaster = JSON.parse(localStorage.getItem('EmployeeMasterData')) || {};
+        
+        if (!records) {
+            showToast("Please Apply a Filter first to print filtered data.", "error");
+            return;
+        }
+
+        let displayRecords = [...records].reverse();
+
+        if (displayRecords.length === 0) {
+            showToast("No records match your filter criteria.", "error");
+            return;
+        }
+
+        let printWindow = window.open('', '_blank');
+        let html = `<html><head><title>Filtered Attendance Report</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            body { font-family: 'Inter', sans-serif; padding: 20px; color: #0f172a; }
+            .header-banner { background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; text-align: center; margin-bottom: 20px; }
+            .header-banner h2 { margin: 0; font-weight: 800; font-size: 18px; color: #4f46e5; text-transform: uppercase; }
+            .header-banner p { margin: 5px 0 0 0; font-size: 12px; color: #64748b; font-weight: 600; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px 8px; text-align: center; vertical-align: middle; }
+            th { background-color: #f1f5f9; color: #334155; text-transform: uppercase; font-size: 11px; font-weight: 800; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .emp-code { font-weight: 700; color: #0f172a; }
+        </style>
+        </head><body>
+        
+        <div class="header-banner">
+            <h2>Filtered Attendance Report</h2>
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+            <p>Total Records: ${displayRecords.length}</p>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Shift</th>
+                    <th>Employee Code & Details</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        displayRecords.forEach((r, index) => {
+            let empDetails = empMaster[r.code] || { name: "", designation: "" };
+            html += `<tr>
+                <td style="color:#64748b; font-weight:600;">${index + 1}</td>
+                <td style="font-weight:600;">${r.date}</td>
+                <td>${r.shift}</td>
+                <td class="emp-code" title="${r.remarks || ''}">${r.code}<br><span style="font-size:10px; color:#64748b; font-weight:600;">${empDetails.name}</span> ${r.remarks ? '💬' : ''}</td>
+                <td>${r.timeIn || '--:--'}</td>
+                <td>${r.timeOut || '--:--'}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>
+        <script>
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                    setTimeout(function() { window.close(); }, 500);
+                }, 500);
+            }
+        <\/script>
+        </body></html>`;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+    }
+
+    function generateSyncToken() {
+        let database = JSON.parse(localStorage.getItem('AttendanceDatabase')) || [];
+        if(database.length === 0) {
+            showToast("No data to export!", "error");
+            return;
+        }
+        try {
+            let token = btoa(unescape(encodeURIComponent(JSON.stringify(database))));
+            document.getElementById('exportTokenField').value = token;
+            showToast("Sync Token Generated!", "success");
+        } catch(e) {
+            showToast("Error generating token.", "error");
+        }
+    }
+
+    function copySyncToken() {
+        let tokenField = document.getElementById('exportTokenField');
+        if(!tokenField.value) {
+            showToast("Generate a token first!", "error");
+            return;
+        }
+        tokenField.select();
+        document.execCommand("copy");
+        showToast("Token Copied to Clipboard!", "success");
+    }
+
+    async function importSyncToken() {
+        let token = document.getElementById('importTokenField').value.trim();
+        if(!token) {
+            showToast("Paste a token first!", "error");
+            return;
+        }
+        
+        if(confirm("WARNING: Importing will permanently overwrite ALL current data! Are you sure?")) {
+            let pwd = await requireAdminPassword("Action requires authorization.<br>Enter Admin Password:");
+            if (pwd === "admin123") {
+                try {
+                    let decodedData = decodeURIComponent(escape(atob(token)));
+                    let parsedData = JSON.parse(decodedData);
+                    
+                    if(Array.isArray(parsedData)) {
+                        localStorage.setItem('AttendanceDatabase', JSON.stringify(parsedData));
+                        document.getElementById('importTokenField').value = "";
+                        document.getElementById('exportTokenField').value = "";
+                        
+                        backendCurrentPage = 1;
+                        window.filteredBackendData = null;
+                        renderAll();
+                        
+                        showToast("Database Successfully Restored!", "success");
+                    } else {
+                        throw new Error("Invalid Format");
+                    }
+                } catch(e) {
+                    showToast("Invalid or Corrupted Sync Token!", "error");
+                }
+            } else if (pwd !== null) {
+                showToast("Incorrect Password! Action Denied.", "error");
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

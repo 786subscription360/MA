@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #003d99 100%);
+            --glass-bg: rgba(255, 255, 255, 0.98);
+            --transition-smooth: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        body {
+            background: radial-gradient(circle at 15% 0%, #eef2fb 0%, #f0f2f5 45%, #eef1f6 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            color: #333;
+            min-height: 100vh;
+            padding: 20px 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .main-card {
+            max-width: 950px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            border-radius: 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 30px 70px -20px rgba(13,60,150,0.16);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.04);
+            animation: cardEntrance 0.7s var(--ease-premium);
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(24px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card-header-custom {
+            background: var(--primary-gradient);
+            padding: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header-custom::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% -20%, rgba(255,255,255,0.18), transparent 55%);
+            pointer-events: none;
+        }
+
+        .content-body { padding: 30px; }
+
+        /* Dropdown Section Box */
+        .section-box {
+            background: #fff;
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.02);
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
+
+        .section-box:hover {
+            box-shadow: 0 12px 30px rgba(13,60,150,0.06);
+            border-color: #d1d9e0;
+        }
+
+        .section-header {
+            padding: 18px 22px;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .section-header:hover {
+            background: #f8fafc;
+        }
+
+        .section-title-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .section-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin: 0;
+            padding-left: 28px;
+        }
+
+        .collapse-icon {
+            font-size: 0.9rem;
+            color: #64748b;
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Rotate chevron when open */
+        .section-header[aria-expanded="true"] .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-body {
+            padding: 0 22px 20px 22px;
+            background: #fff;
+        }
+
+        @media (max-width: 576px) {
+            .content-body { padding: 16px; }
+            .card-header-custom { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="main-card">
+        <div class="card-header-custom d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fas fa-list-check me-2"></i>Audit Guide</h3>
+                <p class="mb-0 text-white-50 small">Simple step-by-step audit procedure</p>
+            </div>
+        </div>
+
+        <div class="content-body">
+
+            <!-- Section 1: Check Overtime (OT) Hours & Numbers -->
+            <div class="section-box">
+                <div class="section-header" data-bs-toggle="collapse" data-bs-target="#section1Body" aria-expanded="true" aria-controls="section1Body">
+                    <div class="section-title-wrapper">
+                        <h4 class="section-title text-primary"><i class="fas fa-clock"></i> 1. Check Overtime (OT) Hours & Numbers</h4>
+                        <p class="section-desc">Verify decimal points, odd numbers, and shifts greater than 8 hours against source documents.</p>
+                    </div>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="section1Body" class="collapse show">
+                    <div class="section-body">
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle">
+                            <h6 class="fw-bold text-primary mb-2"><i class="fas fa-info-circle me-1"></i> Overtime Verification Procedure:</h6>
+                            <p class="small text-muted mb-2">Cross-check all calculations directly against the main individual time sheet PDF:</p>
+                            <ul class="small text-secondary ps-3 mb-0">
+                                <li><strong>Check Decimal OT Values:</strong> Verify all decimal overtime figures (e.g., 4.5, 5.5, 7.5) precisely from the individual time sheet PDF.</li>
+                                <li><strong>Verify Odd OT Values:</strong> Inspect all odd overtime numbers (e.g., 1, 3, 5, 7, 9) for proper supervisor authorization.</li>
+                                <li><strong>Verify Over 8 Hours OT:</strong> Audit any shift exceeding 8 hours of overtime against the individual time sheet PDF to guarantee accuracy and policy compliance.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Fix Validation Errors -->
+            <div class="section-box">
+                <div class="section-header" data-bs-toggle="collapse" data-bs-target="#section2Body" aria-expanded="false" aria-controls="section2Body">
+                    <div class="section-title-wrapper">
+                        <h4 class="section-title text-danger"><i class="fas fa-triangle-exclamation"></i> 2. Fix Validation Errors</h4>
+                        <p class="section-desc">Review and resolve any flagged errors before final approval.</p>
+                    </div>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="section2Body" class="collapse">
+                    <div class="section-body">
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle">
+                            <h6 class="fw-bold text-danger mb-2"><i class="fas fa-info-circle me-1"></i> Validation Error Resolution Procedure:</h6>
+                            <p class="small text-muted mb-2">Follow these steps to evaluate flagged exceptions:</p>
+                            <ul class="small text-secondary ps-3 mb-0">
+                                <li><strong>Review Error Sheet:</strong> Open the automated validation error tab and inspect records flagged for irregular hour variances or improper approvals.</li>
+                                <li><strong>Compare with PDF:</strong> Cross-reference flagged entries with original source PDFs to determine if manual administrative intervention is required.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Check Manual CPL Approvals from Backend -->
+            <div class="section-box">
+                <div class="section-header" data-bs-toggle="collapse" data-bs-target="#section3Body" aria-expanded="false" aria-controls="section3Body">
+                    <div class="section-title-wrapper">
+                        <h4 class="section-title" style="color: #d63384;"><i class="fas fa-clipboard-list"></i> 3. Check Manual CPL Approvals from Backend</h4>
+                        <p class="section-desc">Verify compensatory leave and overtime adjustments noted in manager remarks.</p>
+                    </div>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="section3Body" class="collapse">
+                    <div class="section-body">
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle">
+                            <h6 class="fw-bold mb-2" style="color: #d63384;"><i class="fas fa-info-circle me-1"></i> CPL Approval Verification Procedure:</h6>
+                            <p class="small text-muted mb-2">Follow these steps to inspect backend data and manager notes:</p>
+                            <ul class="small text-secondary ps-3 mb-0">
+                                <li><strong>Check Zero-OT Remarks:</strong> Review entries where overtime is approved as zero (0) but manager remarks specify compensatory leave (e.g., "2 hours CPL", "8 hours CPL").</li>
+                                <li><strong>Verify Mixed Approvals:</strong> Inspect combined notes (e.g., "8 hours CPL + 8 hours OT") to ensure proper credit splitting and tracking.</li>
+                                <li><strong>Backend System Audit:</strong> Cross-verify these manual remarks against backend system records to ensure accurate payroll calculation and compliance.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Separate Executive Staff -->
+            <div class="section-box">
+                <div class="section-header" data-bs-toggle="collapse" data-bs-target="#section4Body" aria-expanded="false" aria-controls="section4Body">
+                    <div class="section-title-wrapper">
+                        <h4 class="section-title text-success"><i class="fas fa-user-shield"></i> 4. Separate Executive Staff</h4>
+                        <p class="section-desc">Details and procedure for handling and filtering executive records.</p>
+                    </div>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="section4Body" class="collapse">
+                    <div class="section-body">
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle">
+                            <h6 class="fw-bold text-success mb-2"><i class="fas fa-info-circle me-1"></i> Executive Staff Separation Procedure:</h6>
+                            <p class="small text-muted mb-2">Follow these guidelines to manage executive records properly:</p>
+                            <ul class="small text-secondary ps-3 mb-0">
+                                <li>Copy all employees listed under the executive roster.</li>
+                                <li>Paste them into the designated <strong>OVERTIME_SHEET</strong> tracking file.</li>
+                                <li>Filter records thoroughly and check for any duplicate profile entries.</li>
+                                <li>Ensure all executive staff members are completely removed from the primary non-executive calculation sheets.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Add Employee Details -->
+            <div class="section-box">
+                <div class="section-header" data-bs-toggle="collapse" data-bs-target="#section5Body" aria-expanded="false" aria-controls="section5Body">
+                    <div class="section-title-wrapper">
+                        <h4 class="section-title text-info"><i class="fas fa-database"></i> 5. Add Employee Details</h4>
+                        <p class="section-desc">Add extra employee information to the final report.</p>
+                    </div>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="section5Body" class="collapse">
+                    <div class="section-body">
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle">
+                            <h6 class="fw-bold text-info mb-2"><i class="fas fa-info-circle me-1"></i> Employee Details Integration Procedure:</h6>
+                            <p class="small text-muted mb-2">Follow these steps to append supplementary data:</p>
+                            <ul class="small text-secondary ps-3 mb-0">
+                                <li><strong>Match Employee Records:</strong> Compare employee IDs and names against the company's official master database.</li>
+                                <li><strong>Add Extra Info:</strong> Append comprehensive details such as job title (designation), employee grade, and department mapping next to each entry.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Format All Sheets & Check Formulas -->
+            <div class="section-box">
+                <div class="section-header" data-bs-toggle="collapse" data-bs-target="#section6Body" aria-expanded="false" aria-controls="section6Body">
+                    <div class="section-title-wrapper">
+                        <h4 class="section-title" style="color: #fd7e14;"><i class="fas fa-table"></i> 6. Format All Sheets & Check Formulas</h4>
+                        <p class="section-desc">Format all sheets as per requirements and verify all formulas work properly from A to Z.</p>
+                    </div>
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                </div>
+                <div id="section6Body" class="collapse">
+                    <div class="section-body">
+                        <div class="p-3 bg-light rounded-3 border border-light-subtle">
+                            <h6 class="fw-bold mb-2" style="color: #fd7e14;"><i class="fas fa-info-circle me-1"></i> Formatting & Formula Check Procedure:</h6>
+                            <p class="small text-muted mb-2">Follow these steps to ensure clean formatting and error-free calculations:</p>
+                            <ul class="small text-secondary ps-3 mb-0">
+                                <li><strong>Format All Sheets:</strong> Ensure every sheet is formatted properly according to company requirements (proper alignments, row/column styling, and neat layout).</li>
+                                <li><strong>Check Formulas (A to Z):</strong> Verify all Excel formulas across columns A to Z are functioning correctly, with dynamic ranges and no broken references or static cell locks.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

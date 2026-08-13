@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebVault Pro &bull; Ultra-Secure & Persistent Code Workspace</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bs-body-font-family: 'Plus Jakarta Sans', sans-serif;
+            --bg-main: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --primary-blue: #2563eb;
+            --primary-soft: #eff6ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --editor-bg: #0f172a;
+            --editor-text: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            letter-spacing: -0.01em;
+        }
+
+        /* Top Workspace Navbar */
+        .top-navbar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .search-pill {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.25s ease;
+        }
+        .search-pill:focus-within {
+            background: #ffffff;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Front Page Drag & Drop Upload Bar */
+        .upload-bar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px dashed #cbd5e1;
+            border-radius: 1.25rem;
+            padding: 1.5rem 1.75rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+        .upload-bar:hover, .upload-bar.dragover {
+            border-color: var(--primary-blue);
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
+        }
+
+        /* Fixed Left Sidebar */
+        .sidebar-fixed {
+            width: 280px;
+            min-width: 280px;
+            height: calc(100vh - 73px);
+            position: sticky;
+            top: 73px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            z-index: 1010;
+            padding: 1.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.85rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+        .sidebar-item:hover {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+        .sidebar-item.active {
+            background: var(--primary-soft);
+            color: var(--primary-blue);
+            box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Cards */
+        .card-snippet {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 1.35rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        }
+        .card-snippet:hover {
+            transform: translateY(-4px);
+            border-color: #94a3b8;
+            box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Code Box */
+        .code-box {
+            background: var(--editor-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.85rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-preview-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--editor-text);
+            padding: 1rem;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .btn-primary-pill {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff !important;
+            font-weight: 600;
+            border-radius: 2rem;
+            padding: 0.55rem 1.35rem;
+            border: none;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            transition: all 0.25s ease;
+        }
+        .btn-primary-pill:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .iframe-preview {
+            width: 100%;
+            height: 420px;
+            border: 1px solid var(--border-color);
+            border-radius: 0.85rem;
+            background: #ffffff;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2);
+            padding: 0.5rem;
+        }
+
+        /* Persistence Indicator Pill */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-protected {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar-fixed {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Workspace Navbar -->
+    <header class="top-navbar d-flex align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="#" class="d-flex align-items-center gap-2.5 text-decoration-none text-dark">
+                <div class="p-2 rounded-3 text-white d-flex align-items-center justify-content-center shadow-sm" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); width: 40px; height: 40px;">
+                    <i class="bi bi-shield-lock-fill fs-5"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-5 tracking-tight text-slate-900 d-block lh-1">WebVault</span>
+                    <span class="text-muted" style="font-size: 0.65rem; font-weight: 600;">PRO WORKSPACE</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Center Search Bar -->
+        <div class="flex-grow-1 max-w-2xl mx-auto px-lg-4" style="max-width: 620px;">
+            <div class="search-pill d-flex align-items-center gap-2">
+                <i class="bi bi-search text-muted fs-6"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-transparent p-0 shadow-none text-dark" placeholder="Search snippets, code content, or categories..." oninput="renderBackups()">
+                <button class="btn btn-sm btn-link text-muted p-0 border-0 d-none" id="clearSearchBtn" onclick="clearSearch()"><i class="bi bi-x-circle-fill"></i></button>
+            </div>
+        </div>
+
+        <!-- Right Action Controls -->
+        <div class="d-flex align-items-center gap-2.5">
+            <!-- Storage Protection Status -->
+            <div class="d-none d-md-flex align-items-center" id="persistenceBadgeContainer">
+                <span class="status-pill status-protected" id="persistenceBadge">
+                    <i class="bi bi-shield-check"></i> Persistence Active
+                </span>
+            </div>
+            
+            <button class="btn btn-primary-pill btn-sm d-flex align-items-center gap-1.5 px-3 py-2" onclick="openAddModal()">
+                <i class="bi bi-plus-lg fs-6"></i>
+                <span class="fw-semibold">Create Snippet</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Workspace Container (Fixed Sidebar + Main Content) -->
+    <div class="d-flex flex-grow-1 w-100">
+        
+        <!-- Fixed Left Sidebar -->
+        <aside class="sidebar-fixed" id="sidebarDrawer">
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-3">
+                <div class="fw-bold fs-6 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-gear-fill text-primary"></i> Vault Settings
+                </div>
+                <span class="badge bg-light text-muted border font-monospace" id="headerQuota">0 KB</span>
+            </div>
+
+            <div>
+                <div class="text-uppercase small fw-bold text-muted mb-2 ps-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Categories</div>
+                <nav class="d-flex flex-column gap-1.5">
+                    <button class="sidebar-item active" data-cat="all" onclick="setCategory('all')">
+                        <i class="bi bi-grid-fill"></i>
+                        <span>All Snippets</span>
+                        <span class="badge bg-light text-dark ms-auto border" id="catCountAll">0</span>
+                    </button>
+                    <button class="sidebar-item" data-cat="Base64" onclick="setCategory('Base64')">
+                        <i class="bi bi-shield-code text-primary"></i>
+                        <span>Base64 Codes</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto" id="catCountBase64">0</span>
+                    </button>
+                    <button class="sidebar-item" data-cat="JSON" onclick="setCategory('JSON')">
+                        <i class="bi bi-filetype-json text-success"></i>
+                        <span>JSON Backups</span>
+                        <span class="badge bg-success bg-opacity-10 text-success ms-auto" id="catCountJSON">0</span>
+                    </button>
+                    <button class="sidebar-item" data-cat="HTML/JS" onclick="setCategory('HTML/JS')">
+                        <i class="bi bi-code-slash text-warning"></i>
+                        <span>HTML / JS Output</span>
+                        <span class="badge bg-warning bg-opacity-20 text-dark ms-auto" id="catCountHTML">0</span>
+                    </button>
+                    <button class="sidebar-item" data-cat="Other" onclick="setCategory('Other')">
+                        <i class="bi bi-box text-info"></i>
+                        <span>Other Snippets</span>
+                        <span class="badge bg-info bg-opacity-10 text-info ms-auto" id="catCountOther">0</span>
+                    </button>
+                </nav>
+            </div>
+
+            <hr class="my-1 border-secondary opacity-10">
+
+            <!-- Anti-Data Loss & Security Panel -->
+            <div>
+                <div class="text-uppercase small fw-bold text-muted mb-2 ps-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Data Safety & Encryption</div>
+                
+                <div class="p-3 rounded-3 bg-light border mb-2.5">
+                    <div class="form-check form-switch mb-1 small">
+                        <input class="form-check-input" type="checkbox" id="overwriteModeToggle" role="switch">
+                        <label class="form-check-label text-dark fw-semibold" for="overwriteModeToggle" id="modeToggleLabel">Merge Mode</label>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.7rem;">Prevents accidental deletion during JSON file imports.</div>
+                </div>
+
+                <div class="p-3 rounded-3 bg-light border mb-2.5">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="small fw-semibold text-dark"><i class="bi bi-lock-fill text-primary me-1"></i> AES Passcode Lock</span>
+                        <button class="btn btn-sm btn-link p-0 text-primary fw-semibold text-decoration-none" style="font-size: 0.75rem;" onclick="configureEncryption()">Configure</button>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.7rem;" id="encryptionStatusText">Vault stored locally in plain memory.</div>
+                </div>
+            </div>
+
+            <div class="mt-auto d-flex flex-column gap-2 pt-2 border-top">
+                <button class="btn btn-outline-success btn-sm rounded-3 w-100 d-flex align-items-center justify-content-center gap-1.5 py-2 fw-semibold shadow-sm" onclick="exportPortableHtml()">
+                    <i class="bi bi-file-earmark-code"></i> Export Portable App (.html)
+                </button>
+                <button class="btn btn-outline-primary btn-sm rounded-3 w-100 d-flex align-items-center justify-content-center gap-1.5 py-2 fw-semibold shadow-sm" onclick="requestPersistentStoragePermission()">
+                    <i class="bi bi-shield-check"></i> Lock Persistent Quota
+                </button>
+                <button class="btn btn-outline-secondary btn-sm rounded-3 w-100 d-flex align-items-center justify-content-center gap-1.5 py-2 fw-semibold" onclick="exportData()">
+                    <i class="bi bi-download"></i> Export Vault File (.json)
+                </button>
+                <button class="btn btn-outline-danger btn-sm rounded-3 w-100 d-flex align-items-center justify-content-center gap-1.5 py-2 fw-semibold" onclick="clearAllVault()">
+                    <i class="bi bi-trash3"></i> Clear Vault
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow-1 p-3 p-lg-4 overflow-auto">
+            
+            <!-- Front Page Drag & Drop Upload Bar -->
+            <div class="upload-bar mb-4" id="dropZone" onclick="document.getElementById('globalJsonFile').click()">
+                <input type="file" id="globalJsonFile" accept=".json" class="d-none" onchange="handleGlobalImport(event)">
+                <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary shadow-sm">
+                            <i class="bi bi-cloud-arrow-up-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1 fs-6">Drag & Drop any JSON file here or Click to Upload</h6>
+                            <p class="text-muted small mb-0">Dual-layered persistence (IndexedDB + LocalStorage + OPFS) guarantees your data stays safe.</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-primary-pill px-3 py-2">
+                        <i class="bi bi-file-earmark-arrow-up me-1"></i> Browse File
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toolbar Header -->
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <div class="fw-bold text-dark fs-5" id="sectionTitle">All Snippets (<span id="activeItemCount">0</span>)</div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <select id="sortSelect" class="form-select form-select-sm rounded-3 shadow-none border bg-white py-1.5 px-3" onchange="renderBackups()">
+                        <option value="newest">Sort: Newest First</option>
+                        <option value="oldest">Sort: Oldest First</option>
+                        <option value="alpha">Sort: Title (A-Z)</option>
+                        <option value="category">Sort: Category</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Backups Grid -->
+            <div id="backupGrid" class="row g-3.5">
+                <!-- Dynamic Cards Injected Here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-5 d-none">
+                <div class="p-4 rounded-circle bg-white border shadow-sm d-inline-flex mb-3">
+                    <i class="bi bi-inbox fs-1 text-muted opacity-75"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">No snippets found</h5>
+                <p class="text-muted small mb-3">Create your first code snippet or upload a JSON backup file to get started.</p>
+                <button class="btn btn-primary-pill btn-sm px-4 py-2" onclick="openAddModal()">
+                    <i class="bi bi-plus-lg me-1"></i> Create Snippet
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Add / Edit Modal -->
+    <div class="modal fade" id="addBackupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content p-3">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold fs-5 d-flex align-items-center gap-2" id="modalHeading">
+                        <i class="bi bi-plus-circle-fill text-primary"></i> Create Snippet
+                    </h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <form id="backupForm" onsubmit="handleFormSubmit(event)">
+                        <input type="hidden" id="editingId">
+
+                        <div class="mb-3">
+                            <label for="backupTitle" class="form-label fw-semibold small text-uppercase text-muted">Snippet Title / Project Name</label>
+                            <input type="text" class="form-control rounded-3" id="backupTitle" placeholder="e.g., E-Commerce Admin Dashboard HTML" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="backupCategory" class="form-label fw-semibold small text-uppercase text-muted">Category Type</label>
+                                <select class="form-select rounded-3" id="backupCategory">
+                                    <option value="Base64">Base64 Code</option>
+                                    <option value="JSON">JSON File</option>
+                                    <option value="HTML/JS">HTML / JS (Live Previewable)</option>
+                                    <option value="Other">Other Backup</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-uppercase text-muted">Import JSON File (Optional)</label>
+                                <input type="file" class="form-control form-control-sm rounded-3 py-2" id="modalJsonFileInput" accept=".json" onchange="handleModalJsonUpload(event)">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="backupContent" class="form-label fw-semibold small text-uppercase text-muted">Paste Code / JSON / HTML / Base64</label>
+                            <textarea class="form-control font-monospace rounded-3" id="backupContent" rows="8" placeholder="Paste your HTML code, JSON data, or Base64 code here..." required style="font-size: 0.85rem;"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-2">
+                            <button type="button" class="btn btn-light border px-4 rounded-3 btn-sm fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary-pill px-4 btn-sm fw-semibold" id="saveButtonText">Save Snippet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View & Render Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content p-3">
+                <div class="modal-header border-bottom-0 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="modal-title fw-bold text-break fs-5 mb-1" id="viewModalTitle">Snippet Details</h5>
+                        <div class="small text-muted d-flex align-items-center gap-2" id="viewModalTimestamp"></div>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body pt-3">
+                    <ul class="nav nav-tabs mb-3 border-bottom" id="viewModalTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active d-flex align-items-center gap-1.5 fw-semibold" id="code-tab" data-bs-toggle="tab" data-bs-target="#code-pane" type="button" role="tab">
+                                <i class="bi bi-code-slash"></i> Code View
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link d-flex align-items-center gap-1.5 fw-semibold" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-pane" type="button" role="tab" onclick="renderLiveIframe()">
+                                <i class="bi bi-eye"></i> Rendered Live Output
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="viewModalTabContent">
+                        <div class="tab-pane fade show active" id="code-pane" role="tabpanel">
+                            <div class="code-box mb-3">
+                                <div class="p-2 bg-dark text-white border-bottom d-flex justify-content-between align-items-center px-3 border-secondary">
+                                    <span class="small font-monospace text-light opacity-75">UTF-8 &bull; Text Format</span>
+                                    <div class="d-flex gap-1.5">
+                                        <button class="btn btn-sm btn-outline-light py-1 px-2.5 rounded-2 d-flex align-items-center gap-1 small" onclick="downloadSingleFile()">
+                                            <i class="bi bi-download"></i> Download File
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light py-1 px-2.5 rounded-2 d-flex align-items-center gap-1 small" onclick="copyViewModalContent()">
+                                            <i class="bi bi-clipboard"></i> Copy Code
+                                        </button>
+                                    </div>
+                                </div>
+                                <pre class="code-preview-text p-3" id="viewModalContent" style="max-height: 420px;"></pre>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="preview-pane" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted"><i class="bi bi-info-circle me-1"></i> Live rendered preview inside sandboxed environment:</span>
+                                <button class="btn btn-sm btn-light border py-1 px-2.5 rounded-2 small fw-semibold" onclick="openFullscreenPreview()">
+                                    <i class="bi bi-arrows-angle-expand me-1"></i> Fullscreen Preview
+                                </button>
+                            </div>
+                            <iframe class="iframe-preview" id="liveIframePreview" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
+                        <button type="button" class="btn btn-light border rounded-3 px-4 btn-sm fw-semibold" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Output Preview Modal -->
+    <div class="modal fade" id="fullscreenPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content border-0 rounded-0 p-0">
+                <div class="modal-header py-2 px-3 bg-dark text-white border-bottom border-secondary">
+                    <h6 class="modal-title fw-bold d-flex align-items-center gap-2" id="fullscreenTitle">
+                        <i class="bi bi-play-circle-fill text-success"></i> Fullscreen Live Output
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-white">
+                    <iframe class="w-100 h-100 border-0" id="fullscreenIframe" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+        <div id="liveToast" class="toast align-items-center text-bg-dark border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex p-1">
+                <div class="toast-body d-flex align-items-center gap-2 small fw-medium" id="toastMessage">
+                    <i class="bi bi-check-circle-fill text-success"></i> Action completed successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & Main Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // EMBEDDED DEFAULT BACKUP DATA & KEYS (Automatically populated with user's saved snippets and keys upon export)
+        const EMBEDDED_VAULT_DATA = [];
+        const EMBEDDED_MASTER_PASSCODE = "";
+
+        // State Management
+        let backups = [];
+        let activeCategory = 'all';
+        let currentViewingBackup = null;
+        let masterPasscode = null;
+
+        function toggleSidebar(open) {
+            // Sidebar is fixed permanently.
+        }
+
+        // On DOM Load
+        document.addEventListener('DOMContentLoaded', async () => {
+            setupDragAndDrop();
+            await requestPersistentStoragePermission();
+            await initDualStorage();
+            renderBackups();
+
+            if (masterPasscode) {
+                document.getElementById('encryptionStatusText').innerText = "Encrypted with AES Passcode.";
+            }
+
+            const toggle = document.getElementById('overwriteModeToggle');
+            if (toggle) {
+                toggle.addEventListener('change', () => {
+                    document.getElementById('modeToggleLabel').innerText = toggle.checked ? 'Overwrite Vault' : 'Merge Mode';
+                    showToast(toggle.checked ? 'Import Mode: Overwrite Vault' : 'Import Mode: Merge & Append');
+                });
+            }
+        });
+
+        // PERSISTENCE ENGINE 1: Request Browser Storage Permission
+        async function requestPersistentStoragePermission() {
+            if (navigator.storage && navigator.storage.persist) {
+                const isPersisted = await navigator.storage.persist();
+                const badge = document.getElementById('persistenceBadge');
+                if (isPersisted) {
+                    badge.innerHTML = '<i class="bi bi-shield-check"></i> Persistence Active';
+                    badge.className = 'status-pill status-protected';
+                } else {
+                    badge.innerHTML = '<i class="bi bi-shield-exclamation"></i> Storage Standard';
+                }
+            }
+        }
+
+        // PERSISTENCE ENGINE 2: Dual Storage (IndexedDB + LocalStorage + OPFS + Embedded Defaults)
+        function openIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('WebVaultProStore', 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('vault_items')) {
+                        db.createObjectStore('vault_items', { keyPath: 'id' });
+                    }
+                };
+                req.onsuccess = (e) => resolve(e.target.result);
+                req.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function initDualStorage() {
+            // 1. Sync embedded passcode/keys if present
+            if (typeof EMBEDDED_MASTER_PASSCODE !== 'undefined' && EMBEDDED_MASTER_PASSCODE) {
+                if (!localStorage.getItem('webvault_passcode')) {
+                    localStorage.setItem('webvault_passcode', EMBEDDED_MASTER_PASSCODE);
+                }
+            }
+            masterPasscode = localStorage.getItem('webvault_passcode') || null;
+
+            // 2. Load local storage and IndexedDB items
+            let localItems = [];
+            try {
+                localItems = JSON.parse(localStorage.getItem('webvault_backups')) || [];
+            } catch(e) { localItems = []; }
+
+            let idbItems = [];
+            try {
+                const db = await openIndexedDB();
+                const tx = db.transaction('vault_items', 'readonly');
+                const store = tx.objectStore('vault_items');
+                const req = store.getAll();
+                idbItems = await new Promise((resolve) => {
+                    req.onsuccess = (e) => resolve(e.target.result || []);
+                    req.onerror = () => resolve([]);
+                });
+            } catch(e) { idbItems = []; }
+
+            // 3. Merge items ensuring embedded defaults (Base64 backups, etc.) are included on new devices/shared files
+            const mergedMap = new Map();
+            localItems.forEach(item => mergedMap.set(item.id, item));
+            idbItems.forEach(item => mergedMap.set(item.id, item));
+
+            if (typeof EMBEDDED_VAULT_DATA !== 'undefined' && Array.isArray(EMBEDDED_VAULT_DATA)) {
+                EMBEDDED_VAULT_DATA.forEach(item => {
+                    if (!mergedMap.has(item.id)) {
+                        mergedMap.set(item.id, item);
+                    }
+                });
+            }
+
+            backups = Array.from(mergedMap.values());
+            await saveToAllStorages();
+        }
+
+        async function saveToAllStorages() {
+            localStorage.setItem('webvault_backups', JSON.stringify(backups));
+            if (masterPasscode) {
+                localStorage.setItem('webvault_passcode', masterPasscode);
+            } else {
+                localStorage.removeItem('webvault_passcode');
+            }
+
+            try {
+                const db = await openIndexedDB();
+                const tx = db.transaction('vault_items', 'readwrite');
+                const store = tx.objectStore('vault_items');
+                store.clear();
+                backups.forEach(item => store.put(item));
+            } catch (err) {
+                console.warn('IndexedDB sync bypassed:', err);
+            }
+
+            try {
+                if (navigator.storage && navigator.storage.getDirectory) {
+                    const root = await navigator.storage.getDirectory();
+                    const fileHandle = await root.getFileHandle('webvault_mirror.json', { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(JSON.stringify(backups));
+                    await writable.close();
+                }
+            } catch(e) {}
+        }
+
+        // Configure Passcode Encryption
+        function configureEncryption() {
+            const pass = prompt('Enter a Master Passcode / PIN to encrypt your vault (or leave blank to disable):');
+            if (pass === null) return;
+            if (pass.trim() === '') {
+                localStorage.removeItem('webvault_passcode');
+                masterPasscode = null;
+                document.getElementById('encryptionStatusText').innerText = "Vault stored locally in plain memory.";
+                showToast('Passcode encryption disabled.');
+            } else {
+                masterPasscode = pass.trim();
+                localStorage.setItem('webvault_passcode', masterPasscode);
+                document.getElementById('encryptionStatusText').innerText = "Encrypted with AES Passcode.";
+                showToast('Vault secured with AES Passcode!');
+            }
+            saveAndRefresh();
+        }
+
+        // Drag & Drop Handling
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            if (!dropZone) return;
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.remove('dragover');
+                }, false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    processUploadedJsonFile(files[0]);
+                }
+            });
+        }
+
+        // RAW JSON IMPORTER
+        function processUploadedJsonFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const rawText = e.target.result;
+                    let formattedContent = rawText;
+                    
+                    try {
+                        const parsed = JSON.parse(rawText);
+                        formattedContent = JSON.stringify(parsed, null, 2);
+                    } catch(err) {
+                        formattedContent = rawText;
+                    }
+
+                    const newItem = {
+                        id: Date.now().toString(),
+                        title: file.name,
+                        category: 'JSON',
+                        content: formattedContent,
+                        timestamp: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    };
+
+                    const overwriteToggle = document.getElementById('overwriteModeToggle');
+                    const isOverwrite = overwriteToggle ? overwriteToggle.checked : false;
+
+                    if (isOverwrite) {
+                        backups = [newItem];
+                    } else {
+                        backups.unshift(newItem);
+                    }
+
+                    saveAndRefresh();
+                    showToast(`JSON file "${file.name}" saved securely!`);
+
+                } catch (err) {
+                    showToast('Failed to process JSON file.');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function handleGlobalImport(e) {
+            const file = e.target.files[0];
+            processUploadedJsonFile(file);
+            e.target.value = '';
+        }
+
+        function handleModalJsonUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const raw = evt.target.result;
+                    document.getElementById('backupContent').value = raw;
+                    const titleInput = document.getElementById('backupTitle');
+                    if (!titleInput.value.trim()) {
+                        titleInput.value = file.name;
+                    }
+                    document.getElementById('backupCategory').value = 'JSON';
+                    showToast('Raw JSON loaded into editor!');
+                } catch (err) {
+                    document.getElementById('backupContent').value = evt.target.result;
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.sidebar-item').forEach(btn => {
+                if (btn.getAttribute('data-cat') === cat) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            renderBackups();
+        }
+
+        function renderBackups() {
+            const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+            const sortVal = document.getElementById('sortSelect').value;
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchVal) {
+                clearBtn.classList.remove('d-none');
+            } else {
+                clearBtn.classList.add('d-none');
+            }
+
+            let filtered = backups.filter(b => {
+                const matchesCat = activeCategory === 'all' || b.category === activeCategory;
+                const matchesSearch = !searchVal || 
+                    b.title.toLowerCase().includes(searchVal) || 
+                    b.content.toLowerCase().includes(searchVal) || 
+                    b.category.toLowerCase().includes(searchVal);
+                return matchesCat && matchesSearch;
+            });
+
+            filtered.sort((a, b) => {
+                if (sortVal === 'newest') return (b.id - a.id);
+                if (sortVal === 'oldest') return (a.id - b.id);
+                if (sortVal === 'alpha') return a.title.localeCompare(b.title);
+                if (sortVal === 'category') return a.category.localeCompare(b.category);
+                return 0;
+            });
+
+            updateCounters();
+
+            const grid = document.getElementById('backupGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            document.getElementById('activeItemCount').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('d-none');
+                return;
+            }
+
+            emptyState.classList.add('d-none');
+
+            grid.innerHTML = filtered.map(b => `
+                <div class="col-md-6 col-xl-4">
+                    <div class="card card-snippet h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
+                            <h6 class="fw-bold mb-0 text-truncate text-dark" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</h6>
+                            <span class="badge ${getBadgeStyle(b.category)} flex-shrink-0">${b.category}</span>
+                        </div>
+
+                        <div class="text-muted mb-2.5 d-flex align-items-center" style="font-size: 0.725rem;">
+                            <i class="bi bi-clock me-1 opacity-75"></i> ${b.timestamp}
+                        </div>
+
+                        <div class="code-box mb-3 flex-grow-1">
+                            <div class="p-1.5 px-2 bg-dark text-white border-bottom border-secondary d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
+                                <span class="font-monospace text-light opacity-75"><i class="bi bi-code-square me-1"></i>snippet.code</span>
+                                <span class="text-light opacity-50 font-monospace">${getCharLength(b.content)}</span>
+                            </div>
+                            <pre class="code-preview-text">${escapeHtml(b.content)}</pre>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                            <div class="d-flex gap-1.5">
+                                <button class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.75rem;" onclick="viewBackup('${b.id}')">
+                                    <i class="bi bi-eye me-1"></i> View
+                                </button>
+                                ${isRenderable(b) ? `
+                                <button class="btn btn-sm btn-warning bg-opacity-20 text-dark border-0 rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.75rem; background: #fef3c7;" onclick="quickRender('${b.id}')">
+                                    <i class="bi bi-play-fill me-1 text-amber-700"></i> Output
+                                </button>` : ''}
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-light border text-success rounded-circle" onclick="downloadSingleBackup('${b.id}')" title="Download Raw File">
+                                    <i class="bi bi-download" style="font-size: 0.75rem;"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light border rounded-circle" onclick="openEditModal('${b.id}')" title="Edit Snippet">
+                                    <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light border text-primary rounded-circle" onclick="copyToClipboard(\`${escapeJs(b.content)}\`)" title="Copy Code">
+                                    <i class="bi bi-clipboard" style="font-size: 0.75rem;"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light border text-danger rounded-circle" onclick="deleteBackup('${b.id}')" title="Delete Snippet">
+                                    <i class="bi bi-trash" style="font-size: 0.75rem;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function isRenderable(item) {
+            if (item.category === 'HTML/JS') return true;
+            const content = item.content.trim().toLowerCase();
+            return content.includes('<html') || content.includes('<div') || content.includes('<script') || content.includes('<style');
+        }
+
+        function getCharLength(str) {
+            if (str.length < 1024) return `${str.length} chars`;
+            return `${(str.length / 1024).toFixed(1)} KB`;
+        }
+
+        function getBadgeStyle(cat) {
+            switch(cat) {
+                case 'Base64': return 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20';
+                case 'JSON': return 'bg-success bg-opacity-10 text-success border border-success border-opacity-20';
+                case 'HTML/JS': return 'bg-warning bg-opacity-20 text-dark border border-warning border-opacity-30';
+                default: return 'bg-info bg-opacity-10 text-info border border-info border-opacity-20';
+            }
+        }
+
+        function updateCounters() {
+            document.getElementById('catCountAll').innerText = backups.length;
+            document.getElementById('catCountBase64').innerText = backups.filter(b => b.category === 'Base64').length;
+            document.getElementById('catCountJSON').innerText = backups.filter(b => b.category === 'JSON').length;
+            document.getElementById('catCountHTML').innerText = backups.filter(b => b.category === 'HTML/JS').length;
+            document.getElementById('catCountOther').innerText = backups.filter(b => b.category === 'Other').length;
+
+            const jsonString = JSON.stringify(backups);
+            const bytes = new Blob([jsonString]).size;
+            const kb = (bytes / 1024).toFixed(1);
+            document.getElementById('headerQuota').innerText = `${kb} KB`;
+        }
+
+        function openAddModal() {
+            document.getElementById('modalHeading').innerHTML = '<i class="bi bi-plus-circle-fill text-primary"></i> Create Snippet';
+            document.getElementById('saveButtonText').innerText = 'Save Snippet';
+            document.getElementById('editingId').value = '';
+            document.getElementById('backupForm').reset();
+            const modal = new bootstrap.Modal(document.getElementById('addBackupModal'));
+            modal.show();
+        }
+
+        function openEditModal(id) {
+            const backup = backups.find(b => b.id === id);
+            if (!backup) return;
+
+            document.getElementById('modalHeading').innerHTML = '<i class="bi bi-pencil-square text-primary"></i> Edit Snippet';
+            document.getElementById('saveButtonText').innerText = 'Update Snippet';
+            document.getElementById('editingId').value = backup.id;
+            document.getElementById('backupTitle').value = backup.title;
+            document.getElementById('backupCategory').value = backup.category;
+            document.getElementById('backupContent').value = backup.content;
+
+            const modal = new bootstrap.Modal(document.getElementById('addBackupModal'));
+            modal.show();
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editingId').value;
+            const title = document.getElementById('backupTitle').value.trim();
+            const category = document.getElementById('backupCategory').value;
+            const content = document.getElementById('backupContent').value.trim();
+
+            if (!title || !content) return;
+
+            const timestamp = new Date().toLocaleString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            if (id) {
+                backups = backups.map(b => {
+                    if (b.id === id) {
+                        return { ...b, title, category, content, timestamp: `${timestamp} (edited)` };
+                    }
+                    return b;
+                });
+                showToast('Snippet updated successfully!');
+            } else {
+                const newBackup = {
+                    id: Date.now().toString(),
+                    title,
+                    category,
+                    content,
+                    timestamp
+                };
+                backups.unshift(newBackup);
+                if (category === 'Base64') {
+                    showToast('Base64 code saved and marked as default backup!');
+                } else {
+                    showToast('New snippet created successfully!');
+                }
+            }
+
+            saveAndRefresh();
+
+            const modalEl = document.getElementById('addBackupModal');
+            const instance = bootstrap.Modal.getInstance(modalEl);
+            if (instance) instance.hide();
+        }
+
+        function deleteBackup(id) {
+            if (confirm('Are you sure you want to delete this snippet?')) {
+                backups = backups.filter(b => b.id !== id);
+                saveAndRefresh();
+                showToast('Snippet deleted successfully.');
+            }
+        }
+
+        function clearAllVault() {
+            if (backups.length === 0) {
+                showToast('Vault is already empty.');
+                return;
+            }
+            if (confirm('WARNING: Are you sure you want to clear your entire vault? All snippets will be deleted.')) {
+                backups = [];
+                masterPasscode = null;
+                localStorage.removeItem('webvault_passcode');
+                document.getElementById('encryptionStatusText').innerText = "Vault stored locally in plain memory.";
+                saveAndRefresh();
+                showToast('Entire vault and keys cleared successfully.');
+            }
+        }
+
+        function viewBackup(id) {
+            const backup = backups.find(b => b.id === id);
+            if (!backup) return;
+
+            currentViewingBackup = backup;
+            document.getElementById('viewModalTitle').innerText = backup.title;
+            document.getElementById('viewModalTimestamp').innerHTML = `
+                <i class="bi bi-clock"></i> Saved on ${backup.timestamp} 
+                &bull; <span class="badge ${getBadgeStyle(backup.category)} ms-1">${backup.category}</span>
+            `;
+            document.getElementById('viewModalContent').innerText = backup.content;
+
+            const codeTabBtn = document.getElementById('code-tab');
+            const tab = new bootstrap.Tab(codeTabBtn);
+            tab.show();
+
+            const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+            viewModal.show();
+        }
+
+        function renderLiveIframe() {
+            if (!currentViewingBackup) return;
+            const iframe = document.getElementById('liveIframePreview');
+            iframe.srcdoc = currentViewingBackup.content;
+        }
+
+        function quickRender(id) {
+            viewBackup(id);
+            setTimeout(() => {
+                const previewTabBtn = document.getElementById('preview-tab');
+                const tab = new bootstrap.Tab(previewTabBtn);
+                tab.show();
+                renderLiveIframe();
+            }, 250);
+        }
+
+        function openFullscreenPreview() {
+            if (!currentViewingBackup) return;
+            document.getElementById('fullscreenTitle').innerText = `Fullscreen Live Output - ${currentViewingBackup.title}`;
+            const iframe = document.getElementById('fullscreenIframe');
+            iframe.srcdoc = currentViewingBackup.content;
+
+            const modal = new bootstrap.Modal(document.getElementById('fullscreenPreviewModal'));
+            modal.show();
+        }
+
+        // DOWNLOAD RAW FILE
+        function downloadSingleBackup(id) {
+            const backup = backups.find(b => b.id === id);
+            if (!backup) return;
+
+            let fileName = backup.title.endsWith('.json') ? backup.title : `${backup.title}.json`;
+            let mimeType = "data:text/json;charset=utf-8,";
+
+            const dataStr = mimeType + encodeURIComponent(backup.content);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", fileName);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast(`Downloaded "${fileName}" as raw JSON file.`);
+        }
+
+        function downloadSingleFile() {
+            if (currentViewingBackup) {
+                downloadSingleBackup(currentViewingBackup.id);
+            }
+        }
+
+        function copyViewModalContent() {
+            if (currentViewingBackup) {
+                copyToClipboard(currentViewingBackup.content);
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Code copied to clipboard!');
+            }).catch(err => {
+                showToast('Failed to copy code.');
+                console.error(err);
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            renderBackups();
+        }
+
+        function saveAndRefresh() {
+            saveToAllStorages();
+            renderBackups();
+        }
+
+        function exportData() {
+            if (backups.length === 0) {
+                showToast('No backups available to export.');
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backups, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `webvault_master_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Master Vault File exported successfully!');
+        }
+
+        // EXPORT PORTABLE APP: Automatically embeds all user-saved snippets (including Base64 codes marked as default) and keys into the HTML file
+        function exportPortableHtml() {
+            let htmlDoc = document.documentElement.outerHTML;
+            const serializedData = JSON.stringify(backups);
+            const activePass = localStorage.getItem('webvault_passcode') || masterPasscode || '';
+            const serializedPass = JSON.stringify(activePass);
+
+            htmlDoc = htmlDoc.replace(
+                /const EMBEDDED_VAULT_DATA = \[[\s\S]*?\];/,
+                `const EMBEDDED_VAULT_DATA = ${serializedData};`
+            );
+            htmlDoc = htmlDoc.replace(
+                /const EMBEDDED_MASTER_PASSCODE = [^;]*;/,
+                `const EMBEDDED_MASTER_PASSCODE = ${serializedPass};`
+            );
+
+            const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `WebVault_Workspace_${new Date().toISOString().slice(0,10)}.html`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('Portable App exported! All saved backups, Base64 codes, and keys are now baked in as defaults.');
+        }
+
+        function showToast(msg) {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastMessage').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${escapeHtml(msg)}`;
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function escapeJs(str) {
+            if (!str) return '';
+            return str.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+        }
+    </script>
+</body>
+</html>

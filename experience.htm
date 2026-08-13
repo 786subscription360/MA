@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Experience Letter | Single Page A4</title>
+    <!-- Fixed CDN Links -->
+    <link href="https://cdn.jsdelivr.net" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --smooth-navy: #0f172a;
+            --action-blue: #38bdf8;
+            --soft-gray: #f8fafc;
+            --border-light: #e2e8f0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body { 
+            background-color: #f1f5f9; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: #334155; 
+            padding: 20px 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .a4-canvas {
+            width: 210mm;
+            height: 297mm; /* Fixed height for A4 */
+            background: white;
+            margin: 0 auto;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.08);
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+            overflow: hidden; /* Prevents text from spilling to page 2 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-grid {
+            padding: 50px 70px 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            background: linear-gradient(to bottom, #fcfdfe, #ffffff);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .brand-box { border-left: 3px solid var(--smooth-navy); padding-left: 20px; }
+        .brand-box h1 { 
+            font-weight: 800; font-size: 28px; color: var(--smooth-navy); 
+            margin: 0; letter-spacing: -1px; text-transform: uppercase;
+        }
+        .brand-box p { 
+            color: var(--action-blue); font-size: 10px; font-weight: 700; 
+            letter-spacing: 4px; text-transform: uppercase; margin: 2px 0 0;
+        }
+
+        .meta-box { text-align: right; }
+        .meta-label { font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .meta-value { font-size: 12px; font-weight: 600; color: var(--smooth-navy); margin-bottom: 5px; display: block; }
+
+        .title-section { padding: 30px 70px 10px; text-align: center; }
+        .main-title {
+            font-weight: 800; font-size: 26px; color: var(--smooth-navy);
+            text-transform: uppercase; letter-spacing: 10px; margin: 0;
+            opacity: 0.9;
+        }
+
+        .letter-content { padding: 20px 70px; font-size: 15px; line-height: 1.7; color: #475569; flex-grow: 1; }
+        
+        [contenteditable="true"] { 
+            outline: none; transition: all 0.3s ease; border-radius: 4px; padding: 1px 3px;
+        }
+        [contenteditable="true"]:hover { background: rgba(56, 189, 248, 0.04); }
+        [contenteditable="true"]:focus { background: white; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15); }
+
+        .highlights-container { 
+            background: #f8fafc; border: 1px solid var(--border-light); 
+            border-radius: 15px; padding: 20px 30px; margin: 20px 0; 
+        }
+        .achievement-item { 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: flex-start; /* Keep everything on left */
+    gap: 10px; /* space between dot, text, and delete button */
+    margin-bottom: 8px; 
+    padding: 4px; 
+    border-radius: 8px; 
+}
+        .dot { width: 5px; height: 5px; background: var(--action-blue); border-radius: 50%; margin-top: 10px; margin-right: 15px; flex-shrink: 0; }
+
+        .controls { display: inline-flex; gap: 5px; vertical-align: middle; margin-left: 10px; }
+        .btn-circle {
+            width: 24px; height: 24px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-add { background: var(--smooth-navy); color: white; }
+        .btn-del { background: #fee2e2; color: #ef4444; opacity: 0; }
+        .achievement-item:hover .btn-del { opacity: 1; }
+
+        .sig-grid { display: flex; justify-content: space-between; margin-top: 40px; padding-bottom: 20px; }
+        .sig-item { text-align: center; width: 200px; }
+        .sig-line { border-top: 2px solid var(--smooth-navy); padding-top: 10px; font-weight: 700; color: var(--smooth-navy); font-size: 13px; }
+
+        .print-fab {
+            position: fixed; bottom: 30px; right: 30px; background: var(--smooth-navy);
+            color: white; border: none; padding: 15px 35px; border-radius: 50px;
+            font-weight: 700; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2); z-index: 999;
+        }
+
+        .footer-info {
+            padding: 20px 70px; border-top: 1px solid var(--border-light);
+            text-align: center; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        @media print {
+            .print-fab, .controls, .btn-del, .tip-nav { display: none !important; }
+            body { background: white; padding: 0; }
+            .a4-canvas { box-shadow: none; margin: 0; width: 100%; border: none; animation: none; }
+            @page { size: A4; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="text-center mb-3 tip-nav d-print-none">
+        <span class="badge bg-white text-dark shadow-sm px-3 py-1">A4 OPTIMIZED</span>
+    </div>
+
+    <button class="print-fab" onclick="window.print()">PRINT CERTIFICATE</button>
+
+    <div class="a4-canvas">
+        <header class="header-grid">
+            <div class="brand-box">
+                <h1 contenteditable="true">SECUREGUARD</h1>
+                <p contenteditable="true">Safety Management & Systems</p>
+            </div>
+            <div class="meta-box">
+                <span class="meta-label">Reference ID</span>
+                <span class="meta-value" contenteditable="true">SG/EXP/2026/8821</span>
+                <span class="meta-label">Date of Issue</span>
+                <span class="meta-value" contenteditable="true">March 07, 2026</span>
+            </div>
+        </header>
+
+        <div class="title-section">
+            <h1 class="main-title" contenteditable="true">Experience Letter</h1>
+        </div>
+
+        <div class="letter-content">
+            <div class="recipient-intro mb-4">
+                <p class="mb-0 text-muted small">Issued to:</p>
+                <h3 class="fw-bold text-uppercase m-0" contenteditable="true" style="font-size: 1.25rem;">MR. JOHNATHAN SMITH</h3>
+                <p class="fw-semibold text-muted small" contenteditable="true">Senior Fire & Safety Officer</p>
+            </div>
+
+            <div class="main-body">
+                <p>To Whom It May Concern,</p>
+                
+                <p>We are pleased to certify that <strong contenteditable="true">Mr. Johnathan Smith</strong> worked as a <strong>Senior Fire & Safety Officer</strong> at SecureGuard Systems from <span contenteditable="true">January 2023</span> to <span contenteditable="true">March 2026</span>.</p>
+                
+                <p>During his tenure, he did an excellent job keeping our workplace safe. His main work included:
+                    <span class="controls"><button class="btn-circle btn-add" onclick="addItem()">+</button></span>
+                </p>
+
+               <div class="highlights-container" id="listArea">
+
+    <div class="achievement-item">
+        <div class="dot"></div>
+        <span class="flex-grow-1" contenteditable="true">
+            Setting up safety rules that follow international fire standards.
+        </span>
+        <button class="btn-circle btn-del" onclick="this.parentElement.remove()">×</button>
+    </div>
+
+    <div class="achievement-item">
+        <div class="dot"></div>
+        <span class="flex-grow-1" contenteditable="true">
+            Conducting regular fire safety inspections and risk assessments.
+        </span>
+        <button class="btn-circle btn-del" onclick="this.parentElement.remove()">×</button>
+    </div>
+
+    <div class="achievement-item">
+        <div class="dot"></div>
+        <span class="flex-grow-1" contenteditable="true">
+            Training employees on fire emergency procedures and evacuation drills.
+        </span>
+        <button class="btn-circle btn-del" onclick="this.parentElement.remove()">×</button>
+    </div>
+
+    <div class="achievement-item">
+        <div class="dot"></div>
+        <span class="flex-grow-1" contenteditable="true">
+            Monitoring workplace safety compliance and reporting hazards.
+        </span>
+        <button class="btn-circle btn-del" onclick="this.parentElement.remove()">×</button>
+    </div>
+
+    <div class="achievement-item">
+        <div class="dot"></div>
+        <span class="flex-grow-1" contenteditable="true">
+            Coordinating with management to implement safety improvements.
+        </span>
+        <button class="btn-circle btn-del" onclick="this.parentElement.remove()">×</button>
+    </div>
+
+</div>
+
+                <p contenteditable="true" class="mt-3">He is a hardworking professional who is very good at finding and fixing safety risks. He is leaving the company for his own personal reasons, and we wish him the very best in his future career.</p>
+            </div>
+
+            <div class="sig-grid">
+                <div class="sig-item">
+                    <div class="sig-line" contenteditable="true">HR Manager</div>
+                    <p class="small text-muted mt-1" contenteditable="true">Corporate Division</p>
+                </div>
+                <div class="sig-item">
+                    <div class="sig-line" contenteditable="true">Operations Director</div>
+                    <p class="small text-muted mt-1" contenteditable="true">Safety & Fire Dept.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer-info">
+            <span contenteditable="true">Global Headquarters • Industrial Block 7 • +1 800-SAFE-FIRE • secureguard-safety.com</span>
+        </footer>
+    </div>
+
+    <script>
+        function addItem() {
+            const container = document.getElementById('listArea');
+            const div = document.createElement('div');
+            div.className = 'achievement-item';
+            div.innerHTML = `
+                <div class="dot"></div>
+                <span class="flex-grow-1" contenteditable="true">Click to edit this safety achievement...</span>
+                <button class="btn-circle btn-del" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(div);
+            div.querySelector('[contenteditable]').focus();
+        }
+    </script>
+</body>
+</html>

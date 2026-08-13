@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard | Analytics Dashboard v25.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        :root { 
+            --brand: #0f172a; 
+            --brand-accent: #3b82f6;
+            --brand-light: #f1f5f9;
+            --surface: #ffffff; 
+            --bg: #f8fafc; 
+            --text-main: #1e293b; 
+            --text-muted: #64748b;
+            --border: #e2e8f0; 
+            --radius-lg: 12px;
+            --radius-md: 8px;
+        }
+
+        body { 
+            background-color: var(--bg); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .glass-header { 
+            background: #ffffff; 
+            border-bottom: 1px solid var(--border); 
+            padding: 1rem 0; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .brand-text {
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.03em;
+            color: var(--brand);
+            text-transform: uppercase;
+        }
+
+        .brand-subtext {
+            color: var(--brand-accent);
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            font-size: 0.7rem;
+        }
+
+        .stats-card-premium {
+            background: var(--brand-light);
+            border-radius: var(--radius-md);
+            padding: 0.4rem 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .drop-zone { 
+            border: 2px dashed #cbd5e1; 
+            background: white; 
+            border-radius: 20px; 
+            padding: 5rem 2rem; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        .drop-zone:hover { 
+            border-color: var(--brand-accent); 
+            background: #fdfeff;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1);
+        }
+        .drop-zone i {
+            transition: transform 0.3s ease;
+        }
+        .drop-zone:hover i {
+            transform: scale(1.1) translateY(-5px);
+        }
+
+        .filter-hub {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-card { 
+            background: white; 
+            border-radius: var(--radius-lg); 
+            border: 1px solid var(--border); 
+            overflow: hidden; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-hr thead th { 
+            background: #f8f9fb;
+            font-size: 0.65rem; 
+            text-transform: uppercase; 
+            font-weight: 700;
+            letter-spacing: 0.05em; 
+            padding: 1rem 0.75rem; 
+            color: var(--text-muted); 
+            border-bottom: 1px solid var(--border); 
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+        .table-hr thead th:hover { background: #edf2f7; }
+        .sort-icon { font-size: 0.8rem; opacity: 0.3; margin-left: 4px; }
+        .sort-active .sort-icon { opacity: 1; color: var(--brand-accent); }
+
+        .table-hr td { padding: 1.1rem 0.75rem; vertical-align: middle; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+        .table-hr tbody tr:hover { background-color: #fbfcfe; }
+
+        .super-header { background: #f1f5f9 !important; color: var(--brand) !important; cursor: default !important; }
+        .sub-header { background: #fcfdfe !important; color: var(--text-muted); }
+
+        .badge-soft { padding: 5px 10px; border-radius: 6px; font-weight: 700; font-size: 0.72rem; }
+        .badge-total { background: #00875a12; color: #00875a; border: 1px solid #00875a20; }
+        .error-row { background-color: #fff8f8 !important; }
+        .resigned-row { background-color: #fff1f2 !important; }
+        .joiner-row { background-color: #f0f9ff !important; }
+        
+        /* PREMIUM EMPLOYEE DETAILS STYLING */
+        .emp-container { padding: 4px 0; }
+        .emp-name-premium { font-size: 0.9rem; font-weight: 700; color: var(--brand); margin-bottom: 2px; }
+        .emp-id-badge { display: inline-block; background: #e2e8f0; color: #475569; font-size: 0.6rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px; }
+        .emp-meta-premium { font-size: 0.7rem; color: #64748b; line-height: 1.4; }
+        .emp-dept-premium { color: var(--brand-accent); font-weight: 500; }
+
+        /* MODERN PREMIUM TAGS */
+        .tag-premium {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            margin-top: 6px;
+        }
+        
+        .tag-joiner-modern { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        .tag-resigned-modern { background: #ffe4e6; color: #e11d48; border-color: #fecaca; animation: premiumPulse 2s infinite; }
+        .tag-error-modern { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+        .tag-ok-modern { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+
+        .alert-mini-premium {
+            background: #fff1f2;
+            color: #be123c;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-top: 4px;
+            border-left: 3px solid #e11d48;
+            box-shadow: 0 2px 4px rgba(225, 29, 72, 0.05);
+        }
+
+        @keyframes premiumPulse {
+            0% { box-shadow: 0 0 0 0px rgba(225, 29, 72, 0.2); }
+            70% { box-shadow: 0 0 0 6px rgba(225, 29, 72, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(225, 29, 72, 0); }
+        }
+
+        .premium-filter-box { position: relative; flex: 1; min-width: 160px; }
+        .p-filter-btn { 
+            background: #f8f9fb; border: 1px solid var(--border); border-radius: 8px; 
+            padding: 8px 14px; font-size: 0.8rem; font-weight: 500;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; 
+        }
+        .p-filter-menu { 
+            position: absolute; top: 110%; left: 0; width: 100%; min-width: 240px; 
+            background: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); 
+            z-index: 2000; display: none; padding: 12px; border: 1px solid var(--border);
+        }
+        .p-filter-menu.active { display: block; animation: slideUp 0.2s ease-out; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .p-search-input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; margin-bottom: 10px; }
+        .p-option-list { max-height: 220px; overflow-y: auto; }
+        .p-option { padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .p-option:hover { background: var(--brand-light); color: var(--brand-accent); }
+
+        .btn-premium-primary { background: var(--brand); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
+        .btn-premium-primary:hover { background: #000000; }
+        
+        .btn-reupload { 
+            background: white; 
+            color: var(--brand); 
+            border: 1px solid var(--border); 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 0.85rem; 
+            transition: all 0.2s;
+        }
+        .btn-reupload:hover { 
+            background: var(--brand-light); 
+            border-color: var(--brand-accent);
+            color: var(--brand-accent);
+        }
+
+        .filter-bar { background: #ffffff; border-radius: 10px; border: 1px solid var(--border); padding: 15px; margin-bottom: 20px; }
+        .manual-input { width: 80px !important; text-align: center; border: 1px solid var(--brand-accent) !important; font-weight: bold; color: var(--brand-accent); }
+    </style>
+</head>
+<body>
+
+<div class="glass-header mb-4">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <div class="brand-text">HR Dashboard</div>
+            <div class="brand-subtext"></div>
+        </div>
+        
+        <div class="d-flex gap-3 align-items-center">
+            <div id="quickStats" class="d-flex gap-2" style="display: none !important;">
+                <div class="stats-card-premium"><span class="text-muted small">Total Staff:</span><span class="fw-bold" id="countStaff">0</span></div>
+                <div class="stats-card-premium"><span class="text-muted small text-danger">Errors:</span><span class="fw-bold text-danger" id="countErrors">0</span></div>
+                <div class="stats-card-premium"><span class="text-muted small text-warning">Review:</span><span class="fw-bold text-warning" id="countReview">0</span></div>
+            </div>
+            <div class="vr mx-2" id="headerDivider" style="display: none;"></div>
+            
+            <button id="reuploadBtn" class="btn-reupload" style="display: none;" onclick="document.getElementById('fileInput').click()">
+                <i class="bi bi-arrow-repeat me-2"></i>New Import
+            </button>
+
+            <button class="btn-premium-primary" onclick="exportToExcel()">
+                <i class="bi bi-download me-2"></i>Export Summary
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <div id="filterHub" class="filter-hub shadow-sm" style="display: none;">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">EMPLOYEE SEARCH</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchNameId" class="form-control bg-light border-start-0" onkeyup="applySmartFilters()" placeholder="ID or Name...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted">DESIGNATION</label>
+                <div class="premium-filter-box">
+                    <div class="p-filter-btn" onclick="toggleMenu('menuPos')">
+                        <span id="labelPos" class="text-truncate">All Designations</span> <i class="bi bi-chevron-down ms-2"></i>
+                    </div>
+                    <div id="menuPos" class="p-filter-menu">
+                        <input type="text" class="p-search-input" onkeyup="filterList(this)" placeholder="Search positions...">
+                        <div class="p-option-list" id="listPos"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted">DEPARTMENT</label>
+                <div class="premium-filter-box">
+                    <div class="p-filter-btn" onclick="toggleMenu('menuDept')">
+                        <span id="labelDept" class="text-truncate">All Departments</span> <i class="bi bi-chevron-down ms-2"></i>
+                    </div>
+                    <div id="menuDept" class="p-filter-menu">
+                        <input type="text" class="p-search-input" onkeyup="filterList(this)" placeholder="Search departments...">
+                        <div class="p-option-list" id="listDept"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted">COMPLIANCE STATUS</label>
+                <div class="premium-filter-box">
+                    <div class="p-filter-btn" onclick="toggleMenu('menuComp')">
+                        <span id="labelComp" class="text-truncate">All Status</span> <i class="bi bi-chevron-down ms-2"></i>
+                    </div>
+                    <div id="menuComp" class="p-filter-menu">
+                        <div class="p-option-list">
+                            <div class="p-option" onclick="selectOption('compliance', '', 'labelComp', 'All Status')">Show All</div>
+                            <div class="p-option" onclick="selectOption('compliance', 'OK', 'labelComp', 'OK')">✅ OK</div>
+                            <div class="p-option" onclick="selectOption('compliance', 'REVIEW', 'labelComp', 'REVIEW')">⚠️ REVIEW</div>
+                            <div class="p-option" onclick="selectOption('compliance', 'RESIGNED', 'labelComp', 'RESIGNED')">🚩 RESIGNED</div>
+                            <div class="p-option" onclick="selectOption('compliance', 'JOINER', 'labelComp', 'JOINER')">🆕 JOINER</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-sm btn-outline-secondary px-3" onclick="resetFilters()">Reset All Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadBox" class="drop-zone shadow-sm mb-4" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" hidden accept=".xlsx, .xls">
+        <div class="mb-3">
+            <i class="bi bi-cloud-arrow-up-fill" style="font-size: 4rem; color: var(--brand-accent);"></i>
+        </div>
+        <h4 class="fw-800 mb-2">Ready to process attendance?</h4>
+        <p class="text-muted mx-auto mb-4" style="max-width: 500px;">Click here or drag and drop your Excel file. Optimized for GPAK & PPAK Automated Mapping (Worked, Extra, Leaves, Compliance).</p>
+        <span class="btn btn-primary px-5 py-2 rounded-pill fw-bold" style="background: var(--brand-accent); border:none;">Browse Files</span>
+    </div>
+
+    <div id="filterBar" class="filter-bar shadow-sm d-flex align-items-center gap-3" style="display: none !important;">
+        <span class="fw-bold small text-muted text-uppercase"><i class="bi bi-gear-fill"></i> Calculation Settings:</span>
+        <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted">Late Relaxation (m):</label>
+            <input type="number" id="lateRelax" class="form-control form-control-sm manual-input" value="30">
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted">Early Relaxation (m):</label>
+            <input type="number" id="earlyRelax" class="form-control form-control-sm manual-input" value="45">
+        </div>
+        <div class="vr mx-2"></div>
+        <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted">Period:</label>
+            <input type="date" id="filterFrom" class="form-control form-control-sm">
+            <input type="date" id="filterTo" class="form-control form-control-sm">
+        </div>
+        <button class="btn btn-dark btn-sm px-4 rounded-pill" onclick="recalculateAll()">Apply Settings</button>
+    </div>
+
+    <div id="dashboardUI" style="display: none;">
+        <div class="table-card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hr m-0 text-center" id="mainTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="text-start border-end" style="vertical-align: middle; width: 280px;" onclick="sortTable(0)">Employee Details <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th rowspan="2" class="border-end" style="vertical-align: middle;" onclick="sortTable(1)">Sched. Hours <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th colspan="4" class="super-header border-end">Actual Working Analysis</th>
+                            <th rowspan="2" class="border-end" style="vertical-align: middle; background: #fef8f8;" onclick="sortTable(6)">Leave Hours <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th rowspan="2" class="border-end" style="vertical-align: middle;" onclick="sortTable(7)">Absent Hours <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th colspan="2" class="border-end" style="background: #fffcf0; vertical-align: middle;">Tardiness Instances</th>
+                            <th rowspan="2" class="border-end" style="vertical-align: middle;" onclick="sortTable(10)">Sched. Days <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th rowspan="2" style="vertical-align: middle;" onclick="sortTable(11)">Compliance <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                        </tr>
+                        <tr>
+                            <th class="sub-header" onclick="sortTable(2)">Worked <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th class="sub-header" onclick="sortTable(3)">Extra <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th class="sub-header" onclick="sortTable(4)">Leave <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th class="sub-header border-end" style="background: #f4fff8 !important; color: #00875a !important;" onclick="sortTable(5)">Total Sum <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th class="sub-header" style="background: #fffcf5;" onclick="sortTable(8)">Late <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                            <th class="sub-header border-end" style="background: #fffcf5;" onclick="sortTable(9)">Early <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="payrollBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let masterData = {};
+    let rawRows = [];
+    let filterState = { designation: "", department: "", compliance: "" };
+    let currentSort = { col: -1, asc: true };
+    const POLICY = { GRACE_G: 15, GRACE_S: 10, L_LIMIT: 6, E_LIMIT: 4, HR_VAL: 8 };
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            processReport(rawRows);
+            
+            document.getElementById('uploadBox').style.display = 'none';
+            document.getElementById('dashboardUI').style.display = 'block';
+            document.getElementById('filterHub').style.display = 'block';
+            document.getElementById('filterBar').style.setProperty('display', 'flex', 'important');
+            document.getElementById('quickStats').style.setProperty('display', 'flex', 'important');
+            
+            document.getElementById('reuploadBtn').style.display = 'inline-block';
+            document.getElementById('headerDivider').style.display = 'block';
+            
+            e.target.value = "";
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    function calculateTimeDiff(inStr, outStr) {
+        if (!inStr || !outStr || inStr === "N/A" || outStr === "N/A" || outStr === "" || inStr.trim() === "" || outStr.trim() === "") return 0;
+        try {
+            const parseTime = (t) => {
+                const parts = t.trim().split(' ');
+                const [h, m] = parts[0].split(':');
+                let hours = parseInt(h);
+                if (parts[1] === 'PM' && hours < 12) hours += 12;
+                if (parts[1] === 'AM' && hours === 12) hours = 0;
+                return new Date(2026, 0, 1, hours, parseInt(m));
+            };
+            const diff = (parseTime(outStr) - parseTime(inStr)) / (1000 * 60 * 60);
+            return diff > 0 ? diff : 0;
+        } catch (e) { return 0; }
+    }
+
+    function processReport(rows, startDate = null, endDate = null) {
+        masterData = {};
+        let currentId = "";
+        let cols = { worked: 24, extra: 28, late: 34, early: 37, status: 41, timeIn: 7, timeOut: 11, slot: 4, dateIn: 6, dateOut: 10 };
+        let customLate = parseInt(document.getElementById('lateRelax').value) || 30;
+        let customEarly = parseInt(document.getElementById('earlyRelax').value) || 45;
+
+        rows.forEach((row) => {
+            const col0 = String(row[0] || "");
+            if (col0.includes("Attendance") && col0.includes("Date")) {
+                row.forEach((cell, idx) => {
+                    let c = String(cell).toLowerCase();
+                    if (c.includes("worked")) cols.worked = idx;
+                    if (c.includes("extra")) cols.extra = idx;
+                    if (c.includes("late")) cols.late = idx;
+                    if (c.includes("early depar")) cols.early = idx;
+                    if (c.includes("status")) cols.status = idx;
+                    if (c.includes("check-in") || (c === "time" && row[idx-1] === "Check-In")) cols.timeIn = idx;
+                    if (c.includes("check-out") || (c === "time" && row[idx-1] === "Check-Out")) cols.timeOut = idx;
+                    if (c === "date" && row[idx+1] === "Check-In") cols.dateIn = idx;
+                    if (c === "date" && row[idx+1] === "Check-Out") cols.dateOut = idx;
+                    if (c.includes("slot")) cols.slot = idx;
+                });
+            }
+
+            if (col0.includes("Employee Id")) {
+                const info = String(row[3] || "").split(/\n+/);
+                const meta = String(row[32] || row[25] || "").split(/\n+/);
+                currentId = info[0]?.trim();
+                let rawShift = meta[2]?.trim() || "General";
+                let displayShift = (rawShift.toUpperCase() === "GENERAL" || rawShift.toUpperCase() === "G") ? "General" : "Shift";
+
+                if(!masterData[currentId]) {
+                    masterData[currentId] = {
+                        id: currentId, name: info[1]?.trim(), 
+                        designation: info[2]?.trim() || "N/A",
+                        department: meta[1]?.trim() || "N/A",
+                        shift: displayShift,
+                        schedHrs: 0, workedHrs: 0, extraHrs: 0, leaveHrs: 0, absentHrs: 0,
+                        lateCount: 0, earlyCount: 0, schedDays: 0, totalLeaveDaysHrs: 0, 
+                        dataError: false, isResigned: false, isJoiner: false, totalRowRecord: 0,
+                        errorMsg: []
+                    };
+                }
+            }
+
+            if (/^\d{2}-\d{2}-\d{4}$/.test(col0)) {
+                let status = String(row[cols.status] || "").trim();
+                let slot = String(row[cols.slot] || "").toUpperCase();
+                let worked = parseFloat(row[cols.worked]) || 0;
+                let extra = parseFloat(row[cols.extra]) || 0;
+                let late = parseInt(row[cols.late]) || 0;
+                let early = parseInt(row[cols.early]) || 0;
+                let tIn = row[cols.timeIn], tOut = row[cols.timeOut];
+                let dIn = String(row[cols.dateIn] || "").trim();
+                let dOut = String(row[cols.dateOut] || "").trim();
+                let attDate = col0.trim();
+                let [d, m, y] = col0.split('-').map(Number);
+                let currentDate = new Date(y, m - 1, d);
+
+                masterData[currentId].totalRowRecord++;
+                if (slot !== "OFF" && slot !== "GH") {
+                    masterData[currentId].schedDays++;
+                    masterData[currentId].schedHrs += POLICY.HR_VAL;
+                }
+                masterData[currentId].workedHrs += worked;
+                masterData[currentId].extraHrs += extra;
+                
+                let checkInValid = (tIn && String(tIn).trim() !== "" && String(tIn).toUpperCase() !== "N/A");
+                let checkOutValid = (tOut && String(tOut).trim() !== "" && String(tOut).toUpperCase() !== "N/A");
+                
+                let isSameDayCheckIn = (dIn === attDate);
+                let isSameDayCheckOut = (dOut === attDate);
+
+                if (status.includes("Leave") || status.includes("S.Leave")) {
+                    if (checkInValid && checkOutValid && (isSameDayCheckIn || isSameDayCheckOut)) {
+                        let calcWorkedOnLeave = calculateTimeDiff(tIn, tOut);
+                        masterData[currentId].leaveHrs += calcWorkedOnLeave;
+                    } else if (((checkInValid && !checkOutValid) || (!checkInValid && checkOutValid)) && (isSameDayCheckIn || isSameDayCheckOut)) {
+                        if(!masterData[currentId].errorMsg.includes("ERROR: LEAVE LOGS")) masterData[currentId].errorMsg.push("ERROR: LEAVE LOGS");
+                        masterData[currentId].dataError = true;
+                    }
+                    
+                    if (!checkInValid && !checkOutValid) {
+                        masterData[currentId].totalLeaveDaysHrs += POLICY.HR_VAL;
+                    } else if (checkInValid && dIn !== attDate && dIn !== "") {
+                        masterData[currentId].totalLeaveDaysHrs += POLICY.HR_VAL;
+                    } else if (!checkInValid && checkOutValid && dOut !== attDate && dOut !== "") {
+                        masterData[currentId].totalLeaveDaysHrs += POLICY.HR_VAL;
+                    }
+                }
+
+                if (slot !== "OFF" && slot !== "GH") {
+                    if (status.toLowerCase().includes("absent")) {
+                        if (!isSameDayCheckIn && !isSameDayCheckOut || (!checkInValid && !checkOutValid)) {
+                            masterData[currentId].absentHrs += (1 * POLICY.HR_VAL);
+                        }
+                    }
+                }
+
+                let isInRange = true;
+                if(startDate && currentDate < startDate) isInRange = false;
+                if(endDate && currentDate > endDate) isInRange = false;
+
+                if (isInRange) {
+                    let grace = masterData[currentId].shift.includes("General") ? POLICY.GRACE_G : POLICY.GRACE_S;
+                    if (late > grace && late >= customLate) masterData[currentId].lateCount++;
+                    if (early >= customEarly) masterData[currentId].earlyCount++;
+                }
+            }
+        });
+
+        Object.keys(masterData).forEach(id => {
+            let emp = masterData[id];
+            if (emp.workedHrs === 0 && emp.totalLeaveDaysHrs === 0 && emp.absentHrs === 0) {
+                emp.dataError = true;
+                if(!emp.errorMsg.includes("ERROR: WORKING HOURS")) emp.errorMsg.push("ERROR: WORKING HOURS");
+            }
+            if (emp.totalRowRecord > 0 && emp.totalRowRecord <= 15) emp.isJoiner = true;
+            else if (emp.workedHrs === 0 && emp.totalLeaveDaysHrs === 0) emp.isResigned = true;
+        });
+
+        populatePremiumFilters();
+        renderTable();
+    }
+
+    function recalculateAll() {
+        let fromVal = document.getElementById('filterFrom').value, toVal = document.getElementById('filterTo').value;
+        processReport(rawRows, fromVal ? new Date(fromVal) : null, toVal ? new Date(toVal) : null);
+    }
+
+    function populatePremiumFilters() {
+        const posSet = new Set(), deptSet = new Set();
+        Object.values(masterData).forEach(e => { if(e.designation) posSet.add(e.designation); if(e.department) deptSet.add(e.department); });
+        buildList('listPos', posSet, 'designation', 'labelPos', 'All Designations');
+        buildList('listDept', deptSet, 'department', 'labelDept', 'All Departments');
+    }
+
+    function buildList(listId, set, filterKey, labelId, defaultLabel) {
+        const list = document.getElementById(listId);
+        list.innerHTML = `<div class="p-option fw-bold border-bottom mb-1 text-primary" onclick="selectOption('${filterKey}', '', '${labelId}', '${defaultLabel}')">Show All</div>`;
+        Array.from(set).sort().forEach(item => {
+            list.innerHTML += `<div class="p-option" onclick="selectOption('${filterKey}', '${item}', '${labelId}', '${item}')">${item}</div>`;
+        });
+    }
+
+    function selectOption(key, val, labelId, labelTxt) {
+        filterState[key] = val;
+        document.getElementById(labelId).innerText = labelTxt;
+        document.querySelectorAll('.p-filter-menu').forEach(m => m.classList.remove('active'));
+        applySmartFilters();
+    }
+
+    function applySmartFilters() {
+        const searchTxt = document.getElementById('searchNameId').value.toLowerCase();
+        const trs = document.querySelectorAll('#payrollBody tr');
+        
+        trs.forEach(tr => {
+            const empId = tr.getAttribute('data-id');
+            const emp = masterData[empId];
+            if(!emp) return;
+
+            const complianceStatus = emp.isResigned ? 'RESIGNED' : (emp.isJoiner ? 'JOINER' : (emp.dataError ? 'REVIEW' : 'OK'));
+
+            const matchSearch = (emp.name.toLowerCase().includes(searchTxt) || emp.id.toLowerCase().includes(searchTxt));
+            const matchPos = filterState.designation === "" || emp.designation === filterState.designation;
+            const matchDept = filterState.department === "" || emp.department === filterState.department;
+            const matchComp = filterState.compliance === "" || complianceStatus === filterState.compliance;
+            
+            tr.style.display = (matchSearch && matchPos && matchDept && matchComp) ? "" : "none";
+        });
+    }
+
+    function sortTable(colIdx) {
+        const tbody = document.getElementById('payrollBody');
+        const rows = Array.from(tbody.rows);
+        const headers = document.querySelectorAll('th');
+        
+        headers.forEach(h => h.classList.remove('sort-active'));
+        const headerElements = document.querySelectorAll('thead th');
+        if (colIdx === 0) headerElements[0].classList.add('sort-active');
+        else if (colIdx === 1) headerElements[1].classList.add('sort-active');
+
+        if (currentSort.col === colIdx) currentSort.asc = !currentSort.asc;
+        else { currentSort.col = colIdx; currentSort.asc = true; }
+
+        rows.sort((a, b) => {
+            let valA = a.cells[colIdx].innerText.replace(/[^0-9.-]+/g,"");
+            let valB = b.cells[colIdx].innerText.replace(/[^0-9.-]+/g,"");
+            
+            if (isNaN(parseFloat(valA))) {
+                valA = a.cells[colIdx].innerText.toLowerCase();
+                valB = b.cells[colIdx].innerText.toLowerCase();
+            } else {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+
+            if (valA < valB) return currentSort.asc ? -1 : 1;
+            if (valA > valB) return currentSort.asc ? 1 : -1;
+            return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function toggleMenu(id) {
+        const menu = document.getElementById(id);
+        const isActive = menu.classList.contains('active');
+        document.querySelectorAll('.p-filter-menu').forEach(m => m.classList.remove('active'));
+        if (!isActive) menu.classList.add('active');
+    }
+
+    function filterList(input) {
+        const val = input.value.toLowerCase();
+        const options = input.nextElementSibling.querySelectorAll('.p-option');
+        options.forEach(opt => opt.style.display = opt.innerText.toLowerCase().includes(val) ? '' : 'none');
+    }
+
+    function resetFilters() {
+        document.getElementById('searchNameId').value = ""; 
+        filterState = { designation: "", department: "", compliance: "" };
+        document.getElementById('labelPos').innerText = "All Designations";
+        document.getElementById('labelDept').innerText = "All Departments";
+        document.getElementById('labelComp').innerText = "All Status";
+        applySmartFilters();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('payrollBody');
+        tbody.innerHTML = "";
+        let errs = 0, revs = 0;
+        Object.values(masterData).forEach(emp => {
+            let actualTotal = emp.workedHrs + emp.extraHrs + emp.leaveHrs;
+            
+            if(emp.dataError) { errs++; revs++; } 
+            
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-id', emp.id);
+            
+            if (emp.isJoiner) tr.className = "joiner-row";
+            else if (emp.isResigned) tr.className = "resigned-row";
+            else if (emp.dataError) tr.className = "error-row";
+            
+            let errorLabel = emp.errorMsg.map(m => `<div class="alert-mini-premium">${m}</div>`).join("");
+
+            // Tag Logic
+            let tagHtml = '';
+            if (emp.isResigned) tagHtml = '<span class="tag-premium tag-resigned-modern">Resigned</span>';
+            else if (emp.isJoiner) tagHtml = '<span class="tag-premium tag-joiner-modern">New Joiner</span>';
+            else if (emp.dataError) tagHtml = '<span class="tag-premium tag-error-modern">Review</span>';
+            else tagHtml = '<span class="tag-premium tag-ok-modern">OK</span>';
+
+            tr.innerHTML = `
+                <td class="text-start border-end">
+                    <div class="emp-container">
+                        <div class="emp-id-badge">ID: ${emp.id}</div>
+                        <div class="emp-name-premium">${emp.name}</div>
+                        <div class="emp-meta-premium">
+                            <div>${emp.designation}</div>
+                            <div><span class="emp-dept-premium">${emp.department}</span> • ${emp.shift}</div>
+                        </div>
+                        ${errorLabel}
+                    </div>
+                </td>
+                <td class="border-end fw-bold text-secondary">${emp.schedHrs}h</td>
+                <td>${emp.workedHrs.toFixed(1)}</td><td>${emp.extraHrs.toFixed(1)}</td><td>${emp.leaveHrs.toFixed(1)}</td>
+                <td class="border-end" style="background: #f4fff8;"><span class="badge-soft badge-total">${actualTotal.toFixed(1)}h</span></td>
+                <td class="border-end fw-bold" style="background: #fef8f8;">${emp.totalLeaveDaysHrs}h</td>
+                <td class="border-end"><span class="text-danger fw-bold">${emp.absentHrs}h</span></td>
+                <td style="background: #fffcf5;">${emp.lateCount}</td><td class="border-end" style="background: #fffcf5;">${emp.earlyCount}</td>
+                <td class="border-end">${emp.schedDays}d</td>
+                <td>${tagHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.getElementById('countStaff').innerText = Object.keys(masterData).length;
+        document.getElementById('countErrors').innerText = errs;
+        document.getElementById('countReview').innerText = revs;
+    }
+
+    function exportToExcel() {
+        const wb = XLSX.utils.book_new();
+        const headerRow1 = [
+            "HR Dashboard Report", "", "", "", "", 
+            "Sched. Hours", 
+            "Actual Working Analysis", "", "", "", 
+            "Leave Hours", 
+            "Absent Hours", 
+            "Tardiness Instances", "", 
+            "Sched. Days", 
+            "Compliance Status"
+        ];
+        const headerRow2 = [
+            "Name", "ID", "Designation", "Department", "Shift", 
+            "", 
+            "Worked", "Extra", "Leave", "Total Sum", 
+            "", 
+            "", 
+            "Late", "Early", 
+            "", 
+            ""
+        ];
+        const dataRows = Object.values(masterData).map(e => [
+            e.name, e.id, e.designation, e.department, e.shift,
+            e.schedHrs,
+            parseFloat(e.workedHrs.toFixed(1)), parseFloat(e.extraHrs.toFixed(1)), parseFloat(e.leaveHrs.toFixed(1)), parseFloat((e.workedHrs + e.extraHrs + e.leaveHrs).toFixed(1)),
+            e.totalLeaveDaysHrs,
+            e.absentHrs,
+            e.lateCount, e.earlyCount,
+            e.schedDays,
+            e.isResigned ? "RESIGNED" : (e.isJoiner ? "JOINER" : (e.dataError ? "REVIEW" : "OK"))
+        ]);
+        const ws = XLSX.utils.aoa_to_sheet([headerRow1, headerRow2, ...dataRows]);
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+            { s: { r: 0, c: 6 }, e: { r: 0, c: 9 } },
+            { s: { r: 0, c: 12 }, e: { r: 0, c: 13 } }
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, "HR Analytics Summary");
+        XLSX.writeFile(wb, "HR_Dashboard_Report.xlsx");
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.closest('.premium-filter-box')) {
+            document.querySelectorAll('.p-filter-menu').forEach(m => m.classList.remove('active'));
+        }
+    };
+</script>
+</body>
+</html>

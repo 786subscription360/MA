@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Pro | Final Ultra Extractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --error: #f43f5e;
+            --bg: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.85);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0; display: flex; height: 100vh; overflow: hidden;
+        }
+
+        .sidebar {
+            width: 420px; padding: 25px;
+            background: var(--panel-bg); backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column;
+            box-shadow: 20px 0 40px rgba(0,0,0,0.3); z-index: 10;
+        }
+
+        .preview-area { flex-grow: 1; background: #020617; position: relative; display: flex; align-items: center; justify-content: center; }
+
+        h1 { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.5px; }
+        .subtitle { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 25px; }
+
+        label { 
+            font-size: 0.65rem; font-weight: 800; text-transform: uppercase; 
+            letter-spacing: 1.2px; color: var(--primary); display: block; margin-bottom: 10px;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.3);
+            border-radius: 12px; padding: 25px; text-align: center;
+            cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.03);
+            margin-bottom: 20px;
+        }
+        .drop-zone:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.08); }
+
+        .smart-filters-container {
+            flex-grow: 1; overflow-y: auto; margin-bottom: 15px;
+            padding-right: 5px; scrollbar-width: thin;
+        }
+        
+        .filter-section { margin-bottom: 20px; }
+        .filter-section-title {
+            font-size: 0.65rem; color: #fff; background: rgba(255,255,255,0.05);
+            padding: 5px 10px; border-radius: 5px;
+            margin-bottom: 10px; font-weight: 700; text-transform: uppercase;
+        }
+
+        .filter-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tag {
+            background: rgba(99, 102, 241, 0.1); color: #c7d2fe;
+            padding: 5px 12px; border-radius: 20px; font-size: 0.7rem;
+            font-weight: 600; cursor: pointer; border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.2s;
+        }
+        .tag:hover { background: var(--primary); color: white; transform: scale(1.05); }
+
+        textarea { 
+            width: 100%; padding: 12px; border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);
+            color: #fff; font-family: inherit; resize: none; font-size: 0.8rem;
+            line-height: 1.4; margin-bottom: 15px;
+        }
+
+        .action-btns { display: flex; gap: 10px; }
+        button { 
+            flex: 1; padding: 14px; border-radius: 10px; border: none; 
+            font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.85rem;
+        }
+
+        #processBtn { background: var(--primary); color: white; }
+        #processBtn:hover { background: var(--primary-dark); }
+        #downloadBtn { background: var(--success); color: white; display: none; }
+
+        #status { 
+            margin-top: 15px; padding: 12px; border-radius: 8px; 
+            font-size: 0.7rem; font-weight: 600; display: none; text-align: center;
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+        .placeholder-text { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+
+        .loader-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h1>Attendance Pro</h1>
+    <p class="subtitle">Extracting by Criteria</p>
+
+    <label>1. Master Document</label>
+    <div class="drop-zone" id="dropZone">
+        <span id="fileNameDisplay">Upload PDF Report</span>
+        <input type="file" id="pdfUpload" accept="application/pdf" style="display:none">
+    </div>
+
+    <div class="smart-filters-container" id="smartFilters">
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 40px;">
+            Waiting for file upload...
+        </p>
+    </div>
+
+    <label>2. Active Filter Criteria</label>
+    <textarea id="searchBox" placeholder="Selected filters will appear here..." rows="3"></textarea>
+
+    <div class="action-btns">
+        <button id="processBtn" onclick="processPDF()">Extract Records</button>
+        <button id="downloadBtn" onclick="downloadPDF()">Download Report</button>
+    </div>
+    
+    <div id="status"></div>
+</div>
+
+<div class="preview-area">
+    <div class="loader-overlay" id="loader">
+        <div style="font-weight: 800; font-size: 1.2rem; color: var(--primary); letter-spacing: 2px;">PROCESSING</div>
+        <div id="loaderStatus" style="font-size: 0.75rem; margin-top: 8px; color: var(--text-muted);">Parsing document...</div>
+    </div>
+    <div class="placeholder-text" id="previewPlaceholder">Report Preview Will Appear Here</div>
+    <iframe id="pdfPreview" style="display:none;"></iframe>
+</div>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let finalPdfUrl = null;
+    let masterBuffer = null;
+
+    const pdfUpload = document.getElementById('pdfUpload');
+    const searchBox = document.getElementById('searchBox');
+    const smartFilters = document.getElementById('smartFilters');
+    const loader = document.getElementById('loader');
+
+    document.getElementById('dropZone').onclick = () => pdfUpload.click();
+
+    pdfUpload.onchange = async () => {
+        const file = pdfUpload.files[0];
+        if(!file) return;
+        document.getElementById('fileNameDisplay').innerText = file.name;
+        masterBuffer = await file.arrayBuffer();
+        await deepScanPDF(masterBuffer);
+    };
+
+    async function deepScanPDF(buffer) {
+        loader.style.display = 'flex';
+        smartFilters.innerHTML = "";
+        
+        const pdf = await pdfjsLib.getDocument({ data: buffer.slice(0) }).promise;
+        const detections = {
+            codes: new Set(),
+            pos: new Set(),
+            depts: new Set(),
+            shifts: new Set()
+        };
+
+        // Specific Position Keywords
+        const posKeywords = ["MANAGER", "SUPERVISOR", "ENGINEER", "OPERATOR", "OFFICER", "ASSISTANT", "TECHNICIAN", "EXECUTIVE", "HELPER", "MGR", "SUPDT", "INCHARGE"];
+        // Specific Department Keywords
+        const deptKeywords = ["PLANT", "POWER", "ADMIN", "HR", "FINANCE", "LOGISTICS", "PRODUCTION", "CELL", "STORE", "MAINTENANCE"];
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            document.getElementById('loaderStatus').innerText = `Scanning Page ${i}/${pdf.numPages}`;
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const text = content.items.map(item => item.str).join(" ");
+            const upperText = text.toUpperCase();
+
+            // 1. Employee Codes
+            const codes = text.match(/\b\d{4,8}\b/g);
+            if(codes) codes.forEach(c => detections.codes.add(c));
+
+            // 2. Positions vs Departments
+            posKeywords.forEach(k => { if(upperText.includes(k)) detections.pos.add(k); });
+            deptKeywords.forEach(k => { if(upperText.includes(k)) detections.depts.add(k); });
+
+            // 3. Shifts
+            const shiftTags = ["MORNING", "EVENING", "NIGHT", "GENERAL", "SHIFT A", "SHIFT B", "SHIFT C"];
+            shiftTags.forEach(s => { if(upperText.includes(s)) detections.shifts.add(s); });
+        }
+
+        renderSections(detections);
+        loader.style.display = 'none';
+        showStatus("PDF Analyzed Successfully.", "success");
+    }
+
+    function renderSections(data) {
+        const categories = [
+            { label: "Emp Codes", key: "codes" },
+            { label: "Designations", key: "pos" },
+            { label: "Departments", key: "depts" },
+            { label: "Shifts", key: "shifts" }
+        ];
+
+        categories.forEach(cat => {
+            if (data[cat.key].size === 0) return;
+            const wrap = document.createElement('div');
+            wrap.className = "filter-section";
+            wrap.innerHTML = `<div class="filter-section-title">${cat.label}</div>`;
+            const tagBox = document.createElement('div');
+            tagBox.className = "filter-tags";
+            
+            Array.from(data[cat.key]).sort().forEach(val => {
+                const tag = document.createElement('span');
+                tag.className = "tag";
+                tag.innerText = val;
+                tag.onclick = () => {
+                    const current = searchBox.value.trim();
+                    const filterArr = current ? current.split(", ") : [];
+                    if(!filterArr.includes(val)) {
+                        filterArr.push(val);
+                        searchBox.value = filterArr.join(", ");
+                    }
+                };
+                tagBox.appendChild(tag);
+            });
+            wrap.appendChild(tagBox);
+            smartFilters.appendChild(wrap);
+        });
+    }
+
+    async function processPDF() {
+        if (!masterBuffer) return showStatus("Please upload a file first.", "error");
+        const query = searchBox.value.trim();
+        if (!query) return showStatus("Select at least one criteria.", "error");
+
+        loader.style.display = 'flex';
+        document.getElementById('loaderStatus').innerText = "Filtering Pages...";
+
+        try {
+            const filters = query.split(", ").map(f => f.toLowerCase());
+            const pdf = await pdfjsLib.getDocument({ data: masterBuffer.slice(0) }).promise;
+            const matchedIndices = [];
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const text = content.items.map(item => item.str).join(" ").toLowerCase();
+                
+                if (filters.some(f => text.includes(f))) {
+                    matchedIndices.push(i - 1);
+                }
+            }
+
+            if (matchedIndices.length === 0) {
+                loader.style.display = 'none';
+                return showStatus("No records found for these criteria.", "error");
+            }
+
+            const { PDFDocument } = PDFLib;
+            const srcDoc = await PDFDocument.load(masterBuffer);
+            const outDoc = await PDFDocument.create();
+            const pages = await outDoc.copyPages(srcDoc, matchedIndices);
+            pages.forEach(p => outDoc.addPage(p));
+
+            const bytes = await outDoc.save();
+            if (finalPdfUrl) URL.revokeObjectURL(finalPdfUrl);
+            finalPdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+
+            document.getElementById('previewPlaceholder').style.display = 'none';
+            document.getElementById('pdfPreview').src = finalPdfUrl;
+            document.getElementById('pdfPreview').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+            
+            loader.style.display = 'none';
+            showStatus(`Success: ${matchedIndices.length} records extracted.`, "success");
+        } catch (err) {
+            loader.style.display = 'none';
+            showStatus("Error: " + err.message, "error");
+        }
+    }
+
+    function downloadPDF() {
+        const link = document.createElement('a');
+        link.href = finalPdfUrl;
+        link.download = `Filtered_Attendance_Report.pdf`;
+        link.click();
+    }
+
+    function showStatus(msg, type) {
+        const s = document.getElementById('status');
+        s.style.display = 'block';
+        s.innerText = msg;
+        s.style.background = type === 'error' ? 'rgba(244,63,94,0.1)' : 'rgba(16,185,129,0.1)';
+        s.style.color = type === 'error' ? '#fb7185' : '#34d399';
+    }
+</script>
+
+</body>
+</html>
